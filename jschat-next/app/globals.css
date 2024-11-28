@@ -19,3 +19,12 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+[contentEditable="true"]:empty:not(:focus):before {
+  content: attr(data-placeholder);
+  color: rgb(55 65 81);
+}
+[contentEditable="true"]:empty:focus:before {
+  content: attr(data-placeholder);
+  color: rgb(107 114 128);
+}
