@@ -251,19 +251,6 @@ export default function Home() {
         </div>
         <button>focus</button>
       </main>
-      <footer className="row-start-3 flex gap-6 pt-16 flex-wrap items-center justify-center">
-        <p className="flex items-center gap-2">
-          © 2024 Spreed.chat. All rights reserved.
-        </p>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://spreed.chat/privacy.html"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Privacy Policy{" "}
-        </a>
-      </footer>
     </div>
   )
 }
