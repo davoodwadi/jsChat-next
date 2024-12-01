@@ -7,7 +7,7 @@ function UserMessage(props) {
       className="min-w-fit max-w-[95vw] flex-1 m-1 bg-blue-400 p-1 dark:bg-blue-600" //border-2 border-blue-500
       onKeyDown={props.handleEnter}
       id={props.id}
-      ref={props.refElementUser}
+      //   ref={props.refElementUser}
     >
       {props.children}
     </div>
@@ -33,12 +33,11 @@ function BotMessage(props) {
   )
 }
 
-export default function BotContent() {
-  // return <UserMessage>profile page 1</UserMessage>
+export default function M() {
   return (
     <>
-      <UserMessage>User profile layout</UserMessage>
-      <BotMessage>User profile layout</BotMessage>
+      <UserMessage>User innerprofile layout</UserMessage>
+      <BotMessage>User innerprofile layout</BotMessage>
     </>
   )
 }

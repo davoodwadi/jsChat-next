@@ -1,4 +1,6 @@
-import Image from "next/image"
+"use client"
+
+import { useChat } from "ai/react"
 
 function getDummyBotResponse({ chain }) {
   const charSet =
@@ -36,7 +38,7 @@ function BotMessage(props) {
   const classExtra = props.last ? " min-w-[90vw] " : "  " // min-w-fit
   const classString =
     "flex-1 bg-yellow-400 p-1 max-w-[95vw] dark:bg-yellow-600 m-1" + classExtra
-  console.log("classString", classString)
+  // console.log("classString", classString)
   return (
     <div
       contentEditable="true"
@@ -74,183 +76,60 @@ function BranchContainer(props) {
 }
 
 export default function Home() {
+  const { messages, input, handleInputChange, handleSubmit } = useChat()
+  console.log("client messages:", messages)
+  // const messages = [
+  //   { role: "system", content: "you are a helpful assistant" },
+  //   { role: "user", content: "count to 10" },
+  //   { role: "system", content: "there you go: 1, 2, 3, ..." },
+  // ]
+  // const response = await fetch("http://127.0.0.1:3000/api", {
+  //   method: "POST",
+  //   headers: {
+  //     "Content-Type": "application/json",
+  //   },
+  //   body: JSON.stringify(messages),
+  // })
+  // const responseJson = await response.json()
+  // const responseObject = JSON.parse(responseJson)
+  // console.log("responseObject", responseObject)
+
   return (
-    <div
-      // className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]"
-      className="items-center py-8 pb-20 gap-16  sm:py-20 min-h-screen"
-    >
-      <main
-        // className="flex flex-col gap-8 row-start-2 items-center sm:items-start overflow-x-auto"
-        className="flex flex-col gap-8 "
-      >
-        <div
-          id="chat-container"
-          className="mx-2 my-2" // overflow-x-scroll
-        >
-          <BranchContainer>
-            <Branch level={0}>
-              <UserMessage>Hi 1</UserMessage>
-              <BotMessage>Howdy?</BotMessage>
-              <BranchContainer>
-                <Branch>
-                  <UserMessage>How are you?</UserMessage>
-                  <BotMessage>Good and you??</BotMessage>
-                  <BranchContainer>
-                    <Branch>
-                      <UserMessage>How are you?</UserMessage>
-                      <BotMessage>Good and you??</BotMessage>
-                    </Branch>
-
-                    <Branch>
-                      <UserMessage>How are you?</UserMessage>
-                      <BotMessage>Good and you??</BotMessage>
-                    </Branch>
-                  </BranchContainer>
-                </Branch>
-              </BranchContainer>
-            </Branch>
-
-            <Branch level={0}>
-              <UserMessage>Hi 2</UserMessage>
-              <BotMessage>Howdy?</BotMessage>
-              <BranchContainer>
-                <Branch>
-                  <UserMessage>How are you?</UserMessage>
-                  <BotMessage>Good and you??</BotMessage>
-                </Branch>
-              </BranchContainer>
-            </Branch>
-
-            <Branch level={0}>
-              <UserMessage>Hi</UserMessage>
-              <BotMessage>Howdy?</BotMessage>
-              <BranchContainer>
-                <Branch>
-                  <UserMessage>How are you?</UserMessage>
-                  <BotMessage>Good and you??</BotMessage>
-                </Branch>
-              </BranchContainer>
-            </Branch>
-
-            <Branch level={0}>
-              <UserMessage>Hi</UserMessage>
-              <BotMessage>Howdy?</BotMessage>
-              <BranchContainer>
-                <Branch>
-                  <UserMessage>How are you?</UserMessage>
-                  <BotMessage>Good and you??</BotMessage>
-                </Branch>
-              </BranchContainer>
-            </Branch>
-
-            <Branch level={0}>
-              <UserMessage>Hi</UserMessage>
-              <BotMessage>Howdy?</BotMessage>
-              <BranchContainer>
-                <Branch>
-                  <UserMessage>How are you?</UserMessage>
-                  <BotMessage>Good and you??</BotMessage>
-                </Branch>
-              </BranchContainer>
-            </Branch>
-
-            <Branch level={0}>
-              <UserMessage>Hi</UserMessage>
-              <BotMessage>Howdy?</BotMessage>
-              <BranchContainer>
-                <Branch>
-                  <UserMessage>How are you?</UserMessage>
-                  <BotMessage>Good and you??</BotMessage>
-                </Branch>
-              </BranchContainer>
-            </Branch>
-
-            <Branch level={0}>
-              <UserMessage>Hi</UserMessage>
-              <BotMessage>Howdy?</BotMessage>
-              <BranchContainer>
-                <Branch>
-                  <UserMessage>How are you?</UserMessage>
-                  <BotMessage>Good and you??</BotMessage>
-                </Branch>
-              </BranchContainer>
-            </Branch>
-
-            <Branch level={0}>
-              <UserMessage>Hi</UserMessage>
-              <BotMessage>Howdy?</BotMessage>
-              <BranchContainer>
-                <Branch>
-                  <UserMessage>How are you?</UserMessage>
-                  <BotMessage>Good and you??</BotMessage>
-                </Branch>
-              </BranchContainer>
-            </Branch>
-
-            <Branch level={0}>
-              <UserMessage>Hi</UserMessage>
-              <BotMessage>Howdy?</BotMessage>
-              <BranchContainer>
-                <Branch>
-                  <UserMessage>How are you?</UserMessage>
-                  <BotMessage>Good and you??</BotMessage>
-                  <BranchContainer>
-                    <Branch>
-                      <UserMessage>How are you?</UserMessage>
-                      <BotMessage>Good and you??</BotMessage>
-                      <BranchContainer>
-                        <Branch>
-                          <UserMessage>How are you?</UserMessage>
-                          <BotMessage>Good and you??</BotMessage>
-                          <BranchContainer>
-                            <Branch>
-                              <UserMessage>How are you?</UserMessage>
-                              <BotMessage>Good and you??</BotMessage>
-                              <BranchContainer>
-                                <Branch>
-                                  <UserMessage>How are you?</UserMessage>
-                                  <BotMessage>
-                                    Well that puts me in the mood for a good
-                                    story. Sit tight and listen:
-                                    sdkjfsdflajskdfjasdkjflsadfjlsadkfhjsdjghjfsdlfjsdlfkajsdfjsadfjasdflsdhfjhgfjsdfsdflsdkjf
-                                  </BotMessage>
-                                  <BranchContainer>
-                                    <Branch>
-                                      <UserMessage>How are you?</UserMessage>
-                                      <BotMessage>
-                                        Well that puts me in the mood for a good
-                                        story. Sit tight and listen:
-                                        sdkjfsdflajskdfjasdkjflsadfjlsadkfhjsdjghjfsdlfjsdlfkajsdfjsadfjasdflsdhfjhgfjsdfsdflsdkjf
-                                      </BotMessage>
-                                      <BranchContainer>
-                                        <Branch>
-                                          <UserMessage>
-                                            How are you?
-                                          </UserMessage>
-                                          <BotMessage last>
-                                            Well that puts me in the mood for a
-                                            good story. Sit tight and listen:
-                                            sdkjfsdflajskdfjasdkjflsadfjlsadkfhjsdjghjfsdlfjsdlfkajsdfjsadfjasdflsdhfjhgfjsdfsdflsdkjf
-                                          </BotMessage>
-                                        </Branch>
-                                      </BranchContainer>
-                                    </Branch>
-                                  </BranchContainer>
-                                </Branch>
-                              </BranchContainer>
-                            </Branch>
-                          </BranchContainer>
-                        </Branch>
-                      </BranchContainer>
-                    </Branch>
-                  </BranchContainer>
-                </Branch>
-              </BranchContainer>
-            </Branch>
-          </BranchContainer>
+    <div className="flex flex-col w-full max-w-md py-24 mx-auto stretch">
+      {messages.map((m) => (
+        <div key={m.id} className="whitespace-pre-wrap">
+          {m.role === "user" ? "User: " : "AI: "}
+          {m.toolInvocations ? (
+            <pre>{JSON.stringify(m.toolInvocations, null, 2)}</pre>
+          ) : (
+            <p>{m.content}</p>
+          )}
         </div>
-        <button>focus</button>
-      </main>
+      ))}
+
+      <form onSubmit={handleSubmit}>
+        <input
+          className="fixed bottom-0 w-full max-w-md p-2 mb-8 border border-gray-300 rounded shadow-xl"
+          value={input}
+          placeholder="Say something..."
+          onChange={handleInputChange}
+        />
+      </form>
     </div>
+
+    // <div className="items-center py-8 pb-20 gap-16  sm:py-20 min-h-screen">
+    //   <main className="flex flex-col gap-8 ">
+    //     <div id="chat-container" className="mx-2 my-2">
+    //       <BranchContainer>
+    //         <Branch level={0}>
+    //           <UserMessage>{responseObject[1].content}</UserMessage>
+    //           <BotMessage>{responseObject[2].content}</BotMessage>
+    //         </Branch>
+    //       </BranchContainer>
+
+    //     </div>
+    //     <button>focus</button>
+    //   </main>
+    // </div>
   )
 }
