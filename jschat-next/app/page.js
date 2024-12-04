@@ -1,6 +1,57 @@
 "use client"
 
-import { useChat } from "ai/react"
+import { useState } from "react"
+import { generate } from "./actions"
+import { readStreamableValue } from "ai/rsc"
+
+export default function Home() {
+  const [messages, setMessages] = useState([
+    { role: "user", content: "count to 6", id: 1 },
+  ])
+  // const messages = [
+  //   { role: "system", content: "you are a helpful assistant" },
+  //   { role: "user", content: "count to 10" },
+  //   { role: "system", content: "there you go: 1, 2, 3, ..." },
+  // ]
+
+  console.log("client messages:", messages)
+  async function submitMessage(event) {
+    const { output } = await generate(messages)
+    let chunks = ""
+    for await (const delta of readStreamableValue(output)) {
+      console.log("client stream:", delta)
+      chunks += delta
+      setMessages([...messages, { role: "assistant", content: `${chunks}` }])
+    }
+  }
+
+  return (
+    <>
+      {messages.map((message) => (
+        <div key={message.id}>
+          {message.role === "user" ? "User: " : "AI: "}
+          {message.content}
+        </div>
+      ))}
+      <button onClick={submitMessage}>generate</button>
+    </>
+
+    // <div className="items-center py-8 pb-20 gap-16  sm:py-20 min-h-screen">
+    //   <main className="flex flex-col gap-8 ">
+    //     <div id="chat-container" className="mx-2 my-2">
+    //       <BranchContainer>
+    //         <Branch level={0}>
+    //           <UserMessage>{responseObject[1].content}</UserMessage>
+    //           <BotMessage>{responseObject[2].content}</BotMessage>
+    //         </Branch>
+    //       </BranchContainer>
+
+    //     </div>
+    //     <button>focus</button>
+    //   </main>
+    // </div>
+  )
+}
 
 function getDummyBotResponse({ chain }) {
   const charSet =
@@ -72,64 +123,5 @@ function BranchContainer(props) {
     >
       {props.children}
     </div>
-  )
-}
-
-export default function Home() {
-  const { messages, input, handleInputChange, handleSubmit } = useChat()
-  console.log("client messages:", messages)
-  // const messages = [
-  //   { role: "system", content: "you are a helpful assistant" },
-  //   { role: "user", content: "count to 10" },
-  //   { role: "system", content: "there you go: 1, 2, 3, ..." },
-  // ]
-  // const response = await fetch("http://127.0.0.1:3000/api", {
-  //   method: "POST",
-  //   headers: {
-  //     "Content-Type": "application/json",
-  //   },
-  //   body: JSON.stringify(messages),
-  // })
-  // const responseJson = await response.json()
-  // const responseObject = JSON.parse(responseJson)
-  // console.log("responseObject", responseObject)
-
-  return (
-    <div className="flex flex-col w-full max-w-md py-24 mx-auto stretch">
-      {messages.map((m) => (
-        <div key={m.id} className="whitespace-pre-wrap">
-          {m.role === "user" ? "User: " : "AI: "}
-          {m.toolInvocations ? (
-            <pre>{JSON.stringify(m.toolInvocations, null, 2)}</pre>
-          ) : (
-            <p>{m.content}</p>
-          )}
-        </div>
-      ))}
-
-      <form onSubmit={handleSubmit}>
-        <input
-          className="fixed bottom-0 w-full max-w-md p-2 mb-8 border border-gray-300 rounded shadow-xl"
-          value={input}
-          placeholder="Say something..."
-          onChange={handleInputChange}
-        />
-      </form>
-    </div>
-
-    // <div className="items-center py-8 pb-20 gap-16  sm:py-20 min-h-screen">
-    //   <main className="flex flex-col gap-8 ">
-    //     <div id="chat-container" className="mx-2 my-2">
-    //       <BranchContainer>
-    //         <Branch level={0}>
-    //           <UserMessage>{responseObject[1].content}</UserMessage>
-    //           <BotMessage>{responseObject[2].content}</BotMessage>
-    //         </Branch>
-    //       </BranchContainer>
-
-    //     </div>
-    //     <button>focus</button>
-    //   </main>
-    // </div>
   )
 }
