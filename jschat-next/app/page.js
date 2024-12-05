@@ -1,57 +1,29 @@
-"use client"
-
-import { useState } from "react"
-import { generate } from "./actions"
-import { readStreamableValue } from "ai/rsc"
-
-export default function Home() {
-  const [messages, setMessages] = useState([
-    { role: "user", content: "count to 6", id: 1 },
-  ])
-  // const messages = [
-  //   { role: "system", content: "you are a helpful assistant" },
-  //   { role: "user", content: "count to 10" },
-  //   { role: "system", content: "there you go: 1, 2, 3, ..." },
-  // ]
-
-  console.log("client messages:", messages)
-  async function submitMessage(event) {
-    const { output } = await generate(messages)
-    let chunks = ""
-    for await (const delta of readStreamableValue(output)) {
-      console.log("client stream:", delta)
-      chunks += delta
-      setMessages([...messages, { role: "assistant", content: `${chunks}` }])
-    }
-  }
+import ChatComponent from "./components/ChatComponent"
+import RecursiveChat from "./components/RecursiveComponent"
+export default async function Home() {
+  // server component
 
   return (
     <>
-      {messages.map((message) => (
-        <div key={message.id}>
-          {message.role === "user" ? "User: " : "AI: "}
-          {message.content}
-        </div>
-      ))}
-      <button onClick={submitMessage}>generate</button>
+      {/* <ChatComponent /> */}
+      <RecursiveChat />
     </>
-
-    // <div className="items-center py-8 pb-20 gap-16  sm:py-20 min-h-screen">
-    //   <main className="flex flex-col gap-8 ">
-    //     <div id="chat-container" className="mx-2 my-2">
-    //       <BranchContainer>
-    //         <Branch level={0}>
-    //           <UserMessage>{responseObject[1].content}</UserMessage>
-    //           <BotMessage>{responseObject[2].content}</BotMessage>
-    //         </Branch>
-    //       </BranchContainer>
-
-    //     </div>
-    //     <button>focus</button>
-    //   </main>
-    // </div>
   )
 }
+// <div className="items-center py-8 pb-20 gap-16  sm:py-20 min-h-screen">
+//   <main className="flex flex-col gap-8 ">
+//     <div id="chat-container" className="mx-2 my-2">
+//       <BranchContainer>
+//         <Branch level={0}>
+//           <UserMessage>{responseObject[1].content}</UserMessage>
+//           <BotMessage>{responseObject[2].content}</BotMessage>
+//         </Branch>
+//       </BranchContainer>
+
+//     </div>
+//     <button>focus</button>
+//   </main>
+// </div>
 
 function getDummyBotResponse({ chain }) {
   const charSet =

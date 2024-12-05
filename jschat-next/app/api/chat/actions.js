@@ -3,13 +3,19 @@
 import { streamText } from "ai"
 import { openai } from "@ai-sdk/openai"
 import { createStreamableValue } from "ai/rsc"
+import { auth } from "@/auth"
 
-export async function generate(messages) {
+export async function generate({ messages, model }) {
+  const session = await auth()
+  console.log("session", session)
+  if (!session?.user) {
+    return { output: null, status: "Not Authenticated" }
+  }
   const stream = createStreamableValue("")
-
+  console.log("server messages:", messages)
   ;(async () => {
     const { fullStream } = streamText({
-      model: openai("gpt-4o-mini"),
+      model: openai(model),
       messages,
     })
 
@@ -30,5 +36,5 @@ export async function generate(messages) {
     stream.done()
   })()
 
-  return { output: stream.value }
+  return { output: stream.value, status: "ok" }
 }

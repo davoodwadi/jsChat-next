@@ -1,25 +1,46 @@
 // import sessionCollection from "@/lib/db"
 import { getSampleDb, nextDb } from "@/lib/db"
 import client from "@/lib/db"
+import Image from "next/image"
+import { auth } from "@/auth"
+import { redirect } from "next/navigation"
+import { signOut } from "@/auth"
+import Toast from "../components/Toast"
 
 export default async function Movies() {
-  //   const user = await sessionCollection.findOne({ username: "a" })
-  //   console.log("user:", user)
-  //   const comment = await getSampleDb()
-  //   console.log("client:", client)
-  //   const db = client.db("next")
+  // const session = await auth()
+  // if (!session) {
+  //   redirect("/signin")
+  // }
+  const session = await auth()
+  console.log("session", session)
   const db = nextDb
-  const collection = db.collection("test")
-  const comment = await collection.findOne({ username: "davoodwadi" })
-  console.log("comment:", comment)
+  const collection = db.collection("users")
+  const comment = await collection.findOne({ email: "davood.wadi@hec.ca" })
+  // console.log("comment:", comment)
 
   return (
     <div>
       movies list:
       <ul>
-        <li key={1}>{comment?.username}</li>
-        <li key={2}>{comment?.saveContainer}</li>
+        <li key={1}>{comment?.given_name}</li>
+        <li key={2}>{comment?.family_name}</li>
+        <li key={3}>{comment?.email}</li>
+        <li key={4}>
+          <img src={comment?.picture || comment?.image}></img>
+        </li>
+
+        <li key={5}>{JSON.stringify(comment?.email_verified)}</li>
       </ul>
+      <form
+        action={async () => {
+          "use server"
+          await signOut()
+        }}
+      >
+        <button type="submit">Sign Out</button>
+      </form>
+      <Toast>Welcome</Toast>
     </div>
   )
 }

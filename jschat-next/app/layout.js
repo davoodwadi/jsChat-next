@@ -1,5 +1,8 @@
 import localFont from "next/font/local"
 import "./globals.css"
+// import { SignInButton, SignOutButton } from "./components/AuthButtons"
+import { AuthButton } from "./components/AuthButtons"
+// import { auth } from "@/auth"
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -17,12 +20,16 @@ export const metadata = {
   description: "Non-linear LLM chat interface",
 }
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  // const session = await auth()
+  // console.log("session", session)
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        {/* {session ? <SignOutButton /> : <SignInButton />} */}
+        <AuthButton />
         {children}
 
         <footer className="row-start-3 flex gap-6 p-16 flex-wrap items-center justify-center">
