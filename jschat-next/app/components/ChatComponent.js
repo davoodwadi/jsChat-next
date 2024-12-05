@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { generate } from "@/app/api/chat/actions"
 import { readStreamableValue } from "ai/rsc"
+import Toast from "./Toast"
 
 export default function ChatComponent() {
   const [messages, setMessages] = useState([
