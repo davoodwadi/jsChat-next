@@ -6,6 +6,10 @@ import remarkParse from "remark-parse"
 import { unified } from "unified"
 import remarkGfm from "remark-gfm"
 
+// import { getSampleDb } from "@/lib/db"
+// import { connectToDatabase } from "@/lib/db"
+// import { useState, useEffect } from "react"
+
 const markdownSample = `The \`MLPClassifier\` from the \`scikit-learn\` library.
 
 \`\`\`python
@@ -38,6 +42,8 @@ A paragraph with *emphasis* and **strong importance**.
 
 > A block quote with ~strikethrough~ and a URL: https://reactjs.org.
 
+lksdfjlsadkfjsdfksdflgjhfjfadfsdbjghfkdgdflskdsfjslksdfjlsadkfjsdfksdflgjhfjfadfsdbjghfkdgdflskdsfjslksdfjlsadkfjsdfksdflgjhfjfadfsdbjghfkdgdflskdsfjslksdfjlsadkfjsdfksdflgjhfjfadfsdbjghfkdgdflskdsfjslksdfjlsadkfjsdfksdflgjhfjfadfsdbjghfkdgdflskdsfjslksdfjlsadkfjsdfksdflgjhfjfadfsdbjghfkdgdflskdsfjs
+
 * Lists
 * [ ] todo
 * [x] done
@@ -54,21 +60,37 @@ People talk a location
 `
 
 export default async function MarkdownPage() {
-  // const file = await unified()
-  //   .use(remarkParse)
-  //   .use(remarkHtml)
-  //   .process(markdownSample)
-  // console.log("file", file)
+  const email = "davoodwadi@gmail.com"
+  const response = await fetch("http://localhost:3000/api/users", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email: email }),
+  })
+  console.log("response status", response.status)
+  const userJson = await response.json()
+  const user = userJson.user
 
-  // console.log(String(file))
-  // const result = String(file)
+  console.log("user", user)
+  console.log("Object.entries(user)", Object.entries(user))
+
   return (
     <>
       {/* <div dangerouslySetInnerHTML={{ __html: result }} /> */}
       {/* <Markdown remarkPlugins={[remarkGfm]}>{markdownSample}</Markdown> */}
-      <MarkdownComponent model="gpt-4o-mini">
-        {markdownSample}
-      </MarkdownComponent>
+      <ol className="grid grid-cols-2 mx-auto">
+        {Object.entries(user).map(([key, value]) => (
+          <li key={key}>
+            {key}: {value}
+          </li>
+        ))}
+      </ol>
+      <div className="break-words max-w-[85vw] mx-auto">
+        <MarkdownComponent model="gpt-4o-mini">
+          {markdownSample}
+        </MarkdownComponent>
+      </div>
     </>
   )
 }

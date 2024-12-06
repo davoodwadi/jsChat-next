@@ -4,6 +4,47 @@ import { streamText } from "ai"
 import { openai } from "@ai-sdk/openai"
 import { createStreamableValue } from "ai/rsc"
 import { auth } from "@/auth"
+import { connectToDatabase } from "@/lib/db"
+
+export async function addUserToken({ user }) {
+  // const email = user?.email
+  const email = "davoodwadi@gmail.com"
+
+  const client = await connectToDatabase()
+  const plansCollection = client.db("chat").collection("plans")
+  const results = await plansCollection.updateOne(
+    { email: email },
+    { $inc: { tokensRemaining: 10 } }
+  )
+  console.log(results, "results")
+  return results.acknowledged
+  // const userDb = results[0]
+  // return userDb.tokensRemaining
+}
+
+export async function getUserTokensLeft({ user }) {
+  // const email = user?.email
+  const email = "davoodwadi@gmail.com"
+
+  const client = await connectToDatabase()
+  const plansCollection = client.db("chat").collection("plans")
+  const results = await plansCollection
+    .find(
+      { email: email },
+      {
+        projection: {
+          tokensRemaining: 1,
+          tokensConsumed: 1,
+          quotaRefreshedAt: 1,
+          lastLogin: 1,
+          createdAt: 1,
+        },
+      }
+    )
+    .toArray()
+  const userDb = results[0]
+  return { user: userDb, status: "ok" }
+}
 
 export async function generate({ messages, model }) {
   const session = await auth()

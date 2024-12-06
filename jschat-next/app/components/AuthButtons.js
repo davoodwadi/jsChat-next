@@ -2,7 +2,7 @@ import { signOut, signIn, auth } from "@/auth"
 
 export async function AuthButton() {
   const session = await auth()
-  console.log("session", session)
+  console.log("authenticate session")
   if (session?.user) {
     return <SignOutButton />
   } else {

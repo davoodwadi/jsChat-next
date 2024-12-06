@@ -1,6 +1,5 @@
 // import sessionCollection from "@/lib/db"
-import { getSampleDb, nextDb } from "@/lib/db"
-import client from "@/lib/db"
+import { connectToDatabase } from "@/lib/db"
 import Image from "next/image"
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
@@ -14,7 +13,8 @@ export default async function Movies() {
   // }
   const session = await auth()
   console.log("session", session)
-  const db = nextDb
+  const client = await connectToDatabase()
+  const db = client.db("next")
   const collection = db.collection("users")
   const comment = await collection.findOne({ email: "davood.wadi@hec.ca" })
   // console.log("comment:", comment)

@@ -26,13 +26,14 @@ export default async function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
       >
-        {/* {session ? <SignOutButton /> : <SignInButton />} */}
-        <AuthButton />
-        {children}
-
-        <footer className="row-start-3 flex gap-6 p-16 flex-wrap items-center justify-center">
+        <div className="">
+          {/* {session ? <SignOutButton /> : <SignInButton />} */}
+          <AuthButton />
+          {children}
+        </div>
+        <footer className="flex gap-6 p-16 flex-wrap items-center justify-center mt-auto">
           <p className="flex items-center gap-2">
             © 2024 Spreed.chat. All rights reserved.
           </p>

@@ -1,5 +1,7 @@
 import ChatComponent from "./components/ChatComponent"
 import RecursiveChat from "./components/RecursiveComponent"
+// import { getSampleDb } from "@/lib/db"
+import { connectToDatabase } from "@/lib/db"
 export default async function Home() {
   // server component
 
