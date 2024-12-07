@@ -2,6 +2,8 @@ import localFont from "next/font/local"
 import "./globals.css"
 // import { SignInButton, SignOutButton } from "./components/AuthButtons"
 import { AuthButton } from "./components/AuthButtons"
+import PaymentComponent from "@/app/components/Payment"
+import { env } from "process"
 // import { auth } from "@/auth"
 
 const geistSans = localFont({
@@ -31,6 +33,11 @@ export default async function RootLayout({ children }) {
         <div className="">
           {/* {session ? <SignOutButton /> : <SignInButton />} */}
           <AuthButton />
+          <PaymentComponent
+            priceId={process.env.NEXT_PUBLIC_PRICE_ID}
+            price="$4.99"
+            description="more tokens"
+          />
           {children}
         </div>
         <footer className="flex gap-6 p-16 flex-wrap items-center justify-center mt-auto">

@@ -8,13 +8,13 @@ import { connectToDatabase } from "@/lib/db"
 
 export async function addUserToken({ user }) {
   // const email = user?.email
-  const email = "davoodwadi@gmail.com"
+  const email = user.email
 
   const client = await connectToDatabase()
   const plansCollection = client.db("chat").collection("plans")
   const results = await plansCollection.updateOne(
-    { email: email },
-    { $inc: { tokensRemaining: 10 } }
+    { username: email },
+    { $inc: { tokensRemaining: 10000 } }
   )
   console.log(results, "results")
   return results.acknowledged
@@ -23,27 +23,25 @@ export async function addUserToken({ user }) {
 }
 
 export async function getUserTokensLeft({ user }) {
-  // const email = user?.email
-  const email = "davoodwadi@gmail.com"
+  const email = user?.email
+  // const email = "davoodwadi@gmail.com"
 
   const client = await connectToDatabase()
   const plansCollection = client.db("chat").collection("plans")
-  const results = await plansCollection
-    .find(
-      { email: email },
-      {
-        projection: {
-          tokensRemaining: 1,
-          tokensConsumed: 1,
-          quotaRefreshedAt: 1,
-          lastLogin: 1,
-          createdAt: 1,
-        },
-      }
-    )
-    .toArray()
-  const userDb = results[0]
-  return { user: userDb, status: "ok" }
+  const result = await plansCollection.findOne(
+    { username: email },
+    {
+      projection: {
+        tokensRemaining: 1,
+        tokensConsumed: 1,
+        quotaRefreshedAt: 1,
+        lastLogin: 1,
+        createdAt: 1,
+      },
+    }
+  )
+
+  return { user: result, status: "ok" }
 }
 
 export async function generate({ messages, model }) {

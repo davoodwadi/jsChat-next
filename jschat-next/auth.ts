@@ -8,6 +8,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: MongoDBAdapter(client, { databaseName: "next" }),
 
   session: { strategy: "jwt" }, // force JWT session with a database
+
   // callbacks: {
   //   authorized: async ({ auth }) => {
   //     // Logged in users are authenticated, otherwise redirect to login page

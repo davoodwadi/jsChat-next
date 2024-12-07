@@ -14,7 +14,9 @@
     "@emotion/react": "^11.13.5",
     "@emotion/styled": "^11.13.5",
     "@mui/material": "^6.1.10",
+    "@stripe/stripe-js": "^5.2.0",
     "ai": "^4.0.9",
+    "axios": "^1.7.9",
     "mongodb": "^6.11.0",
     "next": "15.0.3",
     "next-auth": "^5.0.0-beta.25",
@@ -25,6 +27,7 @@
     "remark": "^15.0.1",
     "remark-gfm": "^4.0.0",
     "remark-html": "^16.0.1",
+    "stripe": "^17.4.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

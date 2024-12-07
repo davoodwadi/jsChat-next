@@ -1,44 +1,16 @@
-function UserMessage(props) {
-  return (
-    <div
-      contentEditable="true"
-      suppressContentEditableWarning
-      data-placeholder="New message"
-      className="min-w-fit max-w-[95vw] flex-1 m-1 bg-blue-400 p-1 dark:bg-blue-600" //border-2 border-blue-500
-      onKeyDown={props.handleEnter}
-      id={props.id}
-      ref={props.refElementUser}
-    >
-      {props.children}
-    </div>
-  )
-}
+import { connectToDatabase } from "@/lib/db"
+import { auth } from "@/auth"
+import { essentialProjection } from "@/auth.config"
 
-function BotMessage(props) {
-  // console.log("botMessage rendering");
-  const classExtra = props.last ? " min-w-[90vw] " : "  " // min-w-fit
-  const classString =
-    "flex-1 bg-yellow-400 p-1 max-w-[95vw] dark:bg-yellow-600 m-1" + classExtra
-  console.log("classString", classString)
-  return (
-    <div
-      contentEditable="true"
-      suppressContentEditableWarning
-      className={classString} //border-yellow-500
-      id={props.id}
-      //   ref={props.refElementBot}
-    >
-      {props.children}
-    </div>
+export default async function Page() {
+  const session = await auth()
+  console.log("session", session?.user)
+  const client = await connectToDatabase()
+  const plansCollection = client.db("chat").collection("plans")
+  const plansUser = await plansCollection.findOne(
+    { username: session?.user?.email },
+    { projection: essentialProjection }
   )
-}
-
-export default function BotContent() {
   // return <UserMessage>profile page 1</UserMessage>
-  return (
-    <>
-      <UserMessage>User profile layout</UserMessage>
-      <BotMessage>User profile layout</BotMessage>
-    </>
-  )
+  return <>{JSON.stringify(plansUser)}</>
 }
