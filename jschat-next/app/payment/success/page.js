@@ -10,7 +10,11 @@ const PaymentSuccess = () => {
   console.log("session_id", session_id)
   const [loading, setLoading] = useState(true)
   const [paymentConfirmed, setPaymentConfirmed] = useState(false)
+  const [tokens, setTokens] = useState(null)
   const [error, setError] = useState(null)
+  const [messagePayment, setMessagePayment] = useState(
+    "Payment was successful!"
+  )
 
   useEffect(() => {
     const checkPaymentStatus = async () => {
@@ -30,6 +34,13 @@ const PaymentSuccess = () => {
         console.log("setPaymentConfirmed")
         setLoading(false)
         setPaymentConfirmed(true)
+        setTokens(data.newTokens)
+      } else if (data.message === "expired") {
+        console.log("setPaymentDuplicate")
+        setLoading(false)
+        setPaymentConfirmed(true)
+        setTokens(data.newTokens)
+        setMessagePayment("Tokens already added!")
       } else {
         // If not confirmed, keep polling
         setLoading(false)
@@ -51,7 +62,12 @@ const PaymentSuccess = () => {
   }
 
   if (paymentConfirmed) {
-    return <div>Payment was successful!</div>
+    return (
+      <div>
+        <div>{messagePayment}</div>
+        <div>Tokens: {tokens}</div>
+      </div>
+    )
   }
 
   return <div>Payment is still being processed...</div>

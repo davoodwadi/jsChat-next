@@ -6,18 +6,19 @@ import { createStreamableValue } from "ai/rsc"
 import { auth } from "@/auth"
 import { connectToDatabase } from "@/lib/db"
 
-export async function addUserToken({ user }) {
-  // const email = user?.email
-  const email = user.email
-
+export async function addUserToken({ email }) {
   const client = await connectToDatabase()
   const plansCollection = client.db("chat").collection("plans")
-  const results = await plansCollection.updateOne(
+  const results = await plansCollection.findOneAndUpdate(
     { username: email },
-    { $inc: { tokensRemaining: 10000 } }
+    { $inc: { tokensRemaining: 10000 } },
+    {
+      returnDocument: "after", // Return the document after the update
+      projection: { tokensRemaining: 1 }, // Only return the tokensRemaining field
+    }
   )
   console.log(results, "results")
-  return results.acknowledged
+  return { email: email, tokensRemaining: results.tokensRemaining }
   // const userDb = results[0]
   // return userDb.tokensRemaining
 }
