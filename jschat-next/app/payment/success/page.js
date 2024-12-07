@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
+import { Suspense } from "react"
 
 const PaymentSuccess = () => {
   const searchParams = useSearchParams()
@@ -54,26 +55,46 @@ const PaymentSuccess = () => {
   }, [session_id])
 
   if (loading) {
-    return <div>Loading...</div>
+    return (
+      <Suspense>
+        <div>Loading...</div>
+      </Suspense>
+    )
   }
 
   if (error) {
-    return <div>{error}</div>
+    return (
+      <Suspense>
+        <div>{error}</div>
+      </Suspense>
+    )
   }
 
   if (paymentConfirmed) {
     return (
-      <div>
-        <div>{messagePayment}</div>
-        <div>Tokens: {tokens}</div>
-      </div>
+      <Suspense>
+        <div>
+          <div>{messagePayment}</div>
+          <div>Tokens: {tokens}</div>
+        </div>
+      </Suspense>
     )
   }
 
-  return <div>Payment is still being processed...</div>
+  return (
+    <Suspense>
+      <div>Payment is still being processed...</div>
+    </Suspense>
+  )
 }
 
-export default PaymentSuccess
+export default function Page() {
+  return (
+    <Suspense>
+      <PaymentSuccess />
+    </Suspense>
+  )
+}
 
 // export default async function Page({ searchParams }) {
 //   const filters = await searchParams

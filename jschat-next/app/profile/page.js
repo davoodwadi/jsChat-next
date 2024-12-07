@@ -1,7 +1,7 @@
 import { connectToDatabase } from "@/lib/db"
 import { auth } from "@/auth"
-import { essentialProjection } from "@/auth.config"
-import { addUserToken } from "../api/chat/actions"
+import { essentialProjection } from "@/auth"
+
 export default async function Page() {
   const session = await auth()
   console.log("session", session?.user)
