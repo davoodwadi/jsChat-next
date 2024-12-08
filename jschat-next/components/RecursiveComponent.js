@@ -430,7 +430,7 @@ function TestContainer(props) {
     )
   }
 
-  let chatContainerClass = "my-2 overflow-scroll flex flex-col mx-4 md:mx-6 "
+  let chatContainerClass = "my-2 overflow-auto flex flex-col mx-4 md:mx-6 "
   chatContainerClass += isMobile
     ? " min-w-[90vw] "
     : ` min-w-[calc(90vw-${SIDEBAR_WIDTH})] `
