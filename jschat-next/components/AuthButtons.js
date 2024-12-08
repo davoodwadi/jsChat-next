@@ -1,4 +1,5 @@
 import { signOut, signIn, auth } from "@/auth"
+import { Button } from "@/components/ui/button"
 
 export async function AuthButton(props) {
   const session = await auth()
@@ -28,9 +29,9 @@ export function SignOutButton({ props }) {
         await signOut({ redirectTo: "/" })
       }}
     >
-      <button className="mx-auto" type="submit">
-        Signout button
-      </button>
+      <Button className="mx-auto" type="submit">
+        Sign out
+      </Button>
     </form>
   )
 }
@@ -46,7 +47,7 @@ export function SignInButton() {
       }}
     >
       <button className="mx-auto" type="submit">
-        Signin button
+        Sign in
       </button>
     </form>
   )

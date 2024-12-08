@@ -41,13 +41,17 @@ export default async function RootLayout({ children }) {
             <AppSidebar />
             <div className={` flex flex-col min-h-screen w-full`}>
               <SidebarTrigger />
-              <AuthButton className="text-green-300" />
-              <ThemeToggle />
-              <PaymentComponent
-                priceId={process.env.NEXT_PUBLIC_PRICE_ID}
-                price="$4.99"
-                description="more tokens"
-              />
+              <div className="flex flex-row mx-auto mt-2 mb-6">
+                <ThemeToggle />
+                <AuthButton className="mx-2" />
+
+                <PaymentComponent
+                  priceId={process.env.NEXT_PUBLIC_PRICE_ID}
+                  price="$4.99"
+                  description="Click below to get more tokens"
+                />
+              </div>
+
               {children}
 
               <footer className="flex gap-6 p-16 flex-wrap items-center justify-center mt-auto">

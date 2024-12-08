@@ -2,6 +2,7 @@
 
 import { loadStripe } from "@stripe/stripe-js"
 import axios from "axios"
+import { Button } from "@/components/ui/button"
 
 type props = {
   priceId: string
@@ -36,12 +37,8 @@ export default function PaymentComponent({
     }
   }
   return (
-    <div className="flex flex-col m-2">
-      <p className="mx-auto">Click Below button to get {description}</p>
-
-      <button className="mx-auto" onClick={handleSubmit}>
-        Top up in {price}
-      </button>
-    </div>
+    <Button className="mx-2" onClick={handleSubmit}>
+      Top up {price}
+    </Button>
   )
 }

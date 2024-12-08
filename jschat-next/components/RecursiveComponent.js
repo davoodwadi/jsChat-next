@@ -8,6 +8,7 @@ import Toast from "./Toast"
 import MarkdownComponent from "@/components/MarkdownComponent"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_MOBILE } from "@/components/ui/sidebar"
+import { Button } from "@/components/ui/button"
 
 function UserMessage(props) {
   const isLatestUser = props.maxGlobalIdUser === props.globalIdUser
@@ -61,7 +62,7 @@ function BotMessage(props) {
 }
 
 function Branch(props) {
-  console.log("branch is mobile", props.isMobile)
+  // console.log("branch is mobile", props.isMobile)
   const isPenultimateBranch = props.globalIdBot === props.maxGlobalIdBot
   let baseClass = "flex-1 mx-auto" //border-2 border-red-300 flex-1
   const w = props.isMobile
@@ -435,11 +436,11 @@ function TestContainer(props) {
     : ` min-w-[calc(90vw-${SIDEBAR_WIDTH})] `
   return (
     <div id="chat-container" className={chatContainerClass}>
-      <div>
+      {/* <div>
         {isMobile
           ? `using mobile: ${SIDEBAR_WIDTH_MOBILE}`
           : `using desktop: ${SIDEBAR_WIDTH}`}
-      </div>
+      </div> */}
       <RecursiveBranch
         level={0}
         refElementUser={props.refElementUser}
@@ -456,8 +457,8 @@ export default function RecursiveChat() {
   return (
     <div className="">
       <TestContainer refElementUser={refUser} refElementBot={refBot} />
-      <button
-        className="flex mx-auto"
+      <Button
+        className="flex mx-auto my-4"
         onClick={(e) => {
           console.log("ref click", refBot.current)
           refBot.current.scrollIntoView({
@@ -467,8 +468,8 @@ export default function RecursiveChat() {
           })
         }}
       >
-        focus
-      </button>
+        Focus
+      </Button>
     </div>
   )
 }
