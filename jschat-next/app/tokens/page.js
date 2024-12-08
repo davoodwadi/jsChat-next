@@ -1,5 +1,5 @@
-import { getUserTokensLeft } from "@/app/api/chat/actions"
-import { TopUpButton } from "@/app/components/TopUpButton"
+import { getUserTokensLeft } from "@/lib/actions"
+import { TopUpButton } from "@/components/TopUpButton"
 
 export default async function Tokens() {
   const { user } = await getUserTokensLeft({ user: null })

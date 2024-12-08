@@ -1,16 +1,24 @@
 import { signOut, signIn, auth } from "@/auth"
 
-export async function AuthButton() {
+export async function AuthButton(props) {
   const session = await auth()
   console.log("authenticate session")
   if (session?.user) {
-    return <SignOutButton />
+    return (
+      <div {...props}>
+        <SignOutButton />
+      </div>
+    )
   } else {
-    return <SignInButton />
+    return (
+      <div {...props}>
+        <SignInButton />
+      </div>
+    )
   }
 }
 
-export function SignOutButton() {
+export function SignOutButton({ props }) {
   return (
     <form
       className="flex"

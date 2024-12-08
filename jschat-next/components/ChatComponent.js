@@ -1,9 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { generate } from "@/app/api/chat/actions"
+import { generate } from "@/lib/actions"
 import { readStreamableValue } from "ai/rsc"
-import Toast from "./Toast"
+import Toast from "@/components/Toast"
 
 export default function ChatComponent() {
   const [messages, setMessages] = useState([

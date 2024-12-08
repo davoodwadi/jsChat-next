@@ -1,14 +1,4 @@
-import MarkdownComponent from "../components/MarkdownComponent"
-
-import remarkHtml from "remark-html"
-import remarkParse from "remark-parse"
-// import { read } from "to-vfile"
-import { unified } from "unified"
-import remarkGfm from "remark-gfm"
-
-// import { getSampleDb } from "@/lib/db"
-// import { connectToDatabase } from "@/lib/db"
-// import { useState, useEffect } from "react"
+import MarkdownComponent from "@/components/MarkdownComponent"
 
 const markdownSample = `The \`MLPClassifier\` from the \`scikit-learn\` library.
 

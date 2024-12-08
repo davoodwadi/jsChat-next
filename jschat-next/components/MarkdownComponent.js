@@ -6,7 +6,7 @@ import {
   twilight,
   a11yDark,
 } from "react-syntax-highlighter/dist/esm/styles/prism"
-import CopyText from "./CopyTextComponent"
+import CopyText from "@/components/CopyTextComponent"
 
 export default function MarkdownComponent(props) {
   const style = a11yDark

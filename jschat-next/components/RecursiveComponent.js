@@ -2,10 +2,12 @@
 
 import React from "react"
 import { useState, useRef, useEffect, useLayoutEffect } from "react"
-import { generate } from "@/app/api/chat/actions"
+import { generate } from "@/lib/actions"
 import { readStreamableValue } from "ai/rsc"
 import Toast from "./Toast"
-import MarkdownComponent from "../components/MarkdownComponent"
+import MarkdownComponent from "@/components/MarkdownComponent"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_MOBILE } from "@/components/ui/sidebar"
 
 function UserMessage(props) {
   const isLatestUser = props.maxGlobalIdUser === props.globalIdUser
@@ -59,9 +61,14 @@ function BotMessage(props) {
 }
 
 function Branch(props) {
+  console.log("branch is mobile", props.isMobile)
   const isPenultimateBranch = props.globalIdBot === props.maxGlobalIdBot
   let baseClass = "flex-1 mx-auto" //border-2 border-red-300 flex-1
-  baseClass += isPenultimateBranch ? " min-w-[85vw] max-w-[90vw] " : " "
+  const w = props.isMobile
+    ? " min-w-[85vw] max-w-[90vw] "
+    : ` min-w-[calc(85vw-16rem)] max-w-[calc(90vw-16rem)] ` //` min-w-[calc(50vw-${SIDEBAR_WIDTH})] max-w-[calc(60vw-${SIDEBAR_WIDTH})] `
+  // baseClass += isPenultimateBranch ? " min-w-[60vw] max-w-[70vw] " : " " // min-w-[85vw] max-w-[90vw]
+  baseClass += isPenultimateBranch ? w : " " // min-w-[85vw] max-w-[90vw]
   return (
     <div
       id={"branch" + props.id}
@@ -85,6 +92,7 @@ function BranchContainer(props) {
 }
 
 function TestContainer(props) {
+  const isMobile = useIsMobile()
   const [globalIdUser, setGlobalIdUser] = useState(1)
   const [globalIdBot, setGlobalIdBot] = useState(0)
 
@@ -381,6 +389,7 @@ function TestContainer(props) {
                   getBotMessageForKey(tm.key).globalIdBot
                 }
                 maxGlobalIdBot={globalIdBot}
+                isMobile={isMobile}
               >
                 <UserMessage
                   id={JSON.stringify(tm.key)}
@@ -419,11 +428,18 @@ function TestContainer(props) {
       )
     )
   }
+
+  let chatContainerClass = "my-2 overflow-scroll flex flex-col mx-4 md:mx-6 "
+  chatContainerClass += isMobile
+    ? " min-w-[90vw] "
+    : ` min-w-[calc(90vw-${SIDEBAR_WIDTH})] `
   return (
-    <div
-      id="chat-container"
-      className="mx-2 my-2 overflow-scroll flex flex-col"
-    >
+    <div id="chat-container" className={chatContainerClass}>
+      <div>
+        {isMobile
+          ? `using mobile: ${SIDEBAR_WIDTH_MOBILE}`
+          : `using desktop: ${SIDEBAR_WIDTH}`}
+      </div>
       <RecursiveBranch
         level={0}
         refElementUser={props.refElementUser}

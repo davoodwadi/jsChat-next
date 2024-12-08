@@ -13,5 +13,5 @@ export default async function Page() {
   )
 
   // return <UserMessage>profile page 1</UserMessage>
-  return <>{JSON.stringify(plansUser)}</>
+  return <div>{JSON.stringify(plansUser)}</div>
 }

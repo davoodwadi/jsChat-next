@@ -4,7 +4,7 @@ import Image from "next/image"
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import { signOut } from "@/auth"
-import Toast from "../components/Toast"
+import Toast from "@/components/Toast"
 
 export default async function Movies() {
   // const session = await auth()

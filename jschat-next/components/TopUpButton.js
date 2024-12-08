@@ -1,6 +1,6 @@
 "use client"
 
-import { addUserToken } from "@/app/api/chat/actions"
+import { addUserToken } from "@/lib/actions"
 
 const handleClick = async () => {
   const acknowledged = await addUserToken({ user: null })

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { connectToDatabase } from "@/lib/db"
-import { addUserToken } from "@/app/api/chat/actions"
+import { addUserToken } from "@/lib/actions"
 
 export async function GET(request) {
   const searchParams = request.nextUrl.searchParams
