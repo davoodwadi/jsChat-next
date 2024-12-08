@@ -47,7 +47,7 @@ export default async function RootLayout({ children }) {
 
                 <PaymentComponent
                   priceId={process.env.NEXT_PUBLIC_PRICE_ID}
-                  price="$4.99"
+                  price=""
                   description="Click below to get more tokens"
                 />
               </div>

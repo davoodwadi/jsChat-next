@@ -455,9 +455,9 @@ export default function RecursiveChat() {
   const refBot = useRef(null)
 
   return (
-    <div className="">
+    <div className="my-auto">
       <TestContainer refElementUser={refUser} refElementBot={refBot} />
-      <Button
+      {/* <Button
         className="flex mx-auto my-4"
         onClick={(e) => {
           console.log("ref click", refBot.current)
@@ -469,7 +469,7 @@ export default function RecursiveChat() {
         }}
       >
         Focus
-      </Button>
+      </Button> */}
     </div>
   )
 }
