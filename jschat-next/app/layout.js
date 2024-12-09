@@ -1,29 +1,29 @@
-import localFont from "next/font/local"
-import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
-import { ThemeToggle } from "@/components/theme-toggle"
+import localFont from "next/font/local";
+import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeToggle } from "@/components/theme-toggle";
 
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
-import { AppSidebar } from "@/components/app-sidebar"
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 
-import { AuthButton } from "@/components/AuthButtons"
-import PaymentComponent from "@/components/Payment"
+import { AuthButton } from "@/components/AuthButtonsServer";
+import PaymentComponent from "@/components/Payment";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
   weight: "100 900",
-})
+});
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
   weight: "100 900",
-})
+});
 
 export const metadata = {
   title: "Spreed",
   description: "Non-linear LLM chat interface",
-}
+};
 
 export default async function RootLayout({ children }) {
   // const session = await auth()
@@ -72,5 +72,5 @@ export default async function RootLayout({ children }) {
         </ThemeProvider>
       </body>
     </html>
-  )
+  );
 }
