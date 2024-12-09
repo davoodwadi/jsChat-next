@@ -1,5 +1,9 @@
 import { SuccessCardClient } from "./ClientComponent";
-import { UserCurrentTokens } from "./ServerComponents";
+import { Suspense } from "react";
 export default function Page() {
-  return <SuccessCardClient />;
+  return (
+    <Suspense>
+      <SuccessCardClient />
+    </Suspense>
+  );
 }
