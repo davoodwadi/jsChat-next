@@ -48,13 +48,13 @@ export default async function RootLayout({ children }) {
                 <PaymentComponent
                   priceId={process.env.NEXT_PUBLIC_PRICE_ID}
                   price=""
-                  description="Click below to get more tokens"
+                  description="Top up"
                 />
               </div>
 
               {children}
 
-              <footer className="flex gap-2 p-16 flex-wrap items-center justify-center mt-auto text-xs md:text-sm">
+              <footer className="flex gap-2 p-6 flex-wrap items-center justify-center mt-auto text-xs md:text-sm">
                 <p className="flex items-center gap-2">
                   © 2024 Spreed.chat. All rights reserved.
                 </p>

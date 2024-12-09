@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 function UserMessage(props) {
   const isLatestUser = props.maxGlobalIdUser === props.globalIdUser;
   const isPreviousUser = props.maxGlobalIdUser === props.globalIdUser + 1;
-  let baseClass = " bg-blue-400 p-4 m-1 relative break-words"; //border-2 border-blue-500 min-w-fit
+  let baseClass = "rounded-xl bg-blue-400 p-4 m-1 relative break-words"; //border-2 border-blue-500 min-w-fit
   // baseClass +=  isPreviousUser || isLatestUser ? " min-w-[85vw] max-w-[90vw]" : "  " // min-w-fit
 
   return (
@@ -39,7 +39,8 @@ function BotMessage(props) {
   //   props.maxGlobalIdBot === props.globalIdBot
   // )
   const isLatestBot = props.maxGlobalIdBot === props.globalIdBot;
-  let baseClass = "bg-yellow-400 text-black p-4 m-1 relative break-words"; //border-yellow-500
+  let baseClass =
+    "rounded-xl bg-yellow-400 text-black p-4 m-1 relative break-words"; //border-yellow-500
   // baseClass += isLatestBot ? " min-w-[85vw] max-w-[90vw]" : "  " // min-w-fit
 
   return (
