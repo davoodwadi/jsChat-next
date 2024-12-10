@@ -10,15 +10,17 @@ type props = {
   priceId: string;
   price: string;
   description: string;
+  className?: string;
 };
+
 export default function PaymentComponent({
   priceId,
   price,
   description,
-  ...rest
+  className,
 }: props) {
   const [loading, setLoading] = useState(false);
-  // console.log("...rest", rest);
+
   const handleSubmit = async () => {
     setLoading(true);
     const stripe = await loadStripe(
@@ -45,11 +47,7 @@ export default function PaymentComponent({
     }
   };
   return (
-    <Button
-      className={rest.className}
-      onClick={handleSubmit}
-      disabled={loading}
-    >
+    <Button className={className} onClick={handleSubmit} disabled={loading}>
       {loading ? (
         <>
           <Loader2 className="animate-spin" /> {description}

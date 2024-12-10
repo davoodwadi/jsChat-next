@@ -6,15 +6,13 @@ import { providerMap } from "@/auth.config";
 import Image from "next/image";
 import { AuthError } from "next-auth";
 
-export default async function SignInPage(props: {
-  searchParams: { callbackUrl: string | undefined };
-}) {
-  console.log("providerMap", providerMap);
+export default async function SignInPage(props) {
+  // console.log("providerMap", providerMap);
   // const sp = await props.searchParams;
-  console.log(
-    "props.searchParams?.callbackUrl",
-    props.searchParams?.callbackUrl
-  );
+  // console.log(
+  //   "props.searchParams?.callbackUrl",
+  //   props.searchParams?.callbackUrl
+  // );
   return (
     <div className="flex flex-col gap-2">
       {Object.values(providerMap).map((provider, i) => (
