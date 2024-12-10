@@ -11,6 +11,7 @@ import PaymentComponent from "@/components/Payment";
 
 import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
+import { Button } from "@/components/ui/button";
 config.autoAddCss = false;
 
 const geistSans = localFont({
@@ -43,16 +44,19 @@ export default async function RootLayout({ children }) {
         >
           <SidebarProvider>
             <AppSidebar />
+            <SidebarTrigger />
             <div className={` flex flex-col min-h-screen w-full`}>
-              <SidebarTrigger />
               <div className="flex flex-row mx-auto mt-2 mb-6">
-                <ThemeToggle />
-                <AuthButton className="mx-2" />
+                <div className="mx-1">
+                  <ThemeToggle />
+                </div>
+                <AuthButton className="mx-1" />
 
                 <PaymentComponent
                   priceId={process.env.NEXT_PUBLIC_PRICE_ID}
                   price=""
                   description="Top up"
+                  className="mx-1"
                 />
               </div>
 

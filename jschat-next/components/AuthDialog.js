@@ -37,8 +37,8 @@ function InlineAuthButton({ provider }) {
     >
       {loading ? (
         <>
-          <Loader2 className="animate-spin" /> Sign in with {provider.name} Sign
-          in with {provider.name} <FontAwesomeIcon icon={icon} />
+          <Loader2 className="animate-spin" /> Sign in with {provider.name}
+          <FontAwesomeIcon icon={icon} />
           {/* <Image
             src={`${provider.id}.svg`}
             alt="GitHub Logo"

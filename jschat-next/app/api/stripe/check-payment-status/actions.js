@@ -11,8 +11,7 @@ export async function getTokens() {
     { projection: { email: 1, tokensRemaining: 1 } }
   );
   console.log("tokens", tokens);
-  await new Promise((resolve) => setTimeout(resolve, 2000));
-  return tokens.tokensRemaining;
+  return tokens?.tokensRemaining;
 }
 
 export async function getStatus({ session_id, retries }) {

@@ -2,6 +2,7 @@
 
 // import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SuccessCardContent, UserCurrentTokens } from "./ServerComponents";
 import { useEffect, useState } from "react";
@@ -13,13 +14,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faLeftLong } from "@fortawesome/free-solid-svg-icons";
 // import { UserCurrentTokens, PaymentStatus } from "./ServerComponents";
 
 export function SuccessCardClient() {
   const [data, setData] = useState();
   const searchParams = useSearchParams();
   const session_id = searchParams.get("session_id");
-  let status = "Loading";
+  let status = null;
   let description;
   let tokens;
   let email;
@@ -68,9 +72,9 @@ export function SuccessCardClient() {
         <CardHeader className="text-center">
           <CardTitle>Status</CardTitle>
           <CardDescription>
-            <p>
-              {status ? status : <Skeleton className="h-4 w-[250px] mx-auto" />}
-            </p>
+            {/* <p> */}
+            {status ? status : <Skeleton className="h-4 w-1/2 mx-auto" />}
+            {/* </p> */}
           </CardDescription>
         </CardHeader>
         {/* <CardContent className="text-center">
@@ -86,13 +90,19 @@ export function SuccessCardClient() {
         <CardContent className="text-center">
           <p>Account information</p>
 
-          <CardDescription className="m-2">
+          <CardDescription className="m-2 mx-auto">
             <p>Account</p>
-            {tokens ? email : <Skeleton className="h-4 w-[150px] mx-auto" />}
+            {tokens ? email : <Skeleton className="h-4 w-5/6 mx-auto" />}
           </CardDescription>
-          <CardDescription className="m-2">
+          <CardDescription className="m-2 mx-auto">
             <p>Tokens remaining</p>
-            {tokens ? tokens : <Skeleton className="h-4 w-[70px] mx-auto" />}
+            {tokens ? tokens : <Skeleton className="h-4 w-2/3 mx-auto" />}
+          </CardDescription>
+          <CardDescription className="m-2 mt-6 mx-auto">
+            <Link href="/">
+              <FontAwesomeIcon icon={faLeftLong} className="mx-2" /> Go Back To
+              Chat
+            </Link>
           </CardDescription>
         </CardContent>
       </Card>
