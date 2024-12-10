@@ -1,6 +1,6 @@
-import Google from "next-auth/providers/google"
-import GitHub from "next-auth/providers/github"
-import type { Provider } from "next-auth/providers"
+import Google from "next-auth/providers/google";
+import GitHub from "next-auth/providers/github";
+import type { Provider } from "next-auth/providers";
 
 const providers: Provider[] = [
   Google({
@@ -10,7 +10,7 @@ const providers: Provider[] = [
     async profile(profile) {
       // console.log("profile:", profile)
 
-      return { email: profile.email }
+      return { email: profile.email };
     },
   }),
   GitHub({
@@ -20,11 +20,24 @@ const providers: Provider[] = [
     async profile(profile) {
       // console.log("profile:", profile)
 
-      return { email: profile.email }
+      return { email: profile.email };
     },
   }),
-]
+];
+
+export const providerMap = providers
+  .map((provider) => {
+    if (typeof provider === "function") {
+      const providerData = provider();
+      return { id: providerData.id, name: providerData.name };
+    } else {
+      // console.log("provider in auth.config", provider);
+      return provider;
+      // return { id: provider.id, name: provider.name };
+    }
+  })
+  .filter((provider) => provider.id !== "credentials");
 
 export const authConfig = {
   providers: providers,
-}
+};

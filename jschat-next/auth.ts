@@ -1,7 +1,7 @@
-import NextAuth from "next-auth"
-import { authConfig } from "./auth.config"
-import { MongoDBAdapter } from "@auth/mongodb-adapter"
-import { connectToDatabase } from "@/lib/db"
+import NextAuth from "next-auth";
+import { authConfig } from "./auth.config";
+import { MongoDBAdapter } from "@auth/mongodb-adapter";
+import { connectToDatabase } from "@/lib/db";
 
 function getDoc({ profile, provider }) {
   return {
@@ -15,7 +15,7 @@ function getDoc({ profile, provider }) {
     quotaRefreshedAt: new Date(),
     lastLogin: new Date(),
     [`${provider}Info`]: profile,
-  }
+  };
 }
 export const essentialProjection = {
   email: 1,
@@ -26,29 +26,29 @@ export const essentialProjection = {
   quotaRefreshedAt: 1,
   lastLogin: 1,
   createdAt: 1,
-}
+};
 export async function createOrUpdateUser({ profile, provider }) {
-  const email = profile.email
-  const client = await connectToDatabase()
-  const plansCollection = client.db("chat").collection("plans")
+  const email = profile.email;
+  const client = await connectToDatabase();
+  const plansCollection = client.db("chat").collection("plans");
   const plansUser = await plansCollection.findOne(
     { username: email },
     {
       projection: essentialProjection,
     }
-  )
+  );
   // check if exists in plans collection
-  let doc
+  let doc;
   if (!plansUser) {
     // user not found in plans collection -> create it
-    doc = getDoc({ profile: profile, provider: provider })
-    const res = await plansCollection.insertOne(doc)
-    console.log("user added", res)
+    doc = getDoc({ profile: profile, provider: provider });
+    const res = await plansCollection.insertOne(doc);
+    console.log("user added", res);
   } else {
     // user exists
-    console.log("user found in plans collection")
+    console.log("user found in plans collection");
   }
-  const userInfo = doc || plansUser
+  const userInfo = doc || plansUser;
   const toReturn = {
     username: userInfo.email,
     email: userInfo.email,
@@ -59,11 +59,11 @@ export async function createOrUpdateUser({ profile, provider }) {
     createdAt: userInfo.createdAt,
     quotaRefreshedAt: userInfo.quotaRefreshedAt,
     lastLogin: userInfo.lastLogin,
-  }
-  return toReturn
+  };
+  return toReturn;
 }
 
-const client = await connectToDatabase()
+const client = await connectToDatabase();
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
   adapter: MongoDBAdapter(client, { databaseName: "next" }),
@@ -71,20 +71,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   session: { strategy: "jwt" }, // force JWT session with a database
   callbacks: {
     async signIn({ account, profile }) {
-      console.log("signed in with provoider: ", account.provider)
+      console.log("signed in with provoider: ", account.provider);
       await createOrUpdateUser({
         profile: profile,
-        provider: "google",
-      })
-      return true
+        provider: account.provider,
+      });
+      return true;
     },
   },
-
-  // callbacks: {
-  //   authorized: async ({ auth }) => {
-  //     // Logged in users are authenticated, otherwise redirect to login page
-  //     console.log("inside auth.ts:", auth)
-  //     return !!auth
-  //   },
-  // },
-})
+});

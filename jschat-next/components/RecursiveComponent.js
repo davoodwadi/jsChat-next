@@ -4,11 +4,13 @@ import React from "react";
 import { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { generate } from "@/lib/actions";
 import { readStreamableValue } from "ai/rsc";
-import Toast from "./Toast";
+
 import MarkdownComponent from "@/components/MarkdownComponent";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_MOBILE } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { AuthDialog } from "@/components/AuthDialog";
+import { signInClientAction } from "@/lib/actions";
 
 function UserMessage(props) {
   const isLatestUser = props.maxGlobalIdUser === props.globalIdUser;
@@ -205,7 +207,9 @@ function TestContainer(props) {
         });
         if (streamIterator.status !== "ok") {
           console.log("streamIterator.status not ok", streamIterator.status);
-          return <Toast>Failed</Toast>;
+          props.setIsDialogOpen(true);
+          return;
+          // return <Toast>Failed</Toast>;
         }
         console.log("streamIterator", streamIterator);
         let counter = 0;
@@ -293,7 +297,8 @@ function TestContainer(props) {
         });
         if (streamIterator.status !== "ok") {
           console.log("streamIterator.status not ok", streamIterator.status);
-          return <Toast>Failed</Toast>;
+          props.setIsDialogOpen(true);
+          return;
         }
 
         let counter = 0;
@@ -460,13 +465,26 @@ function TestContainer(props) {
   );
 }
 
-export default function RecursiveChat() {
+export default function RecursiveChat(props) {
+  // console.log("props", props);
   const refUser = useRef(null);
   const refBot = useRef(null);
-
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   return (
     <div className="my-auto">
-      <TestContainer refElementUser={refUser} refElementBot={refBot} />
+      <TestContainer
+        refElementUser={refUser}
+        refElementBot={refBot}
+        setIsDialogOpen={setIsDialogOpen}
+      />
+      <AuthDialog
+        isDialogOpen={isDialogOpen}
+        setIsDialogOpen={setIsDialogOpen}
+      />
+
+      {/* <Button onClick={() => signInClientAction({ provider: "google" })}>
+        SignIn
+      </Button> */}
       {/* <Button
         className="flex mx-auto my-4"
         onClick={(e) => {

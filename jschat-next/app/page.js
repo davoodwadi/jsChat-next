@@ -1,5 +1,10 @@
 // import ChatComponent from "@/components/ChatComponent"
-import RecursiveChat from "@/components/RecursiveComponent"
+import RecursiveChat from "@/components/RecursiveComponent";
+import Image from "next/image";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faThumbsUp } from "@fortawesome/free-solid-svg-icons";
+import { faThumbsUp as faThumbsUpReg } from "@fortawesome/free-regular-svg-icons";
+import { faGithub, faGoogle } from "@fortawesome/free-brands-svg-icons";
 
 export default async function Home() {
   // server component
@@ -9,8 +14,12 @@ export default async function Home() {
       {/* <ChatComponent /> */}
 
       <RecursiveChat />
+      {/* <FontAwesomeIcon icon={faGithub} /> */}
+      {/* <FontAwesomeIcon icon={faGoogle} /> */}
+      {/* <FontAwesomeIcon icon="fa-duotone fa-solid fa-house" /> */}
+      {/* <FontAwesomeIcon icon={faThumbsUpReg} beat /> */}
     </>
-  )
+  );
 }
 // <div className="items-center py-8 pb-20 gap-16  sm:py-20 min-h-screen">
 //   <main className="flex flex-col gap-8 ">
@@ -29,17 +38,17 @@ export default async function Home() {
 
 function getDummyBotResponse({ chain }) {
   const charSet =
-    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789        "
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789        ";
 
-  const length = 3 // adjust the length as needed
+  const length = 3; // adjust the length as needed
   const randomText = Array.from({ length }, () =>
     charSet.charAt(Math.floor(Math.random() * charSet.length))
-  ).join("")
+  ).join("");
   // console.log("chain inner", chain);
   return (
     `${chain[chain.length - 1].content} ${chain[chain.length - 1].key}` +
     randomText
-  )
+  );
 }
 
 function UserMessage(props) {
@@ -55,14 +64,14 @@ function UserMessage(props) {
     >
       {props.children}
     </div>
-  )
+  );
 }
 
 function BotMessage(props) {
   // console.log("botMessage rendering");
-  const classExtra = props.last ? " min-w-[90vw] " : "  " // min-w-fit
+  const classExtra = props.last ? " min-w-[90vw] " : "  "; // min-w-fit
   const classString =
-    "flex-1 bg-yellow-400 p-1 max-w-[95vw] dark:bg-yellow-600 m-1" + classExtra
+    "flex-1 bg-yellow-400 p-1 max-w-[95vw] dark:bg-yellow-600 m-1" + classExtra;
   // console.log("classString", classString)
   return (
     <div
@@ -74,19 +83,19 @@ function BotMessage(props) {
     >
       {props.children}
     </div>
-  )
+  );
 }
 
 function Branch(props) {
   //   console.log("branch props.messages", props.messages);
   // let classStyle = props.level === 0 ? "flex-1 p-1" : "flex-1 py-1" //border-2 border-red-300
-  let classStyle = "flex-1 " //border-2 border-red-300
+  let classStyle = "flex-1 "; //border-2 border-red-300
   // classStyle += " flex-col "
   return (
     <div id={"branch" + props.id} className={classStyle}>
       {props.children}
     </div>
-  )
+  );
 }
 
 function BranchContainer(props) {
@@ -97,5 +106,5 @@ function BranchContainer(props) {
     >
       {props.children}
     </div>
-  )
+  );
 }

@@ -9,6 +9,10 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { AuthButton } from "@/components/AuthButtonsServer";
 import PaymentComponent from "@/components/Payment";
 
+import { config } from "@fortawesome/fontawesome-svg-core";
+import "@fortawesome/fontawesome-svg-core/styles.css";
+config.autoAddCss = false;
+
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
