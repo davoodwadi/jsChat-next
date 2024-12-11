@@ -1,20 +1,32 @@
-"use client"
-
+"use client";
+import { CheckIcon, ClipboardIcon } from "lucide-react";
+import { faCopy } from "@fortawesome/free-regular-svg-icons";
+import { faCheck } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useState, useEffect } from "react";
 export default function CopyText(props) {
+  const [hasCopied, setHasCopied] = useState(false);
+  // console.log("hasCopied", hasCopied);
+  useEffect(() => {
+    if (hasCopied) {
+      setTimeout(() => {
+        setHasCopied(false);
+      }, 2000);
+    }
+  }, [hasCopied]);
   return (
     <button
       onClick={() => {
-        navigator.clipboard.writeText(props.text)
+        navigator.clipboard.writeText(props.text);
         // Optional: display success message or update state
+        setHasCopied(true);
       }}
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 512 512"
-        className="icon fill-current text-green-600"
-      >
-        <path d="M64 464l224 0c8.8 0 16-7.2 16-16l0-64 48 0 0 64c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64L0 224c0-35.3 28.7-64 64-64l64 0 0 48-64 0c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16zM224 304l224 0c8.8 0 16-7.2 16-16l0-224c0-8.8-7.2-16-16-16L224 48c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16zm-64-16l0-224c0-35.3 28.7-64 64-64L448 0c35.3 0 64 28.7 64 64l0 224c0 35.3-28.7 64-64 64l-224 0c-35.3 0-64-28.7-64-64z" />
-      </svg>
+      {hasCopied ? (
+        <FontAwesomeIcon icon={faCheck} />
+      ) : (
+        <FontAwesomeIcon icon={faCopy} />
+      )}
     </button>
-  )
+  );
 }

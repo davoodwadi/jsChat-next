@@ -1,6 +1,11 @@
 // import ChatComponent from "@/components/ChatComponent"
 import RecursiveChat from "@/components/RecursiveComponent";
 
+import { faCopy } from "@fortawesome/free-regular-svg-icons";
+import { faCheck } from "@fortawesome/free-solid-svg-icons";
+
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
 export default async function Home() {
   // server component
 
@@ -9,6 +14,7 @@ export default async function Home() {
       {/* <ChatComponent /> */}
 
       <RecursiveChat />
+      {/* <FontAwesomeIcon icon={faCheck} /> */}
     </>
   );
 }

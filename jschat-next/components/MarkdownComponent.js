@@ -1,17 +1,15 @@
-import Markdown from "react-markdown"
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
+import Markdown from "react-markdown";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import {
   dark,
   light,
   twilight,
   a11yDark,
-} from "react-syntax-highlighter/dist/esm/styles/prism"
-import CopyText from "@/components/CopyTextComponent"
+} from "react-syntax-highlighter/dist/esm/styles/prism";
+import CopyText from "@/components/CopyTextComponent";
 
 export default function MarkdownComponent(props) {
-  const style = a11yDark
-  const model = props?.model
-  console.log("markdown model:", model)
+  const style = a11yDark;
 
   return (
     <>
@@ -19,13 +17,13 @@ export default function MarkdownComponent(props) {
         children={props.children}
         components={{
           code(props) {
-            const { children, className, node, ...rest } = props
-            const text = children
+            const { children, className, node, ...rest } = props;
+            const text = children;
             // console.log("children", children)
             // console.log("className", className)
             // console.log("node", node)
             // console.log("...rest", rest)
-            const match = /language-(\w+)/.exec(className || "")
+            const match = /language-(\w+)/.exec(className || "");
             if (match) {
               // known code block
               function CustomPreTag({ children, ...rest }) {
@@ -33,13 +31,12 @@ export default function MarkdownComponent(props) {
                 // console.log("rest", rest)
                 return (
                   <div {...rest} className="flex flex-col ">
-                    <div className="flex flex-row justify-between text-xs mb-4">
-                      <div>{model}</div>
+                    <div className="flex flex-row justify-end text-xs mb-4">
                       <CopyText text={text} />
                     </div>
                     {children}
                   </div>
-                )
+                );
               }
               return (
                 <>
@@ -52,17 +49,17 @@ export default function MarkdownComponent(props) {
                     // showLineNumbers
                   />
                 </>
-              )
+              );
             } else {
               return (
                 <code {...rest} className={className}>
                   {children}
                 </code>
-              )
+              );
             }
           },
         }}
       />
     </>
-  )
+  );
 }

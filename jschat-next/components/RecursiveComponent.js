@@ -6,6 +6,7 @@ import { generate } from "@/lib/actions";
 import { readStreamableValue } from "ai/rsc";
 
 import MarkdownComponent from "@/components/MarkdownComponent";
+import CopyText from "@/components/CopyTextComponent";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_MOBILE } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -19,19 +20,21 @@ function UserMessage(props) {
   // baseClass +=  isPreviousUser || isLatestUser ? " min-w-[85vw] max-w-[90vw]" : "  " // min-w-fit
 
   return (
-    <div
-      contentEditable="true"
-      suppressContentEditableWarning
-      data-placeholder="New message"
-      className={baseClass}
-      onKeyDown={props.handleEnter}
-      id={props.id}
-      globaliduser={props.globalIdUser}
-      maxglobaliduser={props.maxGlobalIdUser}
-      ref={isLatestUser ? props.refElementUser : null}
-    >
-      {props.children}
-    </div>
+    <>
+      <div
+        contentEditable="true"
+        suppressContentEditableWarning
+        data-placeholder="Type your message and press Enter to send..."
+        className={baseClass}
+        onKeyDown={props.handleEnter}
+        id={props.id}
+        globaliduser={props.globalIdUser}
+        maxglobaliduser={props.maxGlobalIdUser}
+        ref={isLatestUser ? props.refElementUser : null}
+      >
+        {props.children}
+      </div>
+    </>
   );
 }
 
@@ -57,9 +60,13 @@ function BotMessage(props) {
       ref={isLatestBot ? props.refElementBot : null}
     >
       {/* {props.children} */}
-      <MarkdownComponent model={props.model}>
-        {props.children}
-      </MarkdownComponent>
+
+      <div className="flex flex-row justify-between text-xs mb-4">
+        <p>{props.model}</p>
+        <CopyText text={props.children} />
+      </div>
+
+      <MarkdownComponent>{props.children}</MarkdownComponent>
     </div>
   );
 }
