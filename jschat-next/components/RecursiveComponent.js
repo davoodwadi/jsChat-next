@@ -295,7 +295,7 @@ function TestContainer(props) {
           content: event.target.textContent,
           role: "user",
         });
-        console.log("chain", chain);
+        // console.log("chain", chain);
         //
 
         setUserMessages((v) => {
@@ -322,17 +322,17 @@ function TestContainer(props) {
           props.setIsDialogOpen(true);
           return;
         }
-        console.log("streamIterator.status ok", streamIterator.status);
+        // console.log("streamIterator.status ok", streamIterator.status);
         let counter = 0;
         tempChunks = "";
         const newGlobalIdBot = globalIdBot + 1;
         setGlobalIdBot(newGlobalIdBot);
         for await (const delta of readStreamableValue(streamIterator.output)) {
-          console.log("delta", delta);
+          // console.log("delta", delta);
           // tempChunks += chunk;
           setResponse({ status: streamIterator.status });
           tempChunks = delta ? tempChunks + delta : tempChunks;
-          console.log("delta", delta);
+          // console.log("delta", delta);
           // setChunks(tempChunks);
           const newBotEntry = {
             key: array,

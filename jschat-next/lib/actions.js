@@ -51,14 +51,14 @@ export async function getUserTokensLeft({ user }) {
 export async function generate({ messages, model }) {
   const session = await auth();
   if (test) {
-    console.log("session", session);
+    // console.log("session", session);
   }
   if (!session?.user) {
     return { output: null, status: "Not Authenticated" };
   }
   const stream = createStreamableValue("");
   if (test) {
-    console.log("server messages:", messages);
+    // console.log("server messages:", messages);
   }
   (async () => {
     const { fullStream } = streamText({
@@ -69,7 +69,7 @@ export async function generate({ messages, model }) {
 
     for await (const delta of fullStream) {
       if (test) {
-        console.log("server delta.type:", delta.type);
+        // console.log("server delta.type:", delta.type);
       }
       if (delta.type === "finish") {
         // count tokens and update database for user
