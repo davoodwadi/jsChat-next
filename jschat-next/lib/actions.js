@@ -6,6 +6,7 @@ import { createStreamableValue } from "ai/rsc";
 import { auth, signIn } from "@/auth";
 import { AuthError } from "next-auth";
 import { connectToDatabase } from "@/lib/db";
+import { test } from "@/lib/test";
 
 export async function addUserToken({ email }) {
   const client = await connectToDatabase();
@@ -18,7 +19,9 @@ export async function addUserToken({ email }) {
       projection: { tokensRemaining: 1 }, // Only return the tokensRemaining field
     }
   );
-  console.log(results, "results");
+  if (test) {
+    console.log(results, "results");
+  }
   return { email: email, tokensRemaining: results.tokensRemaining };
   // const userDb = results[0]
   // return userDb.tokensRemaining
@@ -47,20 +50,27 @@ export async function getUserTokensLeft({ user }) {
 
 export async function generate({ messages, model }) {
   const session = await auth();
-  console.log("session", session);
+  if (test) {
+    console.log("session", session);
+  }
   if (!session?.user) {
     return { output: null, status: "Not Authenticated" };
   }
   const stream = createStreamableValue("");
-  console.log("server messages:", messages);
+  if (test) {
+    console.log("server messages:", messages);
+  }
   (async () => {
     const { fullStream } = streamText({
       model: openai(model),
-      messages,
+      messages: messages,
+      maxTokens: 2000,
     });
 
     for await (const delta of fullStream) {
-      //   console.log("server delta:", delta)
+      if (test) {
+        console.log("server delta.type:", delta.type);
+      }
       if (delta.type === "finish") {
         // count tokens and update database for user
         console.log("delta.usage.totalTokens", delta.usage.totalTokens);

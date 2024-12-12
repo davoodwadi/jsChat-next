@@ -12,19 +12,29 @@ import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_MOBILE } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { AuthDialog } from "@/components/AuthDialog";
 import { signInClientAction } from "@/lib/actions";
+import { test } from "@/lib/test";
 
-function UserMessage(props) {
+export function UserMessage(props) {
   const isLatestUser = props.maxGlobalIdUser === props.globalIdUser;
+  const isFirstUser = props.maxGlobalIdUser === 1;
+  if (test) {
+    // console.log("isFirstUser", isFirstUser, props.maxGlobalIdUser);
+  }
   const isPreviousUser = props.maxGlobalIdUser === props.globalIdUser + 1;
-  let baseClass = "rounded-xl bg-blue-400 p-4 m-1 relative break-words"; //border-2 border-blue-500 min-w-fit
+  let baseClass = " rounded-xl bg-blue-400 p-4 m-1 relative break-words "; //border-2 border-blue-500 min-w-fit
   // baseClass +=  isPreviousUser || isLatestUser ? " min-w-[85vw] max-w-[90vw]" : "  " // min-w-fit
+  if (props.isMobile && isFirstUser) {
+    baseClass += " w-[90vw] ";
+  } else if (isFirstUser) {
+    baseClass += " w-[calc(90vw-16rem)] ";
+  }
 
   return (
     <>
       <div
         contentEditable="true"
         suppressContentEditableWarning
-        data-placeholder="Type your message and press Enter to send..."
+        data-placeholder="Type your message and press Enter ↵ ..."
         className={baseClass}
         onKeyDown={props.handleEnter}
         id={props.id}
@@ -38,7 +48,7 @@ function UserMessage(props) {
   );
 }
 
-function BotMessage(props) {
+export function BotMessage(props) {
   // console.log(
   //   "botMessage props.maxGlobalIdBot",
   //   props.maxGlobalIdBot === props.globalIdBot
@@ -71,7 +81,7 @@ function BotMessage(props) {
   );
 }
 
-function Branch(props) {
+export function Branch(props) {
   // console.log("branch is mobile", props.isMobile)
   const isPenultimateBranch = props.globalIdBot === props.maxGlobalIdBot;
   let baseClass = "flex-1 mx-auto"; //border-2 border-red-300 flex-1
@@ -91,7 +101,7 @@ function Branch(props) {
   );
 }
 
-function BranchContainer(props) {
+export function BranchContainer(props) {
   return (
     <div
       id={"branch-container" + props.id}
@@ -106,6 +116,8 @@ function TestContainer(props) {
   const isMobile = useIsMobile();
   const [globalIdUser, setGlobalIdUser] = useState(1);
   const [globalIdBot, setGlobalIdBot] = useState(0);
+  // const [globalIdUser, setGlobalIdUser] = useState(19);
+  // const [globalIdBot, setGlobalIdBot] = useState(11);
 
   const [model, setModel] = useState("gpt-4o-mini");
 
@@ -113,6 +125,8 @@ function TestContainer(props) {
     { key: [1], content: "", role: "user", globalIdUser: globalIdUser },
   ]);
   const [botMessages, setBotMessages] = useState(() => []);
+  // const [userMessages, setUserMessages] = useState(() => initialUserMessages);
+  // const [botMessages, setBotMessages] = useState(() => initialBotMessages);
 
   const idInUserMessages = (id) =>
     userMessages.filter((m) => JSON.stringify(m.key) === id).length > 0; // bool; if id is in userMessages
@@ -125,16 +139,16 @@ function TestContainer(props) {
 
   // change botMessages
   // focus to new user message
-  useEffect(() => {
-    // props.refElementUser.current?.focus()
-  }, [userMessages]);
+  // useEffect(() => {
+  //   props.refElementUser.current?.focus()
+  // }, [userMessages]);
   // scroll to latest bot message
   useLayoutEffect(() => {
     // console.log("props.refElementBot.current", props.refElementBot.current)
     props.refElementBot.current?.scrollIntoView({
       // behavior: "smooth",
       block: "center",
-      inline: "center",
+      inline: "start",
     });
   }, [response]);
   //
@@ -281,6 +295,7 @@ function TestContainer(props) {
           content: event.target.textContent,
           role: "user",
         });
+        console.log("chain", chain);
         //
 
         setUserMessages((v) => {
@@ -307,17 +322,17 @@ function TestContainer(props) {
           props.setIsDialogOpen(true);
           return;
         }
-
+        console.log("streamIterator.status ok", streamIterator.status);
         let counter = 0;
         tempChunks = "";
         const newGlobalIdBot = globalIdBot + 1;
         setGlobalIdBot(newGlobalIdBot);
         for await (const delta of readStreamableValue(streamIterator.output)) {
-          // console.log("resp", resp);
+          console.log("delta", delta);
           // tempChunks += chunk;
           setResponse({ status: streamIterator.status });
           tempChunks = delta ? tempChunks + delta : tempChunks;
-          // console.log("chunk", tempChunks);
+          console.log("delta", delta);
           // setChunks(tempChunks);
           const newBotEntry = {
             key: array,
@@ -389,16 +404,30 @@ function TestContainer(props) {
     let tempUserMessages;
     if (props.parentKey) {
       // console.log("props.parentKey", props.parentKey.length);
+      // userMessages whose length is same as parent
+      // (parent: the userMessage that called recursive)
+      // &&
+      // userMessages whose key matches the parent
       tempUserMessages = userMessages.filter(
         (m) =>
-          (m.key.length - 1 === props.parentKey.length) &
-          (JSON.stringify(m.key.slice(0, -1)) ===
-            JSON.stringify(props.parentKey))
+          m.key.length - 1 === props.parentKey.length &&
+          JSON.stringify(m.key.slice(0, -1)) === JSON.stringify(props.parentKey)
       );
     } else {
       tempUserMessages = userMessages.filter((m) => m.key.length === 1);
     }
-
+    if (test) {
+      // console.log("tempUserMessages.length", tempUserMessages.length);
+      // console.log("tempUserMessages", tempUserMessages);
+    }
+    // tempUserMessages contains each BranchContainer's Branches.
+    // each element inside is a usermessage for that branch
+    // let soleBranch = false;
+    // if (tempUserMessages.length === 1) {
+    //   soleBranch = true;
+    // }
+    // console.log("soleBranch", soleBranch);
+    // console.log("props.level", props.level);
     return (
       tempUserMessages[0] && (
         <BranchContainer id={props.level} key={props.level}>
@@ -419,6 +448,7 @@ function TestContainer(props) {
                   key={JSON.stringify(tm.key)}
                   globalIdUser={tm.globalIdUser}
                   maxGlobalIdUser={globalIdUser}
+                  isMobile={isMobile}
                   handleEnter={handleEnter}
                   refElementUser={props.refElementUser}
                 >
@@ -451,11 +481,13 @@ function TestContainer(props) {
       )
     );
   }
+  // console.log("userMessages", userMessages);
+  // console.log("test", test);
 
-  let chatContainerClass = "my-2 overflow-auto flex flex-col mx-4 md:mx-6 ";
+  let chatContainerClass = " overflow-auto overflow-x-auto "; // flex flex-col overflow-auto
   chatContainerClass += isMobile
-    ? " min-w-[90vw] "
-    : ` min-w-[calc(90vw-${SIDEBAR_WIDTH})] `;
+    ? " w-[90vw] "
+    : ` w-[calc(90vw-${SIDEBAR_WIDTH})] `;
   return (
     <div id="chat-container" className={chatContainerClass}>
       {/* <div>
@@ -477,8 +509,9 @@ export default function RecursiveChat(props) {
   const refUser = useRef(null);
   const refBot = useRef(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   return (
-    <div className="my-auto">
+    <div className="my-auto mx-auto py-2 px-4 md:px-6 ">
       <TestContainer
         refElementUser={refUser}
         refElementBot={refBot}
@@ -508,31 +541,162 @@ export default function RecursiveChat(props) {
     </div>
   );
 }
-
+// { key: [1], content: "", role: "user", globalIdUser: globalIdUser }
+// key: array,
+//             globalIdBot: 1,
+//             content: tempChunks,
+//             role: "bot",
+//             status: 'ok',
+//             model: 'gpt-4o-mini',
 const initialUserMessages = [
-  { key: [1], content: "text 1", role: "user" },
-  { key: [2], content: "text 2", role: "user" },
-  { key: [3], content: "text 3", role: "user" },
-  { key: [1, 1], content: "text 1,1", role: "user" },
-  { key: [1, 2], content: "text 1,2", role: "user" },
-  { key: [1, 2, 1], content: "text 1,2,1", role: "user" },
-  { key: [1, 2, 2], content: "text 1,2,2", role: "user" },
-  { key: [1, 2, 3], content: "text 1,2,3", role: "user" },
-  { key: [1, 2, 3, 1], content: "text 1,2,3,1", role: "user" },
-  { key: [2, 1], content: "text 2,1", role: "user" },
-  { key: [2, 2], content: "text 2,2", role: "user" },
+  { key: [1], content: "text 1", role: "user", globalIdUser: 1 },
+  { key: [1, 1], content: "text 1,1", role: "user", globalIdUser: 4 },
+  { key: [1, 1, 1], content: "text 1,1,1", role: "user", globalIdUser: 12 },
+  { key: [1, 2], content: "text 1,2", role: "user", globalIdUser: 5 },
+  { key: [1, 2, 1], content: "text 1,2,1", role: "user", globalIdUser: 6 },
+  {
+    key: [1, 2, 1, 1],
+    content: "text 1, 2, 1, 1",
+    role: "user",
+    globalIdUser: 13,
+  },
+  { key: [1, 2, 2], content: "text 1,2,2", role: "user", globalIdUser: 7 },
+  {
+    key: [1, 2, 2, 1],
+    content: "text 1, 2, 2, 1",
+    role: "user",
+    globalIdUser: 14,
+  },
+  { key: [1, 2, 3], content: "text 1,2,3", role: "user", globalIdUser: 8 },
+  { key: [1, 2, 3, 1], content: "text 1,2,3,1", role: "user", globalIdUser: 9 },
+  {
+    key: [1, 2, 3, 1, 1],
+    content: "text 1, 2, 3, 1, 1",
+    role: "user",
+    globalIdUser: 15,
+  },
+  { key: [1, 2, 4], content: "text 1,2,4", role: "user", globalIdUser: 15 },
+  {
+    key: [1, 2, 4, 1],
+    content: "text 1,2,4,1",
+    role: "user",
+    globalIdUser: 16,
+  },
+  { key: [1, 3], content: "text 1,3", role: "user", globalIdUser: 13 },
+  { key: [1, 3, 1], content: "text 1,3,1", role: "user", globalIdUser: 14 },
+  { key: [2], content: "text 2", role: "user", globalIdUser: 2 },
+  { key: [2, 1], content: "text 2,1", role: "user", globalIdUser: 10 },
+  { key: [2, 1, 1], content: "text 2,1,1", role: "user", globalIdUser: 16 },
+  { key: [2, 2], content: "text 2,2", role: "user", globalIdUser: 11 },
+  { key: [2, 2, 1], content: "text 2,2,1", role: "user", globalIdUser: 17 },
+  { key: [3], content: "text 3", role: "user", globalIdUser: 3 },
+  { key: [3, 1], content: "text 3,1", role: "user", globalIdUser: 18 },
 ];
 const initialBotMessages = [
-  { key: [1], content: "bot text 1", role: "bot" },
-  { key: [2], content: "bot text 2", role: "bot" },
-  { key: [3], content: "bot text 3", role: "bot" },
-  { key: [1, 1], content: "bot text 1,1", role: "bot" },
-  { key: [1, 2], content: "bot text 1,2", role: "bot" },
-  { key: [1, 2, 1], content: "bot text 1,2,1", role: "bot" },
-  { key: [1, 2, 2], content: "bot text 1,2,2", role: "bot" },
-  { key: [1, 2, 3], content: "bot text 1,2,3", role: "bot" },
-  { key: [1, 2, 3, 1], content: "bot text 1,2,3,1", role: "bot" },
-  { key: [2, 1], content: "bot text 2,1", role: "bot" },
+  {
+    key: [1],
+    content: "bot text 1",
+    role: "bot",
+    globalIdBot: 1,
+    status: "ok",
+    model: "gpt-4o-mini",
+  },
+  {
+    key: [1, 1],
+    content: "bot text 1,1",
+    role: "bot",
+    globalIdBot: 4,
+    status: "ok",
+    model: "gpt-4o-mini",
+  },
+  {
+    key: [1, 2],
+    content: "bot text 1,2",
+    role: "bot",
+    globalIdBot: 5,
+    status: "ok",
+    model: "gpt-4o-mini",
+  },
+  {
+    key: [1, 2, 1],
+    content: "bot text 1,2,1",
+    role: "bot",
+    globalIdBot: 6,
+    status: "ok",
+    model: "gpt-4o-mini",
+  },
+  {
+    key: [1, 2, 2],
+    content: "bot text 1,2,2",
+    role: "bot",
+    globalIdBot: 7,
+    status: "ok",
+    model: "gpt-4o-mini",
+  },
+  {
+    key: [1, 2, 3],
+    content: "bot text 1,2,3",
+    role: "bot",
+    globalIdBot: 8,
+    status: "ok",
+    model: "gpt-4o-mini",
+  },
+  {
+    key: [1, 2, 3, 1],
+    content: "bot text 1,2,3,1",
+    role: "bot",
+    globalIdBot: 9,
+    status: "ok",
+    model: "gpt-4o-mini",
+  },
+  {
+    key: [1, 2, 4],
+    content: "bot text 1,2,4",
+    role: "bot",
+    globalIdBot: 13,
+    status: "ok",
+    model: "gpt-4o-mini",
+  },
+  {
+    key: [1, 3],
+    content: "bot text 1,3",
+    role: "bot",
+    globalIdBot: 12,
+    status: "ok",
+    model: "gpt-4o-mini",
+  },
+  {
+    key: [2],
+    content: "bot text 2",
+    role: "bot",
+    globalIdBot: 2,
+    status: "ok",
+    model: "gpt-4o-mini",
+  },
+  {
+    key: [2, 1],
+    content: "bot text 2,1",
+    role: "bot",
+    globalIdBot: 10,
+    status: "ok",
+    model: "gpt-4o-mini",
+  },
+  {
+    key: [2, 2],
+    content: "bot text 2,2",
+    role: "bot",
+    globalIdBot: 11,
+    status: "ok",
+    model: "gpt-4o-mini",
+  },
+  {
+    key: [3],
+    content: "bot text 3",
+    role: "bot",
+    globalIdBot: 3,
+    status: "ok",
+    model: "gpt-4o-mini",
+  },
 ];
 
 function getDummyBotResponse({ chain }) {

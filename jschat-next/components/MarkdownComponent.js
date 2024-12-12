@@ -1,4 +1,5 @@
 import Markdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import {
   dark,
@@ -14,6 +15,8 @@ export default function MarkdownComponent(props) {
   return (
     <>
       <Markdown
+        rehypePlugins={[rehypeRaw]}
+        // remarkPlugins={[rehypeRaw]}
         children={props.children}
         components={{
           code(props) {
@@ -38,6 +41,7 @@ export default function MarkdownComponent(props) {
                   </div>
                 );
               }
+              // console.log("children", typeof children);
               return (
                 <>
                   <SyntaxHighlighter

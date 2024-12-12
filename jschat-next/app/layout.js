@@ -45,7 +45,7 @@ export default async function RootLayout({ children }) {
           <SidebarProvider>
             <AppSidebar />
             <SidebarTrigger />
-            <div className={` flex flex-col min-h-screen w-full`}>
+            <div className={` flex flex-col min-h-screen overflow-hidden`}>
               <div className="flex flex-row mx-auto mt-2 mb-6">
                 <div className="mx-1">
                   <ThemeToggle />
@@ -72,7 +72,7 @@ export default async function RootLayout({ children }) {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Privacy Policy{" "}
+                  Privacy Policy
                 </a>
               </footer>
             </div>
