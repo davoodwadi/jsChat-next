@@ -1,5 +1,7 @@
 "use client";
 
+export const maxDuration = 55;
+
 import React from "react";
 import { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { generate } from "@/lib/actions";
@@ -22,12 +24,13 @@ export function UserMessage(props) {
   }
   const isPreviousUser = props.maxGlobalIdUser === props.globalIdUser + 1;
   let baseClass = " rounded-xl bg-blue-400 p-4 m-1 relative break-words "; //border-2 border-blue-500 min-w-fit
+  // baseClass += props.toMaximize ? " w-full " : " ";
   // baseClass +=  isPreviousUser || isLatestUser ? " min-w-[85vw] max-w-[90vw]" : "  " // min-w-fit
-  if (props.isMobile && isFirstUser) {
-    baseClass += " w-[90vw] ";
-  } else if (isFirstUser) {
-    baseClass += " w-[calc(90vw-16rem)] ";
-  }
+  // if (props.isMobile && isFirstUser) {
+  //   baseClass += " w-[90vw] ";
+  // } else if (isFirstUser) {
+  //   baseClass += " w-[calc(90vw-16rem)] ";
+  // }
 
   return (
     <>
@@ -57,7 +60,7 @@ export function BotMessage(props) {
   let baseClass =
     "rounded-xl bg-yellow-400 text-black p-4 m-1 relative break-words"; //border-yellow-500
   // baseClass += isLatestBot ? " min-w-[85vw] max-w-[90vw]" : "  " // min-w-fit
-
+  // baseClass += props.toMaximize ? " w-full " : " ";
   return (
     <div
       contentEditable="true"
@@ -83,18 +86,25 @@ export function BotMessage(props) {
 
 export function Branch(props) {
   // console.log("branch is mobile", props.isMobile)
+  // console.log("toMaximize", props.toMaximize);
   const isPenultimateBranch = props.globalIdBot === props.maxGlobalIdBot;
-  let baseClass = "flex-1 mx-auto"; //border-2 border-red-300 flex-1
-  const w = props.isMobile
-    ? " min-w-[85vw] max-w-[90vw] "
-    : ` min-w-[calc(85vw-16rem)] max-w-[calc(90vw-16rem)] `; //` min-w-[calc(50vw-${SIDEBAR_WIDTH})] max-w-[calc(60vw-${SIDEBAR_WIDTH})] `
+  let baseClass = "mx-auto"; //border-2 border-red-300 flex-1
+  // const w = props.isMobile
+  //   ? " min-w-3/4 max-w-5/6 "
+  //   : ` min-w-[calc(85%-16rem)] max-w-[calc(90%-16rem)] `; //` min-w-[calc(50vw-${SIDEBAR_WIDTH})] max-w-[calc(60vw-${SIDEBAR_WIDTH})] `
+  // const w = props.isMobile ? " w-full  " : ` w-[calc(90%-16rem)] `; //` min-w-[calc(50vw-${SIDEBAR_WIDTH})] max-w-[calc(60vw-${SIDEBAR_WIDTH})] `
+  // const w = props.isMobile ? " w-[85vw] " : ` w-[calc(85vw-16rem)] `;
+  let w = props.isMobile
+    ? " w-[85vw] shrink-0 "
+    : ` w-[calc(85vw-16rem)] shrink-0 `;
   // baseClass += isPenultimateBranch ? " min-w-[60vw] max-w-[70vw] " : " " // min-w-[85vw] max-w-[90vw]
-  baseClass += isPenultimateBranch ? w : " "; // min-w-[85vw] max-w-[90vw]
+  baseClass += props.toMaximize ? w : " flex-1  "; // min-w-[85vw] max-w-[90vw]
   return (
     <div
       id={"branch" + props.id}
       className={baseClass}
       penultimate={isPenultimateBranch ? "true" : "false"}
+      tomaximize={props.toMaximize ? "true" : "false"}
     >
       {props.children}
     </div>
@@ -133,10 +143,41 @@ function TestContainer(props) {
   const idInBotMessages = (id) =>
     botMessages.filter((m) => JSON.stringify(m.key) === id).length > 0; // // bool; if id is in botMessages
   const getBotMessageForKey = (key) =>
-    botMessages.filter((m) => JSON.stringify(m.key) === JSON.stringify(key))[0]; // returns BotMessage for a given key
+    botMessages.find((m) => JSON.stringify(m.key) === JSON.stringify(key)); // returns BotMessage for a given key
 
   const [response, setResponse] = useState({});
+  const [branchKeyToMaximize, setBranchKeyToMaximize] = useState(
+    JSON.stringify([1])
+  );
 
+  function checkParentBranch(key) {
+    console.log("key", key);
+    // if length of key is 1 it is the root branch
+    if (key.length === 1) {
+      console.log("root branch", key);
+      return { final: true, key: JSON.stringify(key) };
+    }
+    // if last value in key > 1 -> it is a new horizontal branch
+    // -> maximize it
+    let lastKey = key[key.length - 1];
+    console.log("lastKey", lastKey);
+    if (lastKey > 1) {
+      return { final: true, key: JSON.stringify(key) };
+    } else {
+      // if last value in key === 1 -> it is a new vertical branch
+      // -> maximize its parent
+      let parentKey = key.slice(0, -1);
+      if (parentKey.length === 0) {
+        // first botMessage in branch
+        parentKey = key;
+        return { final: true, key: JSON.stringify(key) };
+      }
+      // for instace parentKey [2, 1, 1]
+      console.log("parentKey continues", parentKey);
+      return checkParentBranch(parentKey);
+      // return {final:false, key:JSON.stringify(parentKey)};
+    }
+  }
   // change botMessages
   // focus to new user message
   // useEffect(() => {
@@ -152,14 +193,33 @@ function TestContainer(props) {
     });
   }, [response]);
   //
+  function getBranchKeyToMaximize() {
+    console.log("globalIdBot", globalIdBot);
+    // first user message -> maximize
+    if (globalIdBot === 0) {
+      return JSON.stringify([1]);
+    }
+    // find bot message with globalIdBot
+    const latestBotMessage = botMessages.find(
+      (botMessage) => botMessage.globalIdBot === globalIdBot
+    );
+    const messageKey = latestBotMessage.key;
+
+    const branchToMaxInfo = checkParentBranch(messageKey);
+    console.log("branchToMaxInfo", branchToMaxInfo);
+    if (branchToMaxInfo.final) {
+      return branchToMaxInfo.key;
+    }
+
+    return;
+  }
+  //
   useEffect(() => {
     // console.log("globalIdBot", globalIdBot)
 
-    const newestBotMessage = botMessages.find(
-      (m) => m.globalIdBot === globalIdBot
-    );
-    // console.log("newestBotMessage", newestBotMessage)
-    // console.log("botMessages", botMessages)
+    const newBranchKeyToMaximize = getBranchKeyToMaximize();
+    console.log("newBranchKeyToMaximize", newBranchKeyToMaximize);
+    setBranchKeyToMaximize(newBranchKeyToMaximize);
   }, [globalIdBot]);
 
   async function handleEnter(event) {
@@ -428,6 +488,7 @@ function TestContainer(props) {
     // }
     // console.log("soleBranch", soleBranch);
     // console.log("props.level", props.level);
+
     return (
       tempUserMessages[0] && (
         <BranchContainer id={props.level} key={props.level}>
@@ -442,6 +503,7 @@ function TestContainer(props) {
                 }
                 maxGlobalIdBot={globalIdBot}
                 isMobile={isMobile}
+                toMaximize={branchKeyToMaximize === JSON.stringify(tm.key)}
               >
                 <UserMessage
                   id={JSON.stringify(tm.key)}
@@ -449,6 +511,7 @@ function TestContainer(props) {
                   globalIdUser={tm.globalIdUser}
                   maxGlobalIdUser={globalIdUser}
                   isMobile={isMobile}
+                  toMaximize={branchKeyToMaximize === JSON.stringify(tm.key)}
                   handleEnter={handleEnter}
                   refElementUser={props.refElementUser}
                 >
@@ -461,6 +524,7 @@ function TestContainer(props) {
                     globalIdBot={getBotMessageForKey(tm.key).globalIdBot}
                     maxGlobalIdBot={globalIdBot}
                     model={getBotMessageForKey(tm.key)?.model}
+                    toMaximize={branchKeyToMaximize === JSON.stringify(tm.key)}
                     refElementBot={props.refElementBot}
                   >
                     {getBotMessageForKey(tm.key).content}
@@ -484,7 +548,8 @@ function TestContainer(props) {
   // console.log("userMessages", userMessages);
   // console.log("test", test);
 
-  let chatContainerClass = " overflow-auto overflow-x-auto "; // flex flex-col overflow-auto
+  let chatContainerClass =
+    " overflow-y-auto overflow-x-auto h-[70vh] rounded-xl"; // flex flex-col overflow-auto
   chatContainerClass += isMobile
     ? " w-[90vw] "
     : ` w-[calc(90vw-${SIDEBAR_WIDTH})] `;

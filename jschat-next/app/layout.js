@@ -35,7 +35,7 @@ export default async function RootLayout({ children }) {
   // console.log("session", session)
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>
+      <body className="">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

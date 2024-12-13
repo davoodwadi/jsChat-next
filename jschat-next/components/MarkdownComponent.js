@@ -1,5 +1,8 @@
 import Markdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
+import remarkGfm from "remark-gfm";
+import rehypeKatex from "rehype-katex";
+import remarkMath from "remark-math";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import {
   dark,
@@ -8,16 +11,19 @@ import {
   a11yDark,
 } from "react-syntax-highlighter/dist/esm/styles/prism";
 import CopyText from "@/components/CopyTextComponent";
-
+// import "@/node_modules/github-markdown-css/github-markdown.css";
+import "@/styles/markdown.css";
 export default function MarkdownComponent(props) {
   const style = a11yDark;
+  let language;
 
   return (
     <>
       <Markdown
-        rehypePlugins={[rehypeRaw]}
-        // remarkPlugins={[rehypeRaw]}
+        rehypePlugins={[rehypeRaw, rehypeKatex]}
+        remarkPlugins={[remarkGfm, remarkMath]}
         children={props.children}
+        className="markdown-body"
         components={{
           code(props) {
             const { children, className, node, ...rest } = props;
@@ -28,13 +34,16 @@ export default function MarkdownComponent(props) {
             // console.log("...rest", rest)
             const match = /language-(\w+)/.exec(className || "");
             if (match) {
+              // set language
+              language = match[1];
               // known code block
               function CustomPreTag({ children, ...rest }) {
                 // console.log("children", children)
                 // console.log("rest", rest)
                 return (
                   <div {...rest} className="flex flex-col ">
-                    <div className="flex flex-row justify-end text-xs mb-4">
+                    <div className="flex flex-row justify-between text-xs mb-4">
+                      <div>{language}</div>
                       <CopyText text={text} />
                     </div>
                     {children}
