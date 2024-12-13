@@ -151,16 +151,16 @@ function TestContainer(props) {
   );
 
   function checkParentBranch(key) {
-    console.log("key", key);
+    // console.log("key", key);
     // if length of key is 1 it is the root branch
     if (key.length === 1) {
-      console.log("root branch", key);
+      // console.log("root branch", key);
       return { final: true, key: JSON.stringify(key) };
     }
     // if last value in key > 1 -> it is a new horizontal branch
     // -> maximize it
     let lastKey = key[key.length - 1];
-    console.log("lastKey", lastKey);
+    // console.log("lastKey", lastKey);
     if (lastKey > 1) {
       return { final: true, key: JSON.stringify(key) };
     } else {
@@ -173,7 +173,7 @@ function TestContainer(props) {
         return { final: true, key: JSON.stringify(key) };
       }
       // for instace parentKey [2, 1, 1]
-      console.log("parentKey continues", parentKey);
+      // console.log("parentKey continues", parentKey);
       return checkParentBranch(parentKey);
       // return {final:false, key:JSON.stringify(parentKey)};
     }
@@ -194,7 +194,7 @@ function TestContainer(props) {
   }, [response]);
   //
   function getBranchKeyToMaximize() {
-    console.log("globalIdBot", globalIdBot);
+    // console.log("globalIdBot", globalIdBot);
     // first user message -> maximize
     if (globalIdBot === 0) {
       return JSON.stringify([1]);
@@ -206,7 +206,7 @@ function TestContainer(props) {
     const messageKey = latestBotMessage.key;
 
     const branchToMaxInfo = checkParentBranch(messageKey);
-    console.log("branchToMaxInfo", branchToMaxInfo);
+    // console.log("branchToMaxInfo", branchToMaxInfo);
     if (branchToMaxInfo.final) {
       return branchToMaxInfo.key;
     }
@@ -218,7 +218,7 @@ function TestContainer(props) {
     // console.log("globalIdBot", globalIdBot)
 
     const newBranchKeyToMaximize = getBranchKeyToMaximize();
-    console.log("newBranchKeyToMaximize", newBranchKeyToMaximize);
+    // console.log("newBranchKeyToMaximize", newBranchKeyToMaximize);
     setBranchKeyToMaximize(newBranchKeyToMaximize);
   }, [globalIdBot]);
 
