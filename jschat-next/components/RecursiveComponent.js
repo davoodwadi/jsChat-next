@@ -10,9 +10,8 @@ import { readStreamableValue } from "ai/rsc";
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_MOBILE } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
 import { AuthDialog } from "@/components/AuthDialog";
-import { signInClientAction } from "@/lib/actions";
+
 import { test } from "@/lib/test";
 import { delay } from "@/lib/myTools";
 import {
@@ -22,8 +21,8 @@ import {
   BranchContainer,
 } from "./BranchComponents";
 
-function TestContainer(props) {
-  console.log("starting TestContainer");
+function RecursiveChatContainer(props) {
+  console.log("starting RecursiveChatContainer");
   const isMobile = useIsMobile();
   const [globalIdUser, setGlobalIdUser] = useState(1);
   const [globalIdBot, setGlobalIdBot] = useState(0);
@@ -34,9 +33,6 @@ function TestContainer(props) {
     { key: [1], content: "", role: "user", globalIdUser: globalIdUser },
   ]);
   const [botMessages, setBotMessages] = useState(() => []);
-
-  const getBotMessageForKey = (key) =>
-    botMessages.find((m) => JSON.stringify(m.key) === JSON.stringify(key)); // returns BotMessage for a given key
 
   const [response, setResponse] = useState({});
   const [branchKeyToMaximize, setBranchKeyToMaximize] = useState(
@@ -62,127 +58,6 @@ function TestContainer(props) {
     setBranchKeyToMaximize(newBranchKeyToMaximize);
   }, [globalIdBot]);
 
-  function RecursiveBranch(props) {
-    // tempMessages should be messages whose length is props.parentKey.length+1
-    // and .slice(0,-1) JSON.stringify is equal to parent
-    let tempUserMessages;
-    if (props.parentKey) {
-      // console.log("props.parentKey", props.parentKey.length);
-      // userMessages whose length is same as parent
-      // (parent: the userMessage that called recursive)
-      // &&
-      // userMessages whose key matches the parent
-      tempUserMessages = userMessages.filter(
-        (m) =>
-          m.key.length - 1 === props.parentKey.length &&
-          JSON.stringify(m.key.slice(0, -1)) === JSON.stringify(props.parentKey)
-      );
-    } else {
-      tempUserMessages = userMessages.filter((m) => m.key.length === 1);
-    }
-    if (test) {
-      // console.log("tempUserMessages.length", tempUserMessages.length);
-      // console.log("tempUserMessages", tempUserMessages);
-    }
-    // tempUserMessages contains each BranchContainer's Branches.
-    // each element inside is a usermessage for that branch
-    // let soleBranch = false;
-    // if (tempUserMessages.length === 1) {
-    //   soleBranch = true;
-    // }
-    // console.log("soleBranch", soleBranch);
-    // console.log("props.level", props.level);
-
-    return (
-      tempUserMessages[0] && (
-        <Suspense fallback={<p>Loading...</p>}>
-          <BranchContainer id={props.level} key={props.level}>
-            {tempUserMessages.map((tm, i) => {
-              return (
-                <Branch
-                  id={props.level}
-                  key={`${props.level} ${i}`}
-                  globalIdBot={
-                    getBotMessageForKey(tm.key) &&
-                    getBotMessageForKey(tm.key).globalIdBot
-                  }
-                  maxGlobalIdBot={globalIdBot}
-                  isMobile={isMobile}
-                  toMaximize={
-                    branchKeyToMaximize === JSON.stringify(tm.key) ||
-                    props.toMaximize
-                  }
-                >
-                  <UserMessage
-                    id={JSON.stringify(tm.key)}
-                    key={JSON.stringify(tm.key)}
-                    globalIdUser={tm.globalIdUser}
-                    maxGlobalIdUser={globalIdUser}
-                    isMobile={isMobile}
-                    toMaximize={
-                      branchKeyToMaximize === JSON.stringify(tm.key) ||
-                      props.toMaximize
-                    }
-                    handleEnter={(event) =>
-                      handleEnter({
-                        event,
-                        userMessages,
-                        setUserMessages,
-                        botMessages,
-                        setBotMessages,
-                        globalIdUser,
-                        setGlobalIdUser,
-                        globalIdBot,
-                        setGlobalIdBot,
-                        setResponse,
-                        model,
-                        setIsDialogOpen: props.setIsDialogOpen,
-                      })
-                    }
-                    refElementUser={props.refElementUser}
-                  >
-                    {tm.content}
-                  </UserMessage>
-                  {getBotMessageForKey(tm.key) && ( // tempBotMessages[i]
-                    <BotMessage
-                      id={JSON.stringify(tm.key)}
-                      key={"b" + JSON.stringify(tm.key)}
-                      globalIdBot={getBotMessageForKey(tm.key).globalIdBot}
-                      maxGlobalIdBot={globalIdBot}
-                      model={getBotMessageForKey(tm.key)?.model}
-                      toMaximize={
-                        branchKeyToMaximize === JSON.stringify(tm.key) ||
-                        props.toMaximize
-                      }
-                      refElementBot={props.refElementBot}
-                    >
-                      {getBotMessageForKey(tm.key).content}
-                    </BotMessage>
-                  )}
-
-                  <RecursiveBranch
-                    parentKey={tm.key}
-                    parent={tm.key[props.level]}
-                    level={props.level + 1}
-                    refElementUser={props.refElementUser}
-                    refElementBot={props.refElementBot}
-                    setIsDialogOpen={props.setIsDialogOpen}
-                    toMaximize={
-                      branchKeyToMaximize === JSON.stringify(tm.key) ||
-                      props.toMaximize
-                    }
-                  />
-                </Branch>
-              );
-            })}
-          </BranchContainer>
-        </Suspense>
-      )
-    );
-  }
-  // console.log("userMessages", userMessages);
-  // console.log("test", test);
-
   let chatContainerClass =
     " overflow-y-auto overflow-x-auto h-[70vh] rounded-xl"; // flex flex-col overflow-auto
   chatContainerClass += isMobile
@@ -197,6 +72,18 @@ function TestContainer(props) {
             refElementUser={props.refElementUser}
             refElementBot={props.refElementBot}
             setIsDialogOpen={props.setIsDialogOpen}
+            userMessages={userMessages}
+            setUserMessages={setUserMessages}
+            botMessages={botMessages}
+            setBotMessages={setBotMessages}
+            globalIdBot={globalIdBot}
+            setGlobalIdBot={setGlobalIdBot}
+            globalIdUser={globalIdUser}
+            setGlobalIdUser={setGlobalIdUser}
+            isMobile={isMobile}
+            model={model}
+            setResponse={setResponse}
+            branchKeyToMaximize={branchKeyToMaximize}
             // toMaximize={true}
           />
         </Suspense>
@@ -205,7 +92,143 @@ function TestContainer(props) {
   );
 }
 
-export default function RecursiveChat(props) {
+function RecursiveBranch(props) {
+  const getBotMessageForKey = (key) =>
+    props.botMessages.find(
+      (m) => JSON.stringify(m.key) === JSON.stringify(key)
+    ); // returns BotMessage for a given key
+
+  // tempMessages should be messages whose length is props.parentKey.length+1
+  // and .slice(0,-1) JSON.stringify is equal to parent
+  let tempUserMessages;
+  if (props.parentKey) {
+    // console.log("props.parentKey", props.parentKey.length);
+    // userMessages whose length is same as parent
+    // (parent: the userMessage that called recursive)
+    // &&
+    // userMessages whose key matches the parent
+    tempUserMessages = props.userMessages.filter(
+      (m) =>
+        m.key.length - 1 === props.parentKey.length &&
+        JSON.stringify(m.key.slice(0, -1)) === JSON.stringify(props.parentKey)
+    );
+  } else {
+    tempUserMessages = props.userMessages.filter((m) => m.key.length === 1);
+  }
+  if (test) {
+    // console.log("tempUserMessages.length", tempUserMessages.length);
+    // console.log("tempUserMessages", tempUserMessages);
+  }
+  // tempUserMessages contains each BranchContainer's Branches.
+  // each element inside is a usermessage for that branch
+  // let soleBranch = false;
+  // if (tempUserMessages.length === 1) {
+  //   soleBranch = true;
+  // }
+  // console.log("soleBranch", soleBranch);
+  // console.log("props.level", props.level);
+
+  return (
+    tempUserMessages[0] && (
+      <Suspense fallback={<p>Loading...</p>}>
+        <BranchContainer id={props.level} key={props.level}>
+          {tempUserMessages.map((tm, i) => {
+            return (
+              <Branch
+                id={props.level}
+                key={`${props.level} ${i}`}
+                globalIdBot={
+                  getBotMessageForKey(tm.key) &&
+                  getBotMessageForKey(tm.key).globalIdBot
+                }
+                maxGlobalIdBot={props.globalIdBot}
+                isMobile={props.isMobile}
+                toMaximize={
+                  props.branchKeyToMaximize === JSON.stringify(tm.key) ||
+                  props.toMaximize
+                }
+              >
+                <UserMessage
+                  id={JSON.stringify(tm.key)}
+                  key={JSON.stringify(tm.key)}
+                  globalIdUser={tm.globalIdUser}
+                  maxGlobalIdUser={props.globalIdUser}
+                  isMobile={props.isMobile}
+                  toMaximize={
+                    props.branchKeyToMaximize === JSON.stringify(tm.key) ||
+                    props.toMaximize
+                  }
+                  handleEnter={(event) =>
+                    handleEnter({
+                      event,
+                      userMessages: props.userMessages,
+                      setUserMessages: props.setUserMessages,
+                      botMessages: props.botMessages,
+                      setBotMessages: props.setBotMessages,
+                      globalIdUser: props.globalIdUser,
+                      setGlobalIdUser: props.setGlobalIdUser,
+                      globalIdBot: props.globalIdBot,
+                      setGlobalIdBot: props.setGlobalIdBot,
+                      setResponse: props.setResponse,
+                      model: props.model,
+                      setIsDialogOpen: props.setIsDialogOpen,
+                    })
+                  }
+                  refElementUser={props.refElementUser}
+                >
+                  {tm.content}
+                </UserMessage>
+                {getBotMessageForKey(tm.key) && ( // tempBotMessages[i]
+                  <BotMessage
+                    id={JSON.stringify(tm.key)}
+                    key={"b" + JSON.stringify(tm.key)}
+                    globalIdBot={getBotMessageForKey(tm.key).globalIdBot}
+                    maxGlobalIdBot={props.globalIdBot}
+                    model={getBotMessageForKey(tm.key)?.model}
+                    toMaximize={
+                      props.branchKeyToMaximize === JSON.stringify(tm.key) ||
+                      props.toMaximize
+                    }
+                    refElementBot={props.refElementBot}
+                  >
+                    {getBotMessageForKey(tm.key).content}
+                  </BotMessage>
+                )}
+
+                <RecursiveBranch
+                  parentKey={tm.key}
+                  parent={tm.key[props.level]}
+                  level={props.level + 1}
+                  refElementUser={props.refElementUser}
+                  refElementBot={props.refElementBot}
+                  setIsDialogOpen={props.setIsDialogOpen}
+                  userMessages={props.userMessages}
+                  setUserMessages={props.setUserMessages}
+                  botMessages={props.botMessages}
+                  setBotMessages={props.setBotMessages}
+                  globalIdBot={props.globalIdBot}
+                  setGlobalIdBot={props.setGlobalIdBot}
+                  globalIdUser={props.globalIdUser}
+                  setGlobalIdUser={props.setGlobalIdUser}
+                  isMobile={props.isMobile}
+                  model={props.model}
+                  setResponse={props.setResponse}
+                  branchKeyToMaximize={props.branchKeyToMaximize}
+                  toMaximize={
+                    props.branchKeyToMaximize === JSON.stringify(tm.key) ||
+                    props.toMaximize
+                  }
+                />
+              </Branch>
+            );
+          })}
+        </BranchContainer>
+      </Suspense>
+    )
+  );
+}
+
+export default function ChatContainer(props) {
   // console.log("props", props);
   const refUser = useRef(null);
   const refBot = useRef(null);
@@ -227,7 +250,7 @@ export default function RecursiveChat(props) {
     <Suspense fallback={<p>Loading...</p>}>
       <div className="my-auto mx-auto py-2 px-4 md:px-6 ">
         <Suspense fallback={<p>Loading...</p>}>
-          <TestContainer
+          <RecursiveChatContainer
             refElementUser={refUser}
             refElementBot={refBot}
             setIsDialogOpen={setIsDialogOpen}
