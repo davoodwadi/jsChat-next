@@ -4,11 +4,13 @@ export const maxDuration = 55;
 
 import React from "react";
 import { useState, useRef, useEffect, useLayoutEffect } from "react";
+// import { useIsMobile, useIsMobileLayout } from "@/hooks/use-mobile";
 import { Suspense } from "react";
+import dynamic from "next/dynamic";
+
 import { generate } from "@/lib/actions";
 import { readStreamableValue } from "ai/rsc";
 
-import { useIsMobile } from "@/hooks/use-mobile";
 import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_MOBILE } from "@/components/ui/sidebar";
 import { AuthDialog } from "@/components/AuthDialog";
 
@@ -17,13 +19,20 @@ import { delay } from "@/lib/myTools";
 import {
   UserMessage,
   BotMessage,
-  Branch,
+  // Branch,
   BranchContainer,
 } from "./BranchComponents";
+const Branch = dynamic(
+  () => import("./BranchComponents").then((mod) => mod.Branch),
+  {
+    loading: () => <p>Loading Branch...</p>,
+  }
+);
 
 function RecursiveChatContainer(props) {
   // console.log("starting RecursiveChatContainer");
-  const isMobile = useIsMobile();
+
+  // const isMobile = false;
   const [globalIdUser, setGlobalIdUser] = useState(1);
   const [globalIdBot, setGlobalIdBot] = useState(0);
 
@@ -59,10 +68,11 @@ function RecursiveChatContainer(props) {
   }, [globalIdBot]);
 
   let chatContainerClass =
-    " overflow-y-auto overflow-x-auto h-[70vh] rounded-xl"; // flex flex-col overflow-auto
-  chatContainerClass += isMobile
-    ? " w-[90vw] "
-    : ` w-[calc(90vw-${SIDEBAR_WIDTH})] `;
+    " overflow-y-auto overflow-x-auto h-[70vh] rounded-xl mx-auto"; // flex flex-col overflow-auto
+  // chatContainerClass += props.isMobile
+  //   ? " w-[90vw] "
+  //   : ` w-[calc(90vw-${SIDEBAR_WIDTH})] `;
+  chatContainerClass += " w-[90vw] md:w-[calc(90vw-16rem)] ";
   return (
     <Suspense fallback={<p>Loading...</p>}>
       <div id="chat-container" className={chatContainerClass}>
@@ -80,7 +90,7 @@ function RecursiveChatContainer(props) {
             setGlobalIdBot={setGlobalIdBot}
             globalIdUser={globalIdUser}
             setGlobalIdUser={setGlobalIdUser}
-            isMobile={isMobile}
+            isMobile={props.isMobile}
             model={model}
             setResponse={setResponse}
             branchKeyToMaximize={branchKeyToMaximize}
@@ -233,6 +243,9 @@ export default function ChatContainer(props) {
   const refUser = useRef(null);
   const refBot = useRef(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  // const isMobile = useIsMobileLayout();
+  const isMobile = true;
+  // console.log("window.innerWidth", window.innerWidth);
   // const [isStillLoading, setIsStillLoading] = useState(true);
   // useEffect(() => {
   //   const asyncWait = async () => {
@@ -254,6 +267,7 @@ export default function ChatContainer(props) {
             refElementUser={refUser}
             refElementBot={refBot}
             setIsDialogOpen={setIsDialogOpen}
+            isMobile={isMobile}
           />
         </Suspense>
         <AuthDialog
@@ -288,7 +302,7 @@ async function handleEnter({
       return; // Ignore Shift + Enter
     }
     event.preventDefault();
-    console.log("setIsDialogOpen", setIsDialogOpen);
+    // console.log("setIsDialogOpen", setIsDialogOpen);
 
     let chain;
     let tempChunks = "";
@@ -414,7 +428,7 @@ async function handleEnter({
         content: event.target.textContent,
         role: "user",
       });
-      console.log("chain", chain);
+      // console.log("chain", chain);
       //
 
       setUserMessages((v) => {

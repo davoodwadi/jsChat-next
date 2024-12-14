@@ -1,5 +1,6 @@
 // import ChatComponent from "@/components/ChatComponent"
 // import ChatContainer from "@/components/RecursiveComponent";
+
 import { Suspense } from "react";
 // import { lazy } from "react";
 
@@ -13,6 +14,7 @@ const ChatContainer = dynamic(() => import("@/components/RecursiveComponent"), {
 
 export default async function Home() {
   // console.log("loading ChatContainer");
+
   return (
     <>
       <Suspense fallback={<p>Loading ChatContainer</p>}>

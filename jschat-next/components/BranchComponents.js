@@ -58,11 +58,15 @@ export function BotMessage(props) {
 
 export function Branch(props) {
   const isPenultimateBranch = props.globalIdBot === props.maxGlobalIdBot;
+  // console.log("props.maxGlobalIdBot", props.maxGlobalIdBot);
+  // console.log("props.toMaximize", props.toMaximize);
   let baseClass = "mx-auto"; //border-2 border-red-300 flex-1
-  let w = props.isMobile
-    ? " w-[85vw] shrink-0 "
-    : ` w-[calc(85vw-16rem)] shrink-0 `;
-  baseClass += props.toMaximize ? w : " flex-1 "; // min-w-[85vw] max-w-[90vw]
+
+  // let w = props.isMobile
+  //   ? " w-[85vw] shrink-0 "
+  //   : ` w-[calc(85vw-16rem)] shrink-0 `;
+  let w = " w-[85vw] shrink-0 md:w-[calc(85vw-16rem)] ";
+  baseClass += props.toMaximize || props.maxGlobalIdBot === 0 ? w : " flex-1 "; // min-w-[85vw] max-w-[90vw]
 
   return (
     <div

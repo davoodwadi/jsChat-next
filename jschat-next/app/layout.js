@@ -50,7 +50,9 @@ export default function RootLayout({ children }) {
             <SidebarProvider>
               <AppSidebar />
               <Suspense fallback={<p>Loading</p>}>
-                <div className={` flex flex-col min-h-screen overflow-hidden`}>
+                <div
+                  className={` flex flex-col min-h-screen overflow-hidden mx-auto`}
+                >
                   <div className="flex flex-row mt-2 mb-6 justify-between">
                     <div className=" items-center place-items-center">
                       <SidebarTrigger className="my-auto content-center items-center" />
