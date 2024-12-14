@@ -58,6 +58,7 @@ function InlineAuthButton({ provider }) {
 }
 
 export function AuthDialog(props) {
+  console.log("AuthDialog initiated");
   return (
     <>
       <Dialog open={props.isDialogOpen} onOpenChange={props.setIsDialogOpen}>
