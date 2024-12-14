@@ -4,10 +4,10 @@ import { signinAction, signoutAction } from "@/components/authActions";
 // import { delay } from "@/lib/myTools";
 
 export default async function AuthButton(props) {
-  console.log("authenticate start");
+  // console.log("authenticate start");
 
   const session = await auth();
-  console.log("authenticate end");
+  // console.log("authenticate end");
   // await delay(3000);
   if (session?.user) {
     return (

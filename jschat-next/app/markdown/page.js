@@ -257,7 +257,7 @@ The lift coefficient ($C_L$) is a dimensionless coefficient.
 
 This step-by-step breakdown explains how to set up a Next.js application that renders Markdown content. Each part of the code is designed to work together to read a Markdown file, convert it to HTML, and display it in a React component. You can further customize and extend this setup based on your needs.
 `;
-console.log("partial html", longMarkdown);
+// console.log("partial html", longMarkdown);
 
 export default async function MarkdownPage() {
   return (
@@ -266,9 +266,7 @@ export default async function MarkdownPage() {
       {/* <Markdown remarkPlugins={[remarkGfm]}>{markdownSample}</Markdown> */}
 
       <div className="break-words max-w-[85vw] mx-auto">
-        <MarkdownComponent model="gpt-4o-mini">
-          {longMarkdown}
-        </MarkdownComponent>
+        <MarkdownComponent model="gpt-4o-mini">{partialHtml}</MarkdownComponent>
       </div>
     </>
   );

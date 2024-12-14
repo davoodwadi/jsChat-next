@@ -22,7 +22,7 @@ import {
 } from "./BranchComponents";
 
 function RecursiveChatContainer(props) {
-  console.log("starting RecursiveChatContainer");
+  // console.log("starting RecursiveChatContainer");
   const isMobile = useIsMobile();
   const [globalIdUser, setGlobalIdUser] = useState(1);
   const [globalIdBot, setGlobalIdBot] = useState(0);
@@ -47,7 +47,7 @@ function RecursiveChatContainer(props) {
       block: "center",
       inline: "start",
     });
-  }, [props.refElementBot.current]);
+  }, [props.refElementBot]);
 
   useEffect(() => {
     const newBranchKeyToMaximize = getBranchKeyToMaximize({

@@ -15,6 +15,7 @@ import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 import { Button } from "@/components/ui/button";
 import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 config.autoAddCss = false;
 
@@ -35,7 +36,7 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-  console.log("starting root layout");
+  // console.log("starting root layout");
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="">

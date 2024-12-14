@@ -12,7 +12,7 @@ const ChatContainer = dynamic(() => import("@/components/RecursiveComponent"), {
 });
 
 export default async function Home() {
-  console.log("loading ChatContainer");
+  // console.log("loading ChatContainer");
   return (
     <>
       <Suspense fallback={<p>Loading ChatContainer</p>}>

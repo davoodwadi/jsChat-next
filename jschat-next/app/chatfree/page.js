@@ -8,7 +8,7 @@ import {
   BranchContainer,
   UserMessage,
   BotMessage,
-} from "@/components/RecursiveComponent";
+} from "@/components/BranchComponents";
 function DefaultUserMessage(props) {
   return (
     <UserMessage
