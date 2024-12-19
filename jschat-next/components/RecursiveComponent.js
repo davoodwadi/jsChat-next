@@ -50,13 +50,13 @@ function RecursiveChatContainer(props) {
 
   // scroll to latest bot message
   useLayoutEffect(() => {
-    // console.log("props.refElementBot.current", props.refElementBot.current)
+    // console.log("props.refElementBot.current");
     props.refElementBot.current?.scrollIntoView({
       // behavior: "smooth",
       block: "center",
       inline: "center",
     });
-  }, [props.refElementBot]);
+  }, [props.refElementBot.current]);
 
   useEffect(() => {
     const newBranchKeyToMaximize = getBranchKeyToMaximize({

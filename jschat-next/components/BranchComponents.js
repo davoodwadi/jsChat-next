@@ -34,6 +34,7 @@ export function UserMessage(props) {
   const refUser = isLatestUser ? props.refElementUser : refThisUser;
   // let baseClass = " rounded-xl bg-blue-400  relative flex justify-between"; //border-2 border-blue-500 min-w-fit
   if (props.children && finalValue === undefined) {
+    // set new value for new branch
     setFinalValue((v) => props.children);
   }
   return (
@@ -61,14 +62,16 @@ export function UserMessage(props) {
           onKeyDown={(event) => {
             if (event.key === "Enter" && !event.shiftKey) {
               if (props.children) {
+                // set old value
                 setFinalValue((v) => props.children);
               }
+              event.target.blur();
               props.handleSubmit(event);
             }
           }}
           value={finalValue} // props.children
           onChange={(e) => {
-            setFinalValue((v) => e.target.value);
+            setFinalValue((v) => e.target.value); // enable editing of textarea's text
           }}
           id={props.id}
           globaliduser={props.globalIdUser}
