@@ -54,7 +54,7 @@ function RecursiveChatContainer(props) {
     props.refElementBot.current?.scrollIntoView({
       // behavior: "smooth",
       block: "center",
-      inline: "start",
+      inline: "center",
     });
   }, [props.refElementBot]);
 
@@ -316,6 +316,7 @@ export async function handleSubmit({
     // old user /////////////////////
     ////////////////////////////////
     console.log("old message");
+    // console.log(userMessages);
 
     // find the latest branch on the same key length
     const sameParents = userMessages.filter(

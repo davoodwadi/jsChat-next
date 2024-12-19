@@ -4,10 +4,10 @@ import CopyText from "@/components/CopyTextComponent";
 import { Trash2, SendHorizontal } from "lucide-react";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 
 let baseUserClass =
-  "  flex items-center p-4 m-1 rounded-lg bg-sky-200 dark:bg-sky-600"; //border-2 border-blue-500 min-w-fit
+  "  flex items-center p-4 m-1 rounded-lg bg-sky-50 dark:bg-sky-600"; //border-2 border-blue-500 min-w-fit
 const textareaClass = `mx-4 p-2.5 min-w-64 text-sm 
 text-gray-900 bg-white rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 
 dark:bg-sky-900 dark:border-gray-400 dark:placeholder-gray-200 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`;
@@ -18,10 +18,12 @@ const submitButtonClass = ` inline-flex justify-center p-2
 let baseBotClass =
   // "rounded-xl bg-yellow-600 text-black p-4 m-1 relative break-words  "; //border-yellow-500
   `     p-4 m-1 relative  text-sm  
-    text-gray-900 bg-yellow-300 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 
+    text-gray-900 bg-yellow-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 
     dark:bg-yellow-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-black dark:focus:ring-blue-500 dark:focus:border-blue-500`;
 
 export function UserMessage(props) {
+  const [finalValue, setFinalValue] = useState();
+
   const refThisUser = useRef(null);
   const isLatestUser = props.maxGlobalIdUser === props.globalIdUser;
   const isFirstUser = props.maxGlobalIdUser === 1;
@@ -31,7 +33,9 @@ export function UserMessage(props) {
   const isPreviousUser = props.maxGlobalIdUser === props.globalIdUser + 1;
   const refUser = isLatestUser ? props.refElementUser : refThisUser;
   // let baseClass = " rounded-xl bg-blue-400  relative flex justify-between"; //border-2 border-blue-500 min-w-fit
-
+  if (props.children && finalValue === undefined) {
+    setFinalValue((v) => props.children);
+  }
   return (
     <>
       <div className={baseUserClass}>
@@ -54,8 +58,18 @@ export function UserMessage(props) {
           className={textareaClass}
           style={{ resize: "none" }}
           // rows={10}
-          onKeyDown={props.handleSubmit}
-          defaultValue={props.children}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && !event.shiftKey) {
+              if (props.children) {
+                setFinalValue((v) => props.children);
+              }
+              props.handleSubmit(event);
+            }
+          }}
+          value={finalValue} // props.children
+          onChange={(e) => {
+            setFinalValue((v) => e.target.value);
+          }}
           id={props.id}
           globaliduser={props.globalIdUser}
           maxglobaliduser={props.maxGlobalIdUser}
