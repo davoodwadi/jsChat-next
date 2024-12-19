@@ -7,8 +7,8 @@ import { Textarea } from "./ui/textarea";
 import { useRef, useState } from "react";
 
 let baseUserClass =
-  "  flex items-center p-4 m-1 rounded-lg bg-sky-50 dark:bg-sky-600"; //border-2 border-blue-500 min-w-fit
-const textareaClass = `mx-4 p-2.5 min-w-64 text-sm 
+  "  flex items-center justify-between  p-4 m-1 rounded-lg bg-sky-50 dark:bg-sky-600"; //border-2 border-blue-500 min-w-fit
+const textareaClass = ` min-w-56 md:min-w-64 text-sm mx-4 p-2.5 
 text-gray-900 bg-white rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 
 dark:bg-sky-900 dark:border-gray-400 dark:placeholder-gray-200 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`;
 const submitButtonClass = ` inline-flex justify-center p-2 
@@ -58,7 +58,7 @@ export function UserMessage(props) {
           placeholder="Type your message and press Enter ↵ ..."
           className={textareaClass}
           style={{ resize: "none" }}
-          // rows={10}
+          // rows={1}
           onKeyDown={(event) => {
             if (event.key === "Enter" && !event.shiftKey) {
               if (props.children) {
