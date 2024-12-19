@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server"
+import { NextResponse } from "next/server";
 // import { auth } from "@/auth"
-import NextAuth from "next-auth"
-import { authConfig } from "@/auth.config"
+import NextAuth from "next-auth";
+import { authConfig } from "@/auth.config";
 
-const environment = "production" // test | production
+const environment = "production"; // test | production
 // function midd(request) {
 //   if (environment === "test") {
 //     console.log("middleware bypass:", request.url)
@@ -19,19 +19,20 @@ const environment = "production" // test | production
 // }
 
 // export default auth(midd)
-const { auth } = NextAuth(authConfig) // use config without database adapter
+const { auth } = NextAuth(authConfig); // use config without database adapter
 
 export default auth((req) => {
-  console.log("middleware inside:", req.url)
-  if (!req.auth && req.nextUrl.pathname !== "/signin") {
-    console.log("needs auth")
-    const newUrl = new URL("/signin", req.nextUrl.origin)
-    return Response.redirect(newUrl)
+  console.log("middleware inside:", req.url);
+  if (!req.auth) {
+    // && req.nextUrl.pathname !== "/signin"
+    console.log("needs auth");
+    const newUrl = new URL("/api/auth/signin", req.nextUrl.origin);
+    return Response.redirect(newUrl);
   } else {
-    console.log("already auth or on signin page")
-    NextResponse.next()
+    console.log("already auth or on signin page");
+    NextResponse.next();
   }
-})
+});
 
 // export function middleware(request) {
 //   console.log("middleware")
@@ -50,4 +51,4 @@ export const config = {
     // "/((?!api|_next/static|_next/image|favicon.ico|icon.svg|sitemap.xml|robots.txt).*)",
     "/api/chat/:path*",
   ],
-}
+};
