@@ -8,7 +8,7 @@ import { useRef, useState, useEffect } from "react";
 
 let baseUserClass =
   "  flex flex-col items-center   p-4 m-1 rounded-xl bg-sky-50 dark:bg-sky-600 "; //border-2 border-blue-500 min-w-fit
-const textareaClass = ` min-w-40 md:min-w-64 text-sm mx-4 p-2.5 
+const textareaClass = ` min-w-40 md:min-w-64  mx-4 p-2.5 
 text-gray-900 bg-white rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 
 dark:bg-sky-700 dark:border-gray-400 dark:placeholder-gray-200 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`;
 const submitButtonClass = `   p-4 md:p-2 
@@ -17,7 +17,7 @@ const submitButtonClass = `   p-4 md:p-2
 
 let baseBotClass =
   // "rounded-xl bg-yellow-600 text-black p-4 m-1 relative break-words  "; //border-yellow-500
-  `     p-4 m-1 relative  text-sm  
+  `     p-4 m-1 relative   
     text-gray-900 bg-yellow-50 rounded-xl border border-gray-300 focus:ring-blue-500 focus:border-blue-500 
     dark:bg-yellow-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-black dark:focus:ring-blue-500 dark:focus:border-blue-500`;
 

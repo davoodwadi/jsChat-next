@@ -171,8 +171,8 @@ export default function RecursiveBranch(props) {
 
 function onRemoveBranchClick({ event, mainProps }) {
   const arr = JSON.parse(event.target.id);
-  console.log(arr);
-  console.log(mainProps);
+  //   console.log(arr);
+  //   console.log(mainProps);
 
   // 1. remove child branches
   const keptUserMessages = mainProps.userMessages.filter(
@@ -183,7 +183,7 @@ function onRemoveBranchClick({ event, mainProps }) {
       )
   );
 
-  console.log("keptUserMessages", keptUserMessages);
+  //   console.log("keptUserMessages", keptUserMessages);
   if (keptUserMessages.length === 0) {
     // only branch
     mainProps.setUserMessages(() => [
@@ -204,9 +204,9 @@ function onRemoveBranchClick({ event, mainProps }) {
         JSON.stringify(arr)
       )
   );
-  console.log("keptBotMessages", keptBotMessages);
+  //   console.log("keptBotMessages", keptBotMessages);
   mainProps.setBotMessages((bm) => keptBotMessages);
 
-  console.log("userMessages", mainProps.userMessages);
+  //   console.log("userMessages", mainProps.userMessages);
   //
 }
