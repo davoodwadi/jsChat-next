@@ -27,7 +27,7 @@ export function SuccessCardClient() {
   let description;
   let tokens;
   let email;
-  console.log("session_id", session_id);
+  // console.log("session_id", session_id);
 
   useEffect(() => {
     async function fetchData() {
@@ -47,7 +47,7 @@ export function SuccessCardClient() {
     }
   }, [session_id]);
 
-  console.log("data", data);
+  // console.log("data", data);
   if (data?.message === "pending") {
     status = "Verifying Transaction";
 
@@ -77,16 +77,7 @@ export function SuccessCardClient() {
             {/* </p> */}
           </CardDescription>
         </CardHeader>
-        {/* <CardContent className="text-center">
-          <p>Transaction details</p>
-          <CardDescription className="">
-            {description ? (
-              description
-            ) : (
-              <Skeleton className="h-4 w-[250px] mx-auto" />
-            )}
-          </CardDescription>
-        </CardContent> */}
+
         <CardContent className="text-center">
           <p>Account information</p>
 

@@ -13,11 +13,14 @@ import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLeftLong } from "@fortawesome/free-solid-svg-icons";
 
-export default async function Page({ searchParams }) {
-  // const filters = await searchParams;
-  // console.log("filters", filters);
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const filters = await searchParams;
+  // console.log("filters", typeof filters);
   // console.log("typeof session_id", typeof filters.session_id);
-  // return <div>Payment failed: {filters.session_id}</div>
   return (
     <Card className="mx-auto my-auto break-words  w-1/2">
       {/* // w-36 xs:w-64 md:w-80 */}
@@ -30,7 +33,7 @@ export default async function Page({ searchParams }) {
         <CardDescription className="">
           <p>Session ID</p>{" "}
           <Suspense fallback={<Skeleton className="h-4 w-5/6 mx-auto" />}>
-            <p>{searchParams?.session_id}</p>
+            <p>{filters.session_id}</p>
           </Suspense>
         </CardDescription>
       </CardContent>
@@ -54,9 +57,4 @@ export default async function Page({ searchParams }) {
       </CardContent>
     </Card>
   );
-}
-
-async function UserCurrentTokens() {
-  const currentTokens = await getTokens();
-  return <p>Tokens remaining: {currentTokens}</p>;
 }

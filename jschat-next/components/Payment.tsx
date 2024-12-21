@@ -35,7 +35,7 @@ export default function PaymentComponent({
         priceId: priceId,
       });
       const data = response.data;
-      // console.log("data", data)
+      console.log("data", data);
       if (!data.ok) throw new Error("Something went wrong");
       await stripe.redirectToCheckout({
         sessionId: data.result.id,
