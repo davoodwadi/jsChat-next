@@ -10,7 +10,7 @@ export async function getTokens() {
     { username: session?.user?.email },
     { projection: { email: 1, tokensRemaining: 1 } }
   );
-  console.log("tokens", tokens);
+  // console.log("tokens", tokens);
   return tokens?.tokensRemaining;
 }
 

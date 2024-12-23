@@ -3,7 +3,6 @@
 
 import { Suspense } from "react";
 // import { lazy } from "react";
-
 // const ChatContainer = lazy(() => import("@/components/RecursiveComponent"));
 
 import dynamic from "next/dynamic";

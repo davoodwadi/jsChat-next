@@ -4,6 +4,7 @@ import { delay } from "@/lib/myTools";
 import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_MOBILE } from "@/components/ui/sidebar";
 
 import { handleSubmit, resizeTextarea } from "@/lib/chatUtils";
+import { useTraceUpdate } from "@/lib/myToolsClient";
 
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
@@ -24,6 +25,10 @@ const Branch = dynamic(
 );
 
 export default function RecursiveBranch(props) {
+  // console.log("RecursiveBranch props", props);
+
+  // useTraceUpdate(props);
+
   const getBotMessageForKey = (key) =>
     props.botMessages.find(
       (m) => JSON.stringify(m.key) === JSON.stringify(key)
@@ -40,8 +45,8 @@ export default function RecursiveBranch(props) {
     // userMessages whose key matches the parent
     tempUserMessages = props.userMessages.filter(
       (m) =>
-        m.key.length - 1 === props.parentKey.length &&
-        JSON.stringify(m.key.slice(0, -1)) === JSON.stringify(props.parentKey)
+        m.key.length - 1 === JSON.parse(props.parentKey).length &&
+        JSON.stringify(m.key.slice(0, -1)) === props.parentKey
     );
   } else {
     tempUserMessages = props.userMessages.filter((m) => m.key.length === 1);
@@ -53,7 +58,7 @@ export default function RecursiveBranch(props) {
         <BranchContainer id={props.level} key={props.level}>
           {tempUserMessages.map((tm, i) => {
             return (
-              <div key={`div ${tm.key}`}>
+              <div className="mx-auto" key={`div ${tm.key}`}>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -70,7 +75,7 @@ export default function RecursiveBranch(props) {
                 <Branch
                   id={props.level}
                   key={`${props.level} ${i}`}
-                  userKey={tm.key}
+                  userKey={JSON.stringify(tm.key)}
                   globalIdBot={
                     getBotMessageForKey(tm.key) &&
                     getBotMessageForKey(tm.key).globalIdBot
@@ -92,29 +97,31 @@ export default function RecursiveBranch(props) {
                       props.branchKeyToMaximize === JSON.stringify(tm.key) ||
                       props.toMaximize
                     }
-                    handleSubmit={(event) => {
-                      // console.log(event);
-                      if (event.key === "Enter" && !event.shiftKey) {
-                        handleSubmit({
-                          event,
-                          userMessages: props.userMessages,
-                          setUserMessages: props.setUserMessages,
-                          botMessages: props.botMessages,
-                          setBotMessages: props.setBotMessages,
-                          globalIdUser: props.globalIdUser,
-                          setGlobalIdUser: props.setGlobalIdUser,
-                          globalIdBot: props.globalIdBot,
-                          setGlobalIdBot: props.setGlobalIdBot,
-                          setResponse: props.setResponse,
-                          model: props.model,
-                          setIsDialogOpen: props.setIsDialogOpen,
-                        });
-                      } else {
-                        // console.log("resizing");
-                        resizeTextarea(event);
-                      }
+                    handleSubmit={(botRef, targetId, targetValue) => {
+                      // console.log(targetId, targetValue);
+                      handleSubmit({
+                        botRef,
+                        targetId,
+                        targetValue,
+                        userMessages: props.userMessages,
+                        setUserMessages: props.setUserMessages,
+                        botMessages: props.botMessages,
+                        setBotMessages: props.setBotMessages,
+                        globalIdUser: props.globalIdUser,
+                        setGlobalIdUser: props.setGlobalIdUser,
+                        globalIdBot: props.globalIdBot,
+                        setGlobalIdBot: props.setGlobalIdBot,
+                        setResponse: props.setResponse,
+                        model: props.model,
+                        setIsDialogOpen: props.setIsDialogOpen,
+                      });
+                      // } else {
+                      // console.log("resizing");
+                      // resizeTextarea(event);
+                      // }
                     }}
                     refElementUser={props.refElementUser}
+                    refElementBot={props.refElementBot}
                   >
                     {tm.content}
                   </UserMessage>
@@ -136,7 +143,7 @@ export default function RecursiveBranch(props) {
                   )}
 
                   <RecursiveBranch
-                    parentKey={tm.key}
+                    parentKey={JSON.stringify(tm.key)}
                     parent={tm.key[props.level]}
                     level={props.level + 1}
                     refElementUser={props.refElementUser}

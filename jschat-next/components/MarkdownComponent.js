@@ -10,9 +10,11 @@ import {
   twilight,
   a11yDark,
 } from "react-syntax-highlighter/dist/esm/styles/prism";
+// import { Inter } from "next/font/google";
 import CopyText from "@/components/CopyTextComponent";
 // import "@/node_modules/github-markdown-css/github-markdown.css";
 import "@/styles/markdown.css";
+// const inter = Inter({ subsets: ["latin"] });
 export default function MarkdownComponent(props) {
   const style = a11yDark;
   let language;
@@ -23,7 +25,7 @@ export default function MarkdownComponent(props) {
         rehypePlugins={[rehypeRaw, rehypeKatex]}
         remarkPlugins={[remarkGfm, remarkMath]}
         children={props.children}
-        className="markdown-body"
+        className={`markdown-body `}
         components={{
           code(props) {
             const { children, className, node, ...rest } = props;

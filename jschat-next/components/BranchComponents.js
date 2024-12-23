@@ -5,11 +5,13 @@ import { Trash2, SendHorizontal, Eraser } from "lucide-react";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { useRef, useState, useEffect } from "react";
+import { Skeleton, MultilineSkeleton } from "./ui/skeleton";
 
 let baseUserClass =
-  "  flex flex-col items-center   p-4 m-1 rounded-xl bg-sky-50 dark:bg-sky-600 "; //border-2 border-blue-500 min-w-fit
+  "  flex flex-col items-center p-4 m-1 rounded-xl bg-sky-50 dark:bg-sky-600 "; //border-2 border-blue-500 min-w-fit
 const textareaClass = ` min-w-40 md:min-w-64  mx-4 p-2.5 
-text-gray-900 bg-white rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 
+text-gray-900 bg-white rounded-lg border border-gray-300 
+focus:ring-blue-500 focus:border-blue-500 
 dark:bg-sky-700 dark:border-gray-400 dark:placeholder-gray-200 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`;
 const submitButtonClass = `   p-4 md:p-2 
  text-blue-600 rounded-full cursor-pointer hover:bg-blue-100 
@@ -22,23 +24,31 @@ let baseBotClass =
     dark:bg-yellow-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-black dark:focus:ring-blue-500 dark:focus:border-blue-500`;
 
 export function UserMessage(props) {
+  // console.log("props", props);
+  // console.log("UserMessage botRef", props.refElementBot);
+
+  // useTraceUpdate(props);
   const [finalValue, setFinalValue] = useState(
     props.children === "" ? "" : undefined
   );
-  // console.log("finalValue:", finalValue);
-  // console.log("props.children:", props.children);
-  // console.log("finalValue===props.children:", finalValue === props.children);
 
   const refThisUser = useRef(null);
   const isLatestUser = props.maxGlobalIdUser === props.globalIdUser;
 
   const refUser = isLatestUser ? props.refElementUser : refThisUser;
-  // let baseClass = " rounded-xl bg-blue-400  relative flex justify-between"; //border-2 border-blue-500 min-w-fit
+  // if (isLatestUser) {
+  //   console.log("refUser scroll: ", props.id, refUser.current);
+  //   refUser.current?.scrollIntoView({
+  //     block: "center",
+  //     inline: "center",
+  //   });
+  // }
   if (props.children && finalValue === undefined) {
     // set new value for new branch
     setFinalValue((v) => props.children);
   }
   useEffect(() => {
+    // reset the textarea when the branch is deleted
     if (props.children === "") {
       setFinalValue("");
     }
@@ -51,17 +61,16 @@ export function UserMessage(props) {
           placeholder="Type your message and press Enter ↵ ..."
           className={textareaClass}
           style={{ resize: "none" }}
-          // rows={1}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" && !event.shiftKey) {
-              if (props.children) {
-                // set old value
-                setFinalValue((v) => props.children);
-              }
-              event.target.blur();
-              props.handleSubmit(event);
-            }
-          }}
+          // onKeyDown={(event) => {
+          // if (event.key === "Enter" && !event.shiftKey) {
+          // if (props.children) {
+          //   // set old value
+          //   setFinalValue((v) => props.children);
+          // }
+          // event.target.blur();
+          // props.handleSubmit(event);
+          // }
+          // }}
           value={finalValue} // props.children
           onChange={(e) => {
             setFinalValue((v) => e.target.value); // enable editing of textarea's text
@@ -90,18 +99,24 @@ export function UserMessage(props) {
             onClick={(e) => {
               // console.log("refUser.current", refUser.current);
               // console.log("e", e);
+              if (props.children) {
+                // set old value
+                setFinalValue((v) => props.children);
+              }
               if (refUser.current) {
                 // Create a new keyboard event
-                const event = new KeyboardEvent("keydown", {
-                  key: "Enter",
-                  code: "Enter",
-                  charCode: 13,
-                  keyCode: 13,
-                  bubbles: true, // Allow the event to bubble up
-                });
-
+                // const event = new KeyboardEvent("keydown", {
+                //   key: "Enter",
+                //   code: "Enter",
+                //   charCode: 13,
+                //   keyCode: 13,
+                //   bubbles: true, // Allow the event to bubble up
+                // });
+                // console.log(props.id);
+                // console.log(finalValue);
+                props.handleSubmit(props.refElementBot, props.id, finalValue);
                 // Dispatch the event on the input element
-                refUser.current.dispatchEvent(event);
+                // refUser.current.dispatchEvent(event);
               }
             }}
           >
@@ -117,7 +132,18 @@ export function UserMessage(props) {
 
 export function BotMessage(props) {
   const isLatestBot = props.maxGlobalIdBot === props.globalIdBot;
-
+  // console.log("isLatestBot", isLatestBot, props.refElementBot);
+  // if (isLatestBot) {
+  //   console.log(
+  //     "props.refElementBot scroll: ",
+  //     props.id,
+  //     props.refElementBot.current
+  //   );
+  //   props.refElementBot.current?.scrollIntoView({
+  //     block: "center",
+  //     inline: "center",
+  //   });
+  // }
   return (
     <div className={baseBotClass}>
       <div className="flex flex-row justify-between text-xs mb-4">
@@ -134,13 +160,20 @@ export function BotMessage(props) {
         latest={isLatestBot ? "true" : "false"}
         ref={isLatestBot ? props.refElementBot : null}
       >
-        <MarkdownComponent>{props.children}</MarkdownComponent>
+        {props.children === "" ? (
+          <MultilineSkeleton lines={4} />
+        ) : (
+          // <MultilineSkeleton lines={4} />
+          <MarkdownComponent>{props.children}</MarkdownComponent>
+        )}
       </div>
     </div>
   );
 }
 
 export function Branch(props) {
+  // console.log("Branch props", props);
+
   const isPenultimateBranch = props.globalIdBot === props.maxGlobalIdBot;
   // console.log("props", props);
   // console.log("props.toMaximize", props.toMaximize);
@@ -161,6 +194,8 @@ export function Branch(props) {
 }
 
 export function BranchContainer(props) {
+  // console.log("BranchContainer props", props);
+
   return (
     <div
       id={"branch-container" + props.id}

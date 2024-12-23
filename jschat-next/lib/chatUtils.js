@@ -7,7 +7,9 @@ const idInBotMessages = (id, botMessages) =>
   botMessages.filter((m) => JSON.stringify(m.key) === id).length > 0; // // bool; if id is in botMessages
 
 export async function handleSubmit({
-  event,
+  botRef,
+  targetId,
+  targetValue,
   userMessages,
   setUserMessages,
   botMessages,
@@ -20,20 +22,25 @@ export async function handleSubmit({
   model,
   setIsDialogOpen,
 }) {
-  event.preventDefault();
+  // event.target.id
+  // event.target.value
+  //
+  // console.log(targetId, targetValue);
+  // return;
+  // event.preventDefault();
   // console.log("event", event);
-  // console.log("setIsDialogOpen", setIsDialogOpen);
 
   let chain;
   let tempChunks = "";
-  const array = JSON.parse(event.target.id);
+  const array = JSON.parse(targetId);
+  const newGlobalIdBot = globalIdBot + 1;
+  setGlobalIdBot(newGlobalIdBot);
+  let newBotEntry;
   // check if event.target.id in userMessages
-  // console.log("exists", idInUserMessages(event.target.id))
-  if (idInBotMessages(event.target.id, botMessages)) {
+  if (idInBotMessages(targetId, botMessages)) {
     // old user /////////////////////
     ////////////////////////////////
     console.log("old message");
-    // console.log(userMessages);
 
     // find the latest branch on the same key length
     const sameParents = userMessages.filter(
@@ -45,8 +52,6 @@ export async function handleSubmit({
     const maxSameBranch = Math.max(
       ...sameParents.map((m) => m.key[m.key.length - 1])
     );
-    // console.log("maxSameBranch", maxSameBranch);
-    // console.log(array.slice(0, -1));
     // add a horizontal branch in the key array
     array[array.length - 1] = maxSameBranch + 1;
 
@@ -60,19 +65,17 @@ export async function handleSubmit({
       {
         key: array, // new horizontal branch key
         globalIdUser: newGlobalIdUser,
-        content: `${event.target.value}`,
+        content: `${targetValue}`,
         role: "user",
       },
     ]);
     // get chain old message
-    chain = getChain({ event, userMessages, botMessages });
+    chain = getChain({ targetId, userMessages, botMessages });
     chain.push({
       key: array,
-      content: event.target.value,
+      content: targetValue,
       role: "user",
     });
-    // console.log("chain", chain);
-    //
 
     // streaming the LLM old user
     // // //
@@ -88,35 +91,41 @@ export async function handleSubmit({
       return;
       // return <Toast>Failed</Toast>;
     }
-    console.log("streamIterator", streamIterator);
+    // console.log("streamIterator", streamIterator);
     let counter = 0;
     tempChunks = "";
-    const newGlobalIdBot = globalIdBot + 1;
-    setGlobalIdBot(newGlobalIdBot);
+    // console.log("client wait start");
+
+    newBotEntry = {
+      key: array,
+      globalIdBot: newGlobalIdBot,
+      content: tempChunks,
+      role: "bot",
+      status: "pending", // pending | reading | done
+      model: model,
+    };
+    setBotMessages((v) => [...v, newBotEntry]);
+
     for await (const delta of readStreamableValue(streamIterator.output)) {
-      // console.log("chunk", chunk);
-      // chunks += chunk;
-      setResponse({ status: streamIterator.status });
       tempChunks = delta ? tempChunks + delta : tempChunks;
 
-      const newBotEntry = {
+      newBotEntry = {
         key: array,
         globalIdBot: newGlobalIdBot,
         content: tempChunks,
         role: "bot",
-        status: streamIterator.status,
+        status: "reading", // pending | reading | done
         model: model,
       };
-      if (counter === 0) {
-        // first chunk
-        setBotMessages((v) => [...v, newBotEntry]);
-      } else {
-        setBotMessages((v) =>
-          v.map((m) =>
-            JSON.stringify(m.key) === JSON.stringify(array) ? newBotEntry : m
-          )
-        );
-      }
+      setBotMessages((v) =>
+        v.map((m) =>
+          JSON.stringify(m.key) === JSON.stringify(array) ? newBotEntry : m
+        )
+      );
+      botRef.current?.scrollIntoView({
+        block: "center",
+        inline: "center",
+      });
 
       counter += 1;
     }
@@ -143,10 +152,10 @@ export async function handleSubmit({
     newArray.push(1);
 
     // get chain new message
-    chain = getChain({ event, userMessages, botMessages });
+    chain = getChain({ targetId, userMessages, botMessages });
     chain.push({
       key: array,
-      content: event.target.value,
+      content: targetValue,
       role: "user",
     });
     // console.log("chain", chain);
@@ -160,7 +169,7 @@ export async function handleSubmit({
       const messageToUpdate = userMessagesCopy.find(
         (msg) => JSON.stringify(msg.key) === JSON.stringify(array)
       );
-      messageToUpdate.content = event.target.value;
+      messageToUpdate.content = targetValue;
       return userMessagesCopy;
     });
 
@@ -176,36 +185,45 @@ export async function handleSubmit({
       setIsDialogOpen(true);
       return;
     }
-    // console.log("streamIterator.status ok", streamIterator.status);
+
     let counter = 0;
     tempChunks = "";
-    const newGlobalIdBot = globalIdBot + 1;
-    setGlobalIdBot(newGlobalIdBot);
+
+    // console.log("client wait start");
+    newBotEntry = {
+      key: array,
+      globalIdBot: newGlobalIdBot,
+      content: tempChunks,
+      role: "bot",
+      status: "pending", // pending | reading | done
+      model: model,
+    };
+    setBotMessages((v) => [...v, newBotEntry]);
     for await (const delta of readStreamableValue(streamIterator.output)) {
+      // console.log("botMessage: ", newBotEntry, array);
       // console.log("delta", delta);
-      // tempChunks += chunk;
-      setResponse({ status: streamIterator.status });
+      // setResponse({ status: streamIterator.status });
       tempChunks = delta ? tempChunks + delta : tempChunks;
       // console.log("delta", delta);
-      // setChunks(tempChunks);
-      const newBotEntry = {
+
+      newBotEntry = {
         key: array,
         globalIdBot: newGlobalIdBot,
         content: tempChunks,
         role: "bot",
-        status: streamIterator.status,
+        status: "reading",
         model: model,
       };
-      if (counter === 0) {
-        // first chunk
-        setBotMessages((v) => [...v, newBotEntry]);
-      } else {
-        setBotMessages((v) =>
-          v.map((m) =>
-            JSON.stringify(m.key) === JSON.stringify(array) ? newBotEntry : m
-          )
-        );
-      }
+      setBotMessages((v) =>
+        v.map((m) =>
+          JSON.stringify(m.key) === JSON.stringify(array) ? newBotEntry : m
+        )
+      );
+
+      botRef.current?.scrollIntoView({
+        block: "center",
+        inline: "center",
+      });
 
       counter += 1;
     }
@@ -225,10 +243,27 @@ export async function handleSubmit({
       return newUserMessages;
     });
   }
+
+  // set status to 'done'
+  newBotEntry = {
+    key: array,
+    globalIdBot: newGlobalIdBot,
+    content: tempChunks,
+    role: "bot",
+    status: "done",
+    model: model,
+  };
+  setBotMessages((v) =>
+    v.map((m) =>
+      JSON.stringify(m.key) === JSON.stringify(array) ? newBotEntry : m
+    )
+  );
+  // console.log("done newBotEntry:", newBotEntry);
 }
 
-function getChain({ event, userMessages, botMessages }) {
-  const array = JSON.parse(event.target.id);
+function getChain({ targetId, userMessages, botMessages }) {
+  // event.target.id
+  const array = JSON.parse(targetId);
   const chain = [];
   for (let i = 1; i < array.length; i++) {
     // console.log("i", i);

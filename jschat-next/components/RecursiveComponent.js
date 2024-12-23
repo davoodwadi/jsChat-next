@@ -8,11 +8,13 @@ import { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { Suspense } from "react";
 
 import { AuthDialog } from "@/components/AuthDialog";
+import SaveItems from "@/components/SaveComponents";
 
 import RecursiveBranch from "./RecursiveBranch";
 
 export function RecursiveChatContainer(props) {
   // console.log("starting RecursiveChatContainer");
+  // console.log("RecursiveChatContainer props", props);
 
   const [globalIdUser, setGlobalIdUser] = useState(1);
   const [globalIdBot, setGlobalIdBot] = useState(0);
@@ -30,83 +32,73 @@ export function RecursiveChatContainer(props) {
   );
 
   // scroll to latest bot message
-  useLayoutEffect(() => {
-    // console.log("props.refElementBot.current");
-    props.refElementBot.current?.scrollIntoView({
-      // behavior: "smooth",
+  useEffect(() => {
+    // console.log(
+    //   "props.refElementBot.current",
+    //   props.refElementBot.current
+    // );
+    // console.log("props.refElementUser:", props.refElementUser.current);
+    props.refElementUser.current?.scrollIntoView({
       block: "center",
       inline: "center",
     });
-  }, [props.refElementBot.current]);
+  }, [globalIdUser]);
 
   useEffect(() => {
     const newBranchKeyToMaximize = getBranchKeyToMaximize({
-      globalIdBot,
-      botMessages,
+      globalIdUser,
+      userMessages,
     });
     // console.log("newBranchKeyToMaximize", newBranchKeyToMaximize);
     setBranchKeyToMaximize(newBranchKeyToMaximize);
-  }, [globalIdBot]);
+  }, [globalIdUser]);
 
   let chatContainerClass =
-    " overflow-y-auto overflow-x-auto h-[70vh] rounded-xl mx-auto"; // flex flex-col overflow-auto
+    "  overflow-y-auto overflow-x-auto h-[70vh] rounded-xl mx-auto"; // flex flex-col overflow-auto
   // chatContainerClass += props.isMobile
   //   ? " w-[90vw] "
   //   : ` w-[calc(90vw-${SIDEBAR_WIDTH})] `;
   chatContainerClass += " w-[90vw] md:w-[calc(90vw-16rem)] ";
   return (
-    <Suspense fallback={<p>Loading...</p>}>
-      <div id="chat-container" className={chatContainerClass}>
-        <Suspense fallback={<p>Loading...</p>}>
-          <RecursiveBranch
-            level={0}
-            refElementUser={props.refElementUser}
-            refElementBot={props.refElementBot}
-            setIsDialogOpen={props.setIsDialogOpen}
-            userMessages={userMessages}
-            setUserMessages={setUserMessages}
-            botMessages={botMessages}
-            setBotMessages={setBotMessages}
-            globalIdBot={globalIdBot}
-            setGlobalIdBot={setGlobalIdBot}
-            globalIdUser={globalIdUser}
-            setGlobalIdUser={setGlobalIdUser}
-            isMobile={props.isMobile}
-            model={model}
-            setResponse={setResponse}
-            branchKeyToMaximize={branchKeyToMaximize}
-            // toMaximize={true}
-          />
-        </Suspense>
-      </div>
-    </Suspense>
+    <>
+      <Suspense fallback={<p>Loading...</p>}>
+        <div id="chat-container" className={chatContainerClass}>
+          <Suspense fallback={<p>Loading...</p>}>
+            <RecursiveBranch
+              level={0}
+              refElementUser={props.refElementUser}
+              refElementBot={props.refElementBot}
+              setIsDialogOpen={props.setIsDialogOpen}
+              userMessages={userMessages}
+              setUserMessages={setUserMessages}
+              botMessages={botMessages}
+              setBotMessages={setBotMessages}
+              globalIdBot={globalIdBot}
+              setGlobalIdBot={setGlobalIdBot}
+              globalIdUser={globalIdUser}
+              setGlobalIdUser={setGlobalIdUser}
+              isMobile={props.isMobile}
+              model={model}
+              setResponse={setResponse}
+              branchKeyToMaximize={branchKeyToMaximize}
+            />
+          </Suspense>
+        </div>
+      </Suspense>
+    </>
   );
 }
 
 export default function ChatContainer(props) {
-  // console.log("props", props);
+  // console.log("ChatContainer props", props);
   const refUser = useRef(null);
   const refBot = useRef(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   // const isMobile = useIsMobileLayout();
   const isMobile = true;
-  // console.log("window.innerWidth", window.innerWidth);
-  // const [isStillLoading, setIsStillLoading] = useState(true);
-  // useEffect(() => {
-  //   const asyncWait = async () => {
-  //     console.log("START wait 3s");
-  //     await delay(3000);
-  //     setIsStillLoading(false);
-  //     console.log("END wait 3s");
-  //   };
-  //   asyncWait();
-  // }, [isStillLoading]);
-  // if (isStillLoading) {
-  //   return <p>Loading...</p>;
-  // }
   return (
     <Suspense fallback={<p>Loading...</p>}>
-      <div className="my-auto mx-auto py-2 px-4 md:px-6 ">
+      <div className="flex flex-col mx-auto justify-center items-center py-2 px-4 md:px-6 ">
         <Suspense fallback={<p>Loading...</p>}>
           <RecursiveChatContainer
             refElementUser={refUser}
@@ -115,6 +107,7 @@ export default function ChatContainer(props) {
             isMobile={isMobile}
           />
         </Suspense>
+        <SaveItems />
         <AuthDialog
           isDialogOpen={isDialogOpen}
           setIsDialogOpen={setIsDialogOpen}
@@ -125,22 +118,25 @@ export default function ChatContainer(props) {
 }
 
 //
-function getBranchKeyToMaximize({ globalIdBot, botMessages }) {
+function getBranchKeyToMaximize({ globalIdUser, userMessages }) {
   // first user message -> maximize
-  if (globalIdBot === 0) {
+  if (globalIdUser === 0) {
     return JSON.stringify([1]);
   }
-  // find bot message with globalIdBot
-  const latestBotMessage = botMessages.find(
-    (botMessage) => botMessage.globalIdBot === globalIdBot
+  // find user message with globalIdUser
+  const latestUserMessage = userMessages.find(
+    (userMessage) => userMessage.globalIdUser === globalIdUser
   );
-  const messageKey = latestBotMessage.key;
+  // console.log("getBranchKeyToMaximize latestUserMessage", latestUserMessage);
+  const messageKey = latestUserMessage?.key;
 
   const branchToMaxInfo = checkParentBranch(messageKey);
   // console.log("branchToMaxInfo", branchToMaxInfo);
   if (branchToMaxInfo.final) {
+    console.log("getBranchKeyToMaximize", branchToMaxInfo.key);
     return branchToMaxInfo.key;
   }
+  console.log("getBranchKeyToMaximize NOT FOUND", branchToMaxInfo.final);
 
   return;
 }

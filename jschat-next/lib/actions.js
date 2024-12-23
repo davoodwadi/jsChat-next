@@ -66,6 +66,12 @@ export async function generate({ messages, model }) {
       messages: messages,
       maxTokens: 2000,
     });
+    // START: simulate wait
+    // console.log("waiting: 4000ms");
+    // await wait(4000);
+    // console.log("done: 4000ms");
+
+    // END: simulate wait
 
     for await (const delta of fullStream) {
       if (test) {
@@ -87,6 +93,13 @@ export async function generate({ messages, model }) {
   })();
 
   return { output: stream.value, status: "ok" };
+}
+async function wait(duration) {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(`waited ${duration}`);
+    }, duration);
+  });
 }
 
 export async function signInClientAction({ providerId }) {

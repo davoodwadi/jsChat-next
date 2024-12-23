@@ -3,6 +3,7 @@ import { authConfig } from "./auth.config";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import { connectToDatabase } from "@/lib/db";
 // type Provider = "google" | "github";
+
 type Doc = {
   username: string | null | undefined;
   email: string | null | undefined;
