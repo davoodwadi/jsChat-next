@@ -1,10 +1,19 @@
-import { generate } from "@/lib/actions";
+import { generate, generateDummmy } from "@/lib/actions";
 import { readStreamableValue } from "ai/rsc";
+import { wait } from "@/lib/actions";
 
 const idInUserMessages = (id, userMessages) =>
   userMessages.filter((m) => JSON.stringify(m.key) === id).length > 0; // bool; if id is in userMessages
 const idInBotMessages = (id, botMessages) =>
   botMessages.filter((m) => JSON.stringify(m.key) === id).length > 0; // // bool; if id is in botMessages
+
+export async function handleDummy({ setText }) {
+  const streamIterator = await generateDummmy();
+  for await (const delta of readStreamableValue(streamIterator.output)) {
+    console.log("delta", delta);
+    setText((v) => v + delta);
+  }
+}
 
 export async function handleSubmit({
   botRef,
@@ -21,6 +30,8 @@ export async function handleSubmit({
   setResponse,
   model,
   setIsDialogOpen,
+  refChatContainer,
+  setRandomNumber,
 }) {
   // event.target.id
   // event.target.value
@@ -29,8 +40,17 @@ export async function handleSubmit({
   // return;
   // event.preventDefault();
   // console.log("event", event);
+  // await wait(500);
+  // setRandomNumber(1);
+  // await wait(500);
+  // setRandomNumber(2);
+  // await wait(500);
+  // setRandomNumber(-1);
+
+  const dummy = false;
 
   let chain;
+  let streamIterator;
   let tempChunks = "";
   const array = JSON.parse(targetId);
   const newGlobalIdBot = globalIdBot + 1;
@@ -81,10 +101,15 @@ export async function handleSubmit({
     // // //
     // const botResponse = getDummyBotResponse({ chain });
     // const streamIterator = consumeStream({ chain: chain })
-    const streamIterator = await generate({
-      messages: chain,
-      model: model,
-    });
+
+    if (dummy) {
+      streamIterator = await generateDummmy(JSON.stringify(array));
+    } else {
+      streamIterator = await generate({
+        messages: chain,
+        model: model,
+      });
+    }
     if (streamIterator.status !== "ok") {
       console.log("streamIterator.status not ok", streamIterator.status);
       setIsDialogOpen(true);
@@ -122,10 +147,10 @@ export async function handleSubmit({
           JSON.stringify(m.key) === JSON.stringify(array) ? newBotEntry : m
         )
       );
-      botRef.current?.scrollIntoView({
-        block: "center",
-        inline: "center",
-      });
+      // botRef.current?.scrollIntoView({
+      //   block: "center",
+      //   inline: "center",
+      // });
 
       counter += 1;
     }
@@ -175,11 +200,14 @@ export async function handleSubmit({
 
     // streaming the LLM new user
     // // //
-    // const streamIterator = consumeStream({ chain: chain })
-    const streamIterator = await generate({
-      messages: chain,
-      model: model,
-    });
+    if (dummy) {
+      streamIterator = await generateDummmy(JSON.stringify(array));
+    } else {
+      streamIterator = await generate({
+        messages: chain,
+        model: model,
+      });
+    }
     if (streamIterator.status !== "ok") {
       console.log("streamIterator.status not ok", streamIterator.status);
       setIsDialogOpen(true);
@@ -198,7 +226,27 @@ export async function handleSubmit({
       status: "pending", // pending | reading | done
       model: model,
     };
-    setBotMessages((v) => [...v, newBotEntry]);
+    setBotMessages((v) => {
+      // console.log("botMessages pending", v);
+      return [...v, newBotEntry];
+    });
+    newBotEntry = {
+      key: array,
+      globalIdBot: newGlobalIdBot,
+      content: tempChunks,
+      role: "bot",
+      status: "pending reading", // pending | reading | done
+      model: model,
+    };
+    setBotMessages((v) => {
+      // console.log("botMessages pending", v);
+      return v.map((m) =>
+        JSON.stringify(m.key) === JSON.stringify(array) ? newBotEntry : m
+      );
+    });
+
+    // await wait(4000);
+
     for await (const delta of readStreamableValue(streamIterator.output)) {
       // console.log("botMessage: ", newBotEntry, array);
       // console.log("delta", delta);
@@ -214,15 +262,12 @@ export async function handleSubmit({
         status: "reading",
         model: model,
       };
-      setBotMessages((v) =>
-        v.map((m) =>
-          JSON.stringify(m.key) === JSON.stringify(array) ? newBotEntry : m
-        )
-      );
+      setBotMessages((v) => {
+        // console.log("botMessages counter:", counter, delta, v);
 
-      botRef.current?.scrollIntoView({
-        block: "center",
-        inline: "center",
+        return v.map((m) =>
+          JSON.stringify(m.key) === JSON.stringify(array) ? newBotEntry : m
+        );
       });
 
       counter += 1;

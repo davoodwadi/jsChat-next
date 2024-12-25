@@ -20,11 +20,12 @@ const submitButtonClass = `   p-4 md:p-2
 let baseBotClass =
   // "rounded-xl bg-yellow-600 text-black p-4 m-1 relative break-words  "; //border-yellow-500
   `     p-4 m-1 relative   
-    text-gray-900 bg-yellow-50 rounded-xl border border-gray-300 focus:ring-blue-500 focus:border-blue-500 
+    text-gray-900 bg-yellow-50 rounded-xl border border-gray-300 
+    focus:ring-blue-500 focus:border-blue-500 
     dark:bg-yellow-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-black dark:focus:ring-blue-500 dark:focus:border-blue-500`;
 
 export function UserMessage(props) {
-  // console.log("props", props);
+  // console.log("User props", props);
   // console.log("UserMessage botRef", props.refElementBot);
 
   // useTraceUpdate(props);
@@ -132,18 +133,21 @@ export function UserMessage(props) {
 
 export function BotMessage(props) {
   const isLatestBot = props.maxGlobalIdBot === props.globalIdBot;
-  // console.log("isLatestBot", isLatestBot, props.refElementBot);
-  // if (isLatestBot) {
-  //   console.log(
-  //     "props.refElementBot scroll: ",
-  //     props.id,
-  //     props.refElementBot.current
-  //   );
-  //   props.refElementBot.current?.scrollIntoView({
-  //     block: "center",
-  //     inline: "center",
-  //   });
-  // }
+  // console.log("Bot props first", props);
+
+  useEffect(() => {
+    if (isLatestBot && props.refElementBot.current) {
+      console.log("useeffect running", props.refElementBot.current);
+      console.log("useeffect running content", props.content);
+
+      props.refElementBot.current.scrollIntoView({
+        block: "center",
+        inline: "center",
+      });
+    }
+  }, [isLatestBot, props.refElementBot]); // Dependency array
+  console.log("Bot props second", props.content);
+
   return (
     <div className={baseBotClass}>
       <div className="flex flex-row justify-between text-xs mb-4">
@@ -157,13 +161,14 @@ export function BotMessage(props) {
         id={props.id}
         globalidbot={props.globalIdBot}
         maxglobalidbot={props.maxGlobalIdBot}
+        data-latest={isLatestBot ? "true" : "false"}
         latest={isLatestBot ? "true" : "false"}
         ref={isLatestBot ? props.refElementBot : null}
       >
-        {props.children === "" ? (
-          <MultilineSkeleton lines={4} />
-        ) : (
+        {props.content === "" ? (
           // <MultilineSkeleton lines={4} />
+          <MultilineSkeleton lines={4}>{props.children}</MultilineSkeleton>
+        ) : (
           <MarkdownComponent>{props.children}</MarkdownComponent>
         )}
       </div>
@@ -199,7 +204,7 @@ export function BranchContainer(props) {
   return (
     <div
       id={"branch-container" + props.id}
-      className="flex flex-row  " //border-4 border-green-300 overflow-scroll flex-nowrap justify-between
+      className="flex flex-row " //border-4 border-green-300 overflow-scroll flex-nowrap justify-between
     >
       {props.children}
     </div>

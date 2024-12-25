@@ -48,6 +48,64 @@ export async function getUserTokensLeft({ user }) {
   return { user: result, status: "ok" };
 }
 
+export async function generateDummmy(id) {
+  // const stream = new ReadableStream({
+  //   start(controller) {
+  //     // Function to enqueue data with a delay
+  //     const enqueueWithDelay = (data, delay) => {
+  //       return new Promise((resolve) => {
+  //         setTimeout(() => {
+  //           controller.enqueue(new TextEncoder().encode(data));
+  //           resolve();
+  //         }, delay);
+  //       });
+  //     };
+
+  //     // Create an async function to handle the streaming
+  //     const streamData = async () => {
+  //       await enqueueWithDelay("Hello ", 2000); // Wait 2 seconds
+  //       await enqueueWithDelay("World", 2000); // Wait 2 seconds
+  //       controller.close(); // Close the stream
+  //     };
+
+  //     // Start streaming the data
+  //     streamData();
+  //   },
+  // });
+  const stream = createStreamableValue("");
+  (async () => {
+    // returns "", "Hello ", "world ", "man "
+    // const s = `${id} Hello world man late later `;
+    const s = `${id} Optimistically updating forms 
+The useOptimistic Hook provides a way to optimistically update the user interface before a background operation, like a network request, completes. In the context of forms, this technique helps to make apps feel more responsive. When a user submits a form, instead of waiting for the server’s response to reflect the changes, the interface is immediately updated with the expected outcome.
+
+\`\`\`jsx
+import numpy as np
+print(np.mean([1,2,3,4,5,6,7,1,2,3,4,5,6,7,1,2,3,4,5,6,7,1,2,3,4,5,6,7,1,2,3]))
+\`\`\`
+
+For example, when a user types a message into the form and hits the “Send” button, the useOptimistic Hook allows the message to immediately appear in the list with a “Sending…” label, even before the message is actually sent to a server. This “optimistic” approach gives the impression of speed and responsiveness. The form then attempts to truly send the message in the background. Once the server confirms the message has been received, the “Sending…” label is removed.`;
+    // Split the string at whitespace
+    const splitString = s.split(/\s+/);
+
+    // Loop through the array and log each substring
+    // splitString.forEach(async (word, index) => {
+    //   await wait(100);
+    //   console.log(`Substring ${index}: ${word}`);
+    //   stream.update(word);
+    // });
+    for (const char of s) {
+      await wait(10);
+      console.log(`Substring: ${char}`);
+      stream.update(char);
+    }
+
+    stream.done();
+  })();
+
+  return { output: stream.value, status: "ok" };
+}
+
 export async function generate({ messages, model }) {
   const session = await auth();
   if (test) {
@@ -94,7 +152,7 @@ export async function generate({ messages, model }) {
 
   return { output: stream.value, status: "ok" };
 }
-async function wait(duration) {
+export async function wait(duration) {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve(`waited ${duration}`);

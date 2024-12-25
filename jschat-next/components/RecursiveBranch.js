@@ -4,10 +4,9 @@ import { delay } from "@/lib/myTools";
 import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_MOBILE } from "@/components/ui/sidebar";
 
 import { handleSubmit, resizeTextarea } from "@/lib/chatUtils";
-import { useTraceUpdate } from "@/lib/myToolsClient";
 
 import dynamic from "next/dynamic";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { Button } from "./ui/button";
 
 import {
@@ -57,8 +56,9 @@ export default function RecursiveBranch(props) {
       <Suspense fallback={<p>Loading...</p>}>
         <BranchContainer id={props.level} key={props.level}>
           {tempUserMessages.map((tm, i) => {
+            // console.log("tm", tm);
             return (
-              <div className="mx-auto" key={`div ${tm.key}`}>
+              <div className="mx-auto flex-1" key={`div ${tm.key}`}>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -88,6 +88,7 @@ export default function RecursiveBranch(props) {
                   }
                 >
                   <UserMessage
+                    {...tm}
                     id={JSON.stringify(tm.key)}
                     key={JSON.stringify(tm.key)}
                     globalIdUser={tm.globalIdUser}
@@ -114,6 +115,8 @@ export default function RecursiveBranch(props) {
                         setResponse: props.setResponse,
                         model: props.model,
                         setIsDialogOpen: props.setIsDialogOpen,
+                        refChatContainer: props.refChatContainer,
+                        setRandomNumber: props.setRandomNumber,
                       });
                       // } else {
                       // console.log("resizing");
@@ -127,6 +130,7 @@ export default function RecursiveBranch(props) {
                   </UserMessage>
                   {getBotMessageForKey(tm.key) && ( // tempBotMessages[i]
                     <BotMessage
+                      {...getBotMessageForKey(tm.key)}
                       id={JSON.stringify(tm.key)}
                       key={"b" + JSON.stringify(tm.key)}
                       globalIdBot={getBotMessageForKey(tm.key).globalIdBot}
@@ -165,6 +169,8 @@ export default function RecursiveBranch(props) {
                       props.branchKeyToMaximize === JSON.stringify(tm.key) ||
                       props.toMaximize
                     }
+                    refChatContainer={props.refChatContainer}
+                    setRandomNumber={props.setRandomNumber}
                   />
                 </Branch>
               </div>

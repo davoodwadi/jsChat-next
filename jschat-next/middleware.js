@@ -49,6 +49,6 @@ export const config = {
      * - favicon.ico, sitemap.xml, robots.txt (metadata files)
      */
     // "/((?!api|_next/static|_next/image|favicon.ico|icon.svg|sitemap.xml|robots.txt).*)",
-    "/api/chat/:path*",
+    // "/api/chat/:path*",
   ],
 };

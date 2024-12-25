@@ -15,6 +15,10 @@ import RecursiveBranch from "./RecursiveBranch";
 export function RecursiveChatContainer(props) {
   // console.log("starting RecursiveChatContainer");
   // console.log("RecursiveChatContainer props", props);
+  // console.log("props.refElementBot.current", props.refElementBot.current);
+
+  const refChatContainer = useRef(null);
+  const [randomNumber, setRandomNumber] = useState(0);
 
   const [globalIdUser, setGlobalIdUser] = useState(1);
   const [globalIdBot, setGlobalIdBot] = useState(0);
@@ -30,19 +34,10 @@ export function RecursiveChatContainer(props) {
   const [branchKeyToMaximize, setBranchKeyToMaximize] = useState(
     JSON.stringify([1])
   );
-
-  // scroll to latest bot message
-  useEffect(() => {
-    // console.log(
-    //   "props.refElementBot.current",
-    //   props.refElementBot.current
-    // );
-    // console.log("props.refElementUser:", props.refElementUser.current);
-    props.refElementUser.current?.scrollIntoView({
-      block: "center",
-      inline: "center",
-    });
-  }, [globalIdUser]);
+  // console.log("randomNumber", randomNumber);
+  // useEffect(() => {
+  //   console.log("effect randomNumber", randomNumber);
+  // }, [randomNumber]);
 
   useEffect(() => {
     const newBranchKeyToMaximize = getBranchKeyToMaximize({
@@ -62,7 +57,13 @@ export function RecursiveChatContainer(props) {
   return (
     <>
       <Suspense fallback={<p>Loading...</p>}>
-        <div id="chat-container" className={chatContainerClass}>
+        <div
+          id="chat-container"
+          className={chatContainerClass}
+          ref={refChatContainer}
+        >
+          {/* <div className="text-green-500">{randomNumber}</div> */}
+
           <Suspense fallback={<p>Loading...</p>}>
             <RecursiveBranch
               level={0}
@@ -81,6 +82,8 @@ export function RecursiveChatContainer(props) {
               model={model}
               setResponse={setResponse}
               branchKeyToMaximize={branchKeyToMaximize}
+              refChatContainer={refChatContainer}
+              setRandomNumber={setRandomNumber}
             />
           </Suspense>
         </div>
@@ -94,7 +97,6 @@ export default function ChatContainer(props) {
   const refUser = useRef(null);
   const refBot = useRef(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  // const isMobile = useIsMobileLayout();
   const isMobile = true;
   return (
     <Suspense fallback={<p>Loading...</p>}>
