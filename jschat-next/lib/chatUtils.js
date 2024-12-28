@@ -1,5 +1,5 @@
 import { generate, generateDummmy } from "@/lib/actions";
-import { readStreamableValue } from "ai/rsc";
+import { readStreamableValue } from "@/lib/aiRSCUtils";
 import { wait } from "@/lib/actions";
 import { v4 as uuidv4 } from "uuid";
 
