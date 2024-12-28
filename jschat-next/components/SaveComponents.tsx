@@ -54,7 +54,6 @@ export default function SaveItems({
       Element: HardDriveUpload,
       text: "Load",
       loading: loadingLoad,
-      setLoading: setLoadingLoad,
       onClickFn: async () => {
         setLoadingLoad(true);
         console.log(`CLIENT: load ${chatId}`);
@@ -88,7 +87,6 @@ export default function SaveItems({
       Element: Save,
       text: "Save",
       loading: loadingSave,
-      setLoading: setLoadingSave,
       onClickFn: () => {
         setLoadingSave(true);
 
@@ -114,7 +112,6 @@ export default function SaveItems({
       Element: RotateCcw,
       text: "Reset Interface",
       loading: loadingReset,
-      setLoading: setLoadingReset,
       onClickFn: () => {
         setLoadingReset(true);
 
