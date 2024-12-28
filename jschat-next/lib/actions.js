@@ -8,6 +8,19 @@ import { AuthError } from "next-auth";
 import { connectToDatabase } from "@/lib/db";
 import { test } from "@/lib/test";
 
+export async function sendEmail() {
+  const res = await fetch(`${process.env.NEXT_BASE_URL}/api/send`, {
+    method: "POST",
+    body: { message: "Email to send" },
+  });
+  const data = await res.json();
+  if (res.ok) {
+    console.log("sendEmail data:", data);
+  } else {
+    console.log("sendEmail ERROR data:", data);
+  }
+}
+
 export async function loadChatSession({ chatId }) {
   console.log("SERVER ACTION load", chatId);
   const session = await auth();

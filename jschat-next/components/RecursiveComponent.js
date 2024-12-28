@@ -10,6 +10,8 @@ import { AuthDialog } from "@/components/AuthDialog";
 import SaveItems from "@/components/SaveComponents";
 
 import RecursiveBranch from "./RecursiveBranch";
+import { Button } from "./ui/button";
+import { sendEmail } from "@/lib/actions";
 
 export function RecursiveChatContainer(props) {
   // console.log("starting RecursiveChatContainer");
@@ -107,6 +109,7 @@ export default function ChatContainer(props) {
         id={chatContainerKey}
         className="flex flex-col mx-auto justify-center items-center py-2 px-4 md:px-6 "
       >
+        <Button onClick={() => sendEmail()}>Send Email</Button>
         <Suspense fallback={<p>Loading...</p>}>
           <RecursiveChatContainer
             setChatContainerKey={setChatContainerKey}

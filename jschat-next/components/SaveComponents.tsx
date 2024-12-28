@@ -8,17 +8,7 @@ import * as React from "react";
 import { saveChatSession, loadChatSession } from "@/lib/actions";
 import { useRouter } from "next/navigation";
 import { generateChatId } from "@/lib/chatUtils";
-
-// function resetInterface(setUserMessages, setBotMessages) {
-//   const newglobalIdUser = 1;
-//   setGlobalUserId(newglobalIdUser);
-//   setGlobalBotId(0);
-//   setUserMessages((m) => [
-//     { key: [1], content: "", role: "user", globalIdUser: newglobalIdUser },
-//   ]);
-//   setBotMessages((m) => []);
-//   console.log("interface reset");
-// }
+import { useState } from "react";
 
 type UserMessages = {
   key: string;
@@ -26,6 +16,7 @@ type UserMessages = {
   role: string;
   globalIdUser: number;
 }[];
+
 type BotMessages = {
   key: string;
   content: string;
@@ -54,12 +45,18 @@ export default function SaveItems({
   // console.log("SaveItems botMessages", botMessages);
   const { toast } = useToast();
   const router = useRouter();
+  const [loadingSave, setLoadingSave] = useState(false);
+  const [loadingLoad, setLoadingLoad] = useState(false);
+  const [loadingReset, setLoadingReset] = useState(false);
 
   const elements = [
     {
       Element: HardDriveUpload,
       text: "Load",
+      loading: loadingLoad,
+      setLoading: setLoadingLoad,
       onClickFn: async () => {
+        setLoadingLoad(true);
         console.log(`CLIENT: load ${chatId}`);
         const lastSession = await loadChatSession({ chatId });
         if (!lastSession) {
@@ -67,8 +64,10 @@ export default function SaveItems({
           toast({
             variant: "destructive",
             title: "Failed to load",
-            description: "No session found for chatid",
+            description: "No session found for the chat. Please save first.",
           });
+          setLoadingLoad(false);
+
           return;
         } else {
           const content = lastSession.content;
@@ -81,13 +80,18 @@ export default function SaveItems({
             title: "Successful load",
             description: "Session loaded successfully",
           });
+          setLoadingLoad(false);
         }
       },
     },
     {
       Element: Save,
       text: "Save",
+      loading: loadingSave,
+      setLoading: setLoadingSave,
       onClickFn: () => {
+        setLoadingSave(true);
+
         console.log(`CLIENT: save ${chatId}`);
         const userMessagesJSON = JSON.stringify(userMessages);
         const botMessagesJSON = JSON.stringify(botMessages);
@@ -103,20 +107,25 @@ export default function SaveItems({
           title: "Successful Save",
           description: "Session saved successfully",
         });
+        setLoadingSave(false);
       },
     },
     {
       Element: RotateCcw,
       text: "Reset Interface",
+      loading: loadingReset,
+      setLoading: setLoadingReset,
       onClickFn: () => {
+        setLoadingReset(true);
+
         // console.log("toast");
         // setChatContainerKey((v) => v + 1);
         const newChatId = generateChatId();
-        console.log("newChatId", newChatId);
         router.push(`/chat/${newChatId}`);
         toast({
           title: "Chat Reset",
         });
+        setLoadingReset(false);
       },
     },
   ];
