@@ -1,4 +1,7 @@
-import { EmailTemplate } from "@/components/EmailTemplate";
+import {
+  EmailTemplate,
+  SpreedVerifyIdentityEmail,
+} from "@/components/EmailTemplate";
 import { Resend } from "resend";
 import { v4 as uuid } from "uuid";
 
@@ -10,7 +13,7 @@ export async function POST() {
       //   from: "verify@account.spreed.chat",
       to: ["wadidavood@gmail.com"],
       subject: "Welcome to Spreed.chat",
-      react: EmailTemplate({ firstName: "John" }),
+      react: SpreedVerifyIdentityEmail({ validationCode: "1234" }),
       headers: {
         "X-Entity-Ref-ID": uuid(),
       },

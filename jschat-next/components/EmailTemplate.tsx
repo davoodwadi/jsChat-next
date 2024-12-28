@@ -23,7 +23,7 @@ export const EmailTemplate: React.FC<Readonly<EmailTemplateProps>> = ({
   </div>
 );
 
-interface PlaidVerifyIdentityEmailProps {
+interface SpreedVerifyIdentityEmailProps {
   validationCode?: string;
 }
 
@@ -31,9 +31,9 @@ const baseUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
   : "";
 
-export const PlaidVerifyIdentityEmail = ({
+export const SpreedVerifyIdentityEmail = ({
   validationCode,
-}: PlaidVerifyIdentityEmailProps) => (
+}: SpreedVerifyIdentityEmailProps) => (
   <Html>
     <Head />
     <Body style={main}>
@@ -54,21 +54,21 @@ export const PlaidVerifyIdentityEmail = ({
         </Section>
         <Text style={paragraph}>Not expecting this email?</Text>
         <Text style={paragraph}>
-          Contact{" "}
-          <Link href="mailto:login@plaid.com" style={link}>
-            login@plaid.com
-          </Link>{" "}
+          Contact
+          <Link href="mailto:support@account.spreed.chat" style={link}>
+            support
+          </Link>
           if you did not request this code.
         </Text>
       </Container>
-      <Text style={footer}>Securely powered by Plaid.</Text>
+      <Text style={footer}>Powered by Spreed.chat</Text>
     </Body>
   </Html>
 );
 
-PlaidVerifyIdentityEmail.PreviewProps = {
+SpreedVerifyIdentityEmail.PreviewProps = {
   validationCode: "144833",
-} as PlaidVerifyIdentityEmailProps;
+} as SpreedVerifyIdentityEmailProps;
 
 const main = {
   backgroundColor: "#ffffff",

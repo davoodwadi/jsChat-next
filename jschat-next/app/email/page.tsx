@@ -1,5 +1,5 @@
-import { PlaidVerifyIdentityEmail } from "@/components/EmailTemplate";
+import { SpreedVerifyIdentityEmail } from "@/components/EmailTemplate";
 
 export default function Page() {
-  return <PlaidVerifyIdentityEmail validationCode={"Hello"} />;
+  return <SpreedVerifyIdentityEmail validationCode={"Hello"} />;
 }

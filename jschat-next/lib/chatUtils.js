@@ -43,9 +43,13 @@ export async function handleSubmit({
   // event.target.id
   // event.target.value
   //
-
-  const dummy = true;
-
+  console.log(
+    " process.env.NEXT_PUBLIC_BASE_URL",
+    process.env.NEXT_PUBLIC_BASE_URL
+  );
+  const dummy =
+    process.env.NEXT_PUBLIC_BASE_URL === "http://localhost:3000" ? true : false;
+  console.log("dummy", dummy);
   let chain;
   let streamIterator;
   let tempChunks = "";
