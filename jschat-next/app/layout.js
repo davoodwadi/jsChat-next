@@ -1,6 +1,7 @@
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Toaster } from "@/components/ui/toaster";
 
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
@@ -94,6 +95,7 @@ export default async function RootLayout(props) {
             {/* </Suspense> */}
           </SidebarProvider>
         </ThemeProvider>
+        <Toaster />
         {/* </Suspense> */}
       </body>
     </html>

@@ -1,9 +1,5 @@
-// import ChatComponent from "@/components/ChatComponent"
-// import ChatContainer from "@/components/RecursiveComponent";
-
 import { Suspense } from "react";
-// import { lazy } from "react";
-// const ChatContainer = lazy(() => import("@/components/RecursiveComponent"));
+import { generateChatId } from "@/lib/chatUtils";
 
 import dynamic from "next/dynamic";
 
@@ -11,13 +7,21 @@ const ChatContainer = dynamic(() => import("@/components/RecursiveComponent"), {
   loading: () => <p>Dynamic Loading ChatContainer...</p>,
 });
 
-export default async function Home() {
+export default async function Chat({
+  params,
+}: {
+  params: Promise<{ chatid: string }>;
+}) {
   // console.log("loading ChatContainer");
+
+  const chatId = (await params).chatid;
+
+  // console.log("chatId", chatId);
 
   return (
     <>
       <Suspense fallback={<p>Loading ChatContainer</p>}>
-        <ChatContainer />
+        <ChatContainer chatId={chatId} />
       </Suspense>
     </>
   );

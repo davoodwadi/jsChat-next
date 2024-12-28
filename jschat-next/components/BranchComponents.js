@@ -26,7 +26,7 @@ let baseBotClass =
 
 export function UserMessage(props) {
   // console.log("User props", props);
-  // console.log("UserMessage botRef", props.refElementBot);
+  // console.log("UserMessage props.id", props.id);
 
   // useTraceUpdate(props);
   const [finalValue, setFinalValue] = useState(
@@ -37,13 +37,7 @@ export function UserMessage(props) {
   const isLatestUser = props.maxGlobalIdUser === props.globalIdUser;
 
   const refUser = isLatestUser ? props.refElementUser : refThisUser;
-  // if (isLatestUser) {
-  //   console.log("refUser scroll: ", props.id, refUser.current);
-  //   refUser.current?.scrollIntoView({
-  //     block: "center",
-  //     inline: "center",
-  //   });
-  // }
+
   if (props.children && finalValue === undefined) {
     // set new value for new branch
     setFinalValue((v) => props.children);
@@ -136,9 +130,9 @@ export function BotMessage(props) {
   // console.log("Bot props first", props);
 
   useEffect(() => {
-    if (isLatestBot && props.refElementBot.current) {
-      console.log("useeffect running", props.refElementBot.current);
-      console.log("useeffect running content", props.content);
+    if (isLatestBot && props?.refElementBot.current) {
+      // console.log("useeffect running", props.refElementBot.current);
+      // console.log("useeffect running content", props.content);
 
       props.refElementBot.current.scrollIntoView({
         block: "center",
@@ -146,7 +140,7 @@ export function BotMessage(props) {
       });
     }
   }, [isLatestBot, props.refElementBot]); // Dependency array
-  console.log("Bot props second", props.content);
+  // console.log("Bot props second", props.content);
 
   return (
     <div className={baseBotClass}>

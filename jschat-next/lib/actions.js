@@ -8,6 +8,63 @@ import { AuthError } from "next-auth";
 import { connectToDatabase } from "@/lib/db";
 import { test } from "@/lib/test";
 
+export async function loadChatSession({ chatId }) {
+  console.log("SERVER ACTION load", chatId);
+  const session = await auth();
+  const email = session?.user?.email;
+  console.log("email", email);
+  const client = await connectToDatabase();
+  const plansCollection = client.db("chat").collection("plans");
+  const results = await plansCollection.findOne(
+    { username: email, "lastSession.chatid": chatId },
+    {
+      projection: { username: 1, lastSession: 1, tokensRemaining: 1 }, // Only return the tokensRemaining field
+    }
+  );
+  if (results) {
+    // console.log("results", results);
+    return results.lastSession;
+  } else {
+    return;
+  }
+}
+
+export async function saveChatSession({
+  chatId,
+  userMessagesJSON,
+  botMessagesJSON,
+  userMessages,
+  botMessages,
+}) {
+  console.log("SERVER ACTION save", chatId);
+  // console.log("SERVER ACTION userMessages", userMessagesJSON);
+  // console.log("SERVER ACTION userMessages", userMessages);
+  const session = await auth();
+  const email = session?.user?.email;
+  console.log("email", email);
+  const client = await connectToDatabase();
+  const plansCollection = client.db("chat").collection("plans");
+  const results = await plansCollection.findOneAndUpdate(
+    { username: email },
+    {
+      $set: {
+        lastSession: {
+          chatid: chatId,
+          content: {
+            userMessages,
+            botMessages,
+          },
+        },
+      },
+    },
+    {
+      returnDocument: "after", // Return the document after the update
+      projection: { username: 1, "lastSession.chatid": 1, tokensRemaining: 1 }, // Only return the tokensRemaining field
+    }
+  );
+  console.log("results", results);
+}
+
 export async function addUserToken({ email }) {
   const client = await connectToDatabase();
   const plansCollection = client.db("chat").collection("plans");
@@ -86,7 +143,7 @@ print(np.mean([1,2,3,4,5,6,7,1,2,3,4,5,6,7,1,2,3,4,5,6,7,1,2,3,4,5,6,7,1,2,3]))
 
 For example, when a user types a message into the form and hits the “Send” button, the useOptimistic Hook allows the message to immediately appear in the list with a “Sending…” label, even before the message is actually sent to a server. This “optimistic” approach gives the impression of speed and responsiveness. The form then attempts to truly send the message in the background. Once the server confirms the message has been received, the “Sending…” label is removed.`;
     // Split the string at whitespace
-    const splitString = s.split(/\s+/);
+    // const splitString = s.split(/\s+/);
 
     // Loop through the array and log each substring
     // splitString.forEach(async (word, index) => {
@@ -94,9 +151,11 @@ For example, when a user types a message into the form and hits the “Send” b
     //   console.log(`Substring ${index}: ${word}`);
     //   stream.update(word);
     // });
-    for (const char of s) {
+    const chunkSize = 15;
+    for (let i = 0; i < s.length; i += chunkSize) {
       await wait(10);
-      console.log(`Substring: ${char}`);
+      const char = s.substring(i, i + chunkSize);
+      // console.log(`Substring: ${char}`);
       stream.update(char);
     }
 

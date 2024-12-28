@@ -1,11 +1,18 @@
 import { generate, generateDummmy } from "@/lib/actions";
 import { readStreamableValue } from "ai/rsc";
 import { wait } from "@/lib/actions";
+import { v4 as uuidv4 } from "uuid";
 
 const idInUserMessages = (id, userMessages) =>
-  userMessages.filter((m) => JSON.stringify(m.key) === id).length > 0; // bool; if id is in userMessages
+  userMessages.filter((m) => m.key === id).length > 0; // bool; if id is in userMessages
 const idInBotMessages = (id, botMessages) =>
-  botMessages.filter((m) => JSON.stringify(m.key) === id).length > 0; // // bool; if id is in botMessages
+  botMessages.filter((m) => m.key === id).length > 0; // // bool; if id is in botMessages
+
+export const generateChatId = () => {
+  const randomString = Math.random().toString(36).substring(2, 15);
+  const timestamp = Date.now().toString(36);
+  return `${randomString}-${timestamp}`;
+};
 
 export async function handleDummy({ setText }) {
   const streamIterator = await generateDummmy();
@@ -36,23 +43,15 @@ export async function handleSubmit({
   // event.target.id
   // event.target.value
   //
-  // console.log(targetId, targetValue);
-  // return;
-  // event.preventDefault();
-  // console.log("event", event);
-  // await wait(500);
-  // setRandomNumber(1);
-  // await wait(500);
-  // setRandomNumber(2);
-  // await wait(500);
-  // setRandomNumber(-1);
 
-  const dummy = false;
+  const dummy = true;
 
   let chain;
   let streamIterator;
   let tempChunks = "";
+
   const array = JSON.parse(targetId);
+
   const newGlobalIdBot = globalIdBot + 1;
   setGlobalIdBot(newGlobalIdBot);
   let newBotEntry;
@@ -65,25 +64,25 @@ export async function handleSubmit({
     // find the latest branch on the same key length
     const sameParents = userMessages.filter(
       (m) =>
-        (m.key.length === array.length) &
-        (JSON.stringify(m.key.slice(0, -1)) ===
-          JSON.stringify(array.slice(0, -1)))
+        JSON.parse(m.key).length === array.length &&
+        JSON.stringify(JSON.parse(m.key).slice(0, -1)) ===
+          JSON.stringify(array.slice(0, -1))
     );
     const maxSameBranch = Math.max(
-      ...sameParents.map((m) => m.key[m.key.length - 1])
+      ...sameParents.map((m) => JSON.parse(m.key)[JSON.parse(m.key).length - 1])
     );
+
     // add a horizontal branch in the key array
     array[array.length - 1] = maxSameBranch + 1;
-
     const newArray = array.slice();
     newArray.push(1); // for new empty userMessage
-
+    // console.log("array", array);
     const newGlobalIdUser = globalIdUser + 1;
     setGlobalIdUser(newGlobalIdUser);
     setUserMessages((m) => [
       ...m,
       {
-        key: array, // new horizontal branch key
+        key: JSON.stringify(array), // new horizontal branch key
         globalIdUser: newGlobalIdUser,
         content: `${targetValue}`,
         role: "user",
@@ -92,15 +91,13 @@ export async function handleSubmit({
     // get chain old message
     chain = getChain({ targetId, userMessages, botMessages });
     chain.push({
-      key: array,
+      key: JSON.stringify(array),
       content: targetValue,
       role: "user",
     });
 
     // streaming the LLM old user
-    // // //
-    // const botResponse = getDummyBotResponse({ chain });
-    // const streamIterator = consumeStream({ chain: chain })
+    //
 
     if (dummy) {
       streamIterator = await generateDummmy(JSON.stringify(array));
@@ -116,13 +113,12 @@ export async function handleSubmit({
       return;
       // return <Toast>Failed</Toast>;
     }
-    // console.log("streamIterator", streamIterator);
     let counter = 0;
     tempChunks = "";
     // console.log("client wait start");
 
     newBotEntry = {
-      key: array,
+      key: JSON.stringify(array),
       globalIdBot: newGlobalIdBot,
       content: tempChunks,
       role: "bot",
@@ -135,7 +131,7 @@ export async function handleSubmit({
       tempChunks = delta ? tempChunks + delta : tempChunks;
 
       newBotEntry = {
-        key: array,
+        key: JSON.stringify(array),
         globalIdBot: newGlobalIdBot,
         content: tempChunks,
         role: "bot",
@@ -143,14 +139,8 @@ export async function handleSubmit({
         model: model,
       };
       setBotMessages((v) =>
-        v.map((m) =>
-          JSON.stringify(m.key) === JSON.stringify(array) ? newBotEntry : m
-        )
+        v.map((m) => (m.key === JSON.stringify(array) ? newBotEntry : m))
       );
-      // botRef.current?.scrollIntoView({
-      //   block: "center",
-      //   inline: "center",
-      // });
 
       counter += 1;
     }
@@ -162,7 +152,7 @@ export async function handleSubmit({
     setUserMessages((v) => [
       ...v,
       {
-        key: newArray,
+        key: JSON.stringify(newArray),
         globalIdUser: newNewGlobalIdUser,
         content: "",
         role: "user",
@@ -179,7 +169,7 @@ export async function handleSubmit({
     // get chain new message
     chain = getChain({ targetId, userMessages, botMessages });
     chain.push({
-      key: array,
+      key: JSON.stringify(array),
       content: targetValue,
       role: "user",
     });
@@ -192,7 +182,7 @@ export async function handleSubmit({
       // find the id and update the old userMessage
       const userMessagesCopy = [...v];
       const messageToUpdate = userMessagesCopy.find(
-        (msg) => JSON.stringify(msg.key) === JSON.stringify(array)
+        (msg) => msg.key === JSON.stringify(array)
       );
       messageToUpdate.content = targetValue;
       return userMessagesCopy;
@@ -219,7 +209,7 @@ export async function handleSubmit({
 
     // console.log("client wait start");
     newBotEntry = {
-      key: array,
+      key: JSON.stringify(array),
       globalIdBot: newGlobalIdBot,
       content: tempChunks,
       role: "bot",
@@ -231,7 +221,7 @@ export async function handleSubmit({
       return [...v, newBotEntry];
     });
     newBotEntry = {
-      key: array,
+      key: JSON.stringify(array),
       globalIdBot: newGlobalIdBot,
       content: tempChunks,
       role: "bot",
@@ -240,9 +230,7 @@ export async function handleSubmit({
     };
     setBotMessages((v) => {
       // console.log("botMessages pending", v);
-      return v.map((m) =>
-        JSON.stringify(m.key) === JSON.stringify(array) ? newBotEntry : m
-      );
+      return v.map((m) => (m.key === JSON.stringify(array) ? newBotEntry : m));
     });
 
     // await wait(4000);
@@ -255,7 +243,7 @@ export async function handleSubmit({
       // console.log("delta", delta);
 
       newBotEntry = {
-        key: array,
+        key: JSON.stringify(array),
         globalIdBot: newGlobalIdBot,
         content: tempChunks,
         role: "bot",
@@ -266,7 +254,7 @@ export async function handleSubmit({
         // console.log("botMessages counter:", counter, delta, v);
 
         return v.map((m) =>
-          JSON.stringify(m.key) === JSON.stringify(array) ? newBotEntry : m
+          m.key === JSON.stringify(array) ? newBotEntry : m
         );
       });
 
@@ -277,7 +265,7 @@ export async function handleSubmit({
     const newGlobalIdUser = globalIdUser + 1;
     setGlobalIdUser(newGlobalIdUser);
     const newUserEntry = {
-      key: newArray,
+      key: JSON.stringify(newArray),
       globalIdUser: newGlobalIdUser,
       content: "",
       role: "user",
@@ -291,7 +279,7 @@ export async function handleSubmit({
 
   // set status to 'done'
   newBotEntry = {
-    key: array,
+    key: JSON.stringify(array),
     globalIdBot: newGlobalIdBot,
     content: tempChunks,
     role: "bot",
@@ -299,9 +287,7 @@ export async function handleSubmit({
     model: model,
   };
   setBotMessages((v) =>
-    v.map((m) =>
-      JSON.stringify(m.key) === JSON.stringify(array) ? newBotEntry : m
-    )
+    v.map((m) => (m.key === JSON.stringify(array) ? newBotEntry : m))
   );
   // console.log("done newBotEntry:", newBotEntry);
 }
@@ -312,13 +298,10 @@ function getChain({ targetId, userMessages, botMessages }) {
   const chain = [];
   for (let i = 1; i < array.length; i++) {
     // console.log("i", i);
-    const parentKey = array.slice(0, i);
-    const parentUser = userMessages.filter(
-      (m) => JSON.stringify(m.key) === JSON.stringify(parentKey)
-    )[0];
-    const parentBot = botMessages.filter(
-      (m) => JSON.stringify(m.key) === JSON.stringify(parentKey)
-    )[0];
+    const parentArray = array.slice(0, i);
+    const parentKey = JSON.stringify(parentArray);
+    const parentUser = userMessages.filter((m) => m.key === parentKey)[0];
+    const parentBot = botMessages.filter((m) => m.key === parentKey)[0];
     chain.push({ key: parentKey, content: parentUser.content, role: "user" });
     chain.push({
       key: parentKey,
