@@ -90,14 +90,19 @@ export const SpreedVerifyIdentityEmail = ({
             </li>
           </ul>
         </Section>
-        <Container style={{ display: "flex", justifyContent: "center" }}>
+        {/* <Container style={{ display: "flex", justifyContent: "center" }}> */}
+        {/* <Section style={codeContainer}>
           <Heading style={heading2}>Current tokens:</Heading>
-        </Container>
-        <Container style={{ display: "flex", justifyContent: "center" }}>
+        </Section> */}
+        {/* </Container> */}
+        {/* <Container style={{ display: "flex", justifyContent: "center" }}> */}
+        <Section style={codeContainer}>
+          <Heading style={heading2}>Current tokens:</Heading>
           <Text style={code}>{currentTokens}</Text>
-        </Container>
+        </Section>
+        {/* </Container> */}
         {/* <Hr /> */}
-        <Container style={{ marginBottom: "10px", marginTop: "10px" }}>
+        <Container>
           <Text style={paragraph}>Have issues with your account?</Text>
           <Text style={paragraph}>
             Contact&nbsp;
@@ -123,7 +128,7 @@ const container = {
   border: "1px solid #eee",
   borderRadius: "5px",
   boxShadow: "0 5px 10px rgba(20,50,70,.2)",
-  marginTop: "20px",
+  marginTop: "5px",
   maxWidth: "360px",
   margin: "0 auto",
   padding: "68px 0 130px",
@@ -158,6 +163,13 @@ const secondary = {
   textAlign: "center" as const,
 };
 
+const codeContainer = {
+  // background: "rgba(0,0,0,.05)",
+  borderRadius: "4px",
+  margin: "16px auto 14px",
+  verticalAlign: "middle",
+  width: "280px",
+};
 const heading2 = {
   color: "#000",
   display: "inline-block",
@@ -165,17 +177,11 @@ const heading2 = {
   fontSize: "18px",
   fontWeight: 400,
   lineHeight: "24px",
-  marginBottom: "0",
-  marginTop: "10px",
+  // marginBottom: "0",
+  // marginTop: "10px",
+  width: "100%",
+  margin: "0 auto",
   textAlign: "center" as const,
-};
-
-const codeContainer = {
-  background: "rgba(0,0,0,.05)",
-  borderRadius: "4px",
-  margin: "16px auto 14px",
-  verticalAlign: "middle",
-  width: "280px",
 };
 
 const code = {
@@ -188,9 +194,10 @@ const code = {
   lineHeight: "40px",
   paddingBottom: "8px",
   paddingTop: "8px",
-  margin: "0 auto",
+
   width: "100%",
   marginVertical: "10px",
+  margin: "0 auto",
   textAlign: "center" as const,
 };
 
@@ -200,7 +207,7 @@ const paragraph = {
   fontFamily: "HelveticaNeue,Helvetica,Arial,sans-serif",
   letterSpacing: "0",
   lineHeight: "23px",
-  padding: "0 40px",
+  padding: "0 10px",
   margin: "0",
   textAlign: "center" as const,
 };
@@ -218,7 +225,7 @@ const footer = {
   letterSpacing: "0",
   lineHeight: "23px",
   margin: "0",
-  marginTop: "20px",
+  marginTop: "5px",
   fontFamily: "HelveticaNeue,Helvetica,Arial,sans-serif",
   textAlign: "center" as const,
   textTransform: "uppercase" as const,

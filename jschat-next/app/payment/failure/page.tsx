@@ -25,15 +25,20 @@ export default async function Page({
   // send email
   const info = await getTokens(session_id);
   // console.log("info", info);
-  sendEmail({
-    status: "failure",
-    sessionId: session_id,
-    tokensRemaining: info.tokens,
-    email: info.email,
-    date: info.date,
-    amount: info.amount,
-    currency: info.currency,
-  });
+  if (info.emailSent === false) {
+    console.log("fresh failed payment. sending email.");
+    sendEmail({
+      status: "failure",
+      sessionId: session_id,
+      tokensRemaining: info.tokens,
+      email: info.email,
+      date: info.date,
+      amount: info.amount,
+      currency: info.currency,
+    });
+  } else {
+    console.log("duplicate failed payment.", info.emailSent);
+  }
   //
   // console.log("filters", typeof filters);
   // console.log("typeof session_id", typeof filters.session_id);

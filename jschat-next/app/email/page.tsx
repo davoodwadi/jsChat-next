@@ -5,7 +5,7 @@ export default async function Page() {
   const sessionId =
     "cs_test_a1NVAQEWmfi82hjWE9iDLPbwZRLy2IZ8Mj1vOyOi0vEDPx7UvYxllwmvf5";
   const tokensRemaining = 20000;
-  const email = "davood.wadi@hec.ca";
+  const email = "delivered@resend.dev";
   const dateObject = new Date();
   const date = dateObject.toDateString() + " " + dateObject.toTimeString();
   const amount = 499;

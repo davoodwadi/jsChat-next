@@ -21,10 +21,26 @@ export async function getTokens(session_id) {
         currency: 1,
         metadata: 1,
         created: 1,
+        emailSent: 1,
       },
     }
   );
-  // console.log("transaction", transaction);
+  let emailSent;
+  if (!transaction.emailSent) {
+    // fresh failed transaction
+    // send email
+    emailSent = false;
+    await checkoutsCollection.updateOne(
+      { id: session_id },
+      {
+        $set: {
+          emailSent: true,
+        },
+      }
+    );
+  } else {
+    emailSent = true;
+  }
   const timestamp = transaction?.created;
   const date = new Date(timestamp * 1000).toString();
   return {
@@ -33,6 +49,7 @@ export async function getTokens(session_id) {
     amount: transaction?.amount_total,
     currency: transaction?.currency,
     date: date,
+    emailSent: emailSent,
   };
 }
 
