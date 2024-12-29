@@ -26,11 +26,11 @@ export async function sendEmail({
   currency,
   amount,
 }) {
-  console.log("status", status);
-  console.log("sessionId", sessionId);
-  console.log("tokensRemaining", tokensRemaining);
-  console.log("email", email);
-  console.log("date", date);
+  // console.log("status", status);
+  // console.log("sessionId", sessionId);
+  // console.log("tokensRemaining", tokensRemaining);
+  // console.log("email", email);
+  // console.log("date", date);
 
   const text = await render(
     <SpreedVerifyIdentityEmail
@@ -47,7 +47,7 @@ export async function sendEmail({
     }
   );
 
-  console.log(text);
+  // console.log(text);
   // return;
 
   const { data, error } = await resend.emails.send({
@@ -70,8 +70,11 @@ export async function sendEmail({
       "X-Entity-Ref-ID": uuid(),
     },
   });
-  console.log("data", data);
-  console.log("error", error);
+  if (error) {
+    console.log("error", error);
+  } else {
+    console.log("data", data);
+  }
   return data;
 }
 
