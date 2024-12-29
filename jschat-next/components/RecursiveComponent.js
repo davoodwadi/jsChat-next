@@ -109,7 +109,6 @@ export default function ChatContainer(props) {
         id={chatContainerKey}
         className="flex flex-col mx-auto justify-center items-center py-2 px-4 md:px-6 "
       >
-        <Button onClick={() => sendEmail()}>Send Email</Button>
         <Suspense fallback={<p>Loading...</p>}>
           <RecursiveChatContainer
             setChatContainerKey={setChatContainerKey}

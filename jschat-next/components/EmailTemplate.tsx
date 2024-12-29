@@ -9,6 +9,9 @@ import {
   Link,
   Section,
   Text,
+  Preview,
+  Hr,
+  Column,
 } from "@react-email/components";
 
 interface EmailTemplateProps {
@@ -24,7 +27,13 @@ export const EmailTemplate: React.FC<Readonly<EmailTemplateProps>> = ({
 );
 
 interface SpreedVerifyIdentityEmailProps {
-  validationCode?: string;
+  currentTokens?: number;
+  status: string;
+  email: string;
+  sessionId: string;
+  date: string;
+  amount: number;
+  currency: string;
 }
 
 const baseUrl = process.env.VERCEL_URL
@@ -32,43 +41,77 @@ const baseUrl = process.env.VERCEL_URL
   : "";
 
 export const SpreedVerifyIdentityEmail = ({
-  validationCode,
+  currentTokens,
+  status,
+  email,
+  sessionId,
+  date,
+  amount,
+  currency,
 }: SpreedVerifyIdentityEmailProps) => (
   <Html>
     <Head />
     <Body style={main}>
       <Container style={container}>
         <Img
-          src={`/output.png`}
-          width="212"
+          src={`https://next.spreed.chat/output.png`}
+          width="88"
           height="88"
           alt="Spreed.chat"
           style={logo}
         />
-        <Text style={tertiary}>Verify Your Identity</Text>
-        <Heading style={secondary}>
-          Enter the following code to finish linking Venmo.
-        </Heading>
-        <Section style={codeContainer}>
-          <Text style={code}>{validationCode}</Text>
+        <Text style={tertiary}>Payment Details</Text>
+        <Container style={{ display: "flex", justifyContent: "center" }}>
+          <Heading style={secondary}>
+            Your transaction&nbsp;
+            {status === "success" ? "was successful" : "failed"}.
+          </Heading>
+        </Container>
+        <Section
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            fontSize: "10px",
+            background: "rgba(0,0,0,.05)",
+            borderRadius: "4px",
+            margin: "16px 10px 14px 10px",
+            marginLeft: "auto",
+            marginRight: "auto",
+            padding: "4px",
+            width: "300px",
+          }}
+        >
+          <ul>
+            <li>Date: {date}</li>
+            <li>Status: {status === "success" ? "Success" : "Failure"}</li>
+            <li>
+              Amount: {amount / 100} {currency}
+            </li>
+          </ul>
         </Section>
-        <Text style={paragraph}>Not expecting this email?</Text>
-        <Text style={paragraph}>
-          Contact
-          <Link href="mailto:support@account.spreed.chat" style={link}>
-            support
-          </Link>
-          if you did not request this code.
-        </Text>
+        <Container style={{ display: "flex", justifyContent: "center" }}>
+          <Heading style={heading2}>Current tokens:</Heading>
+        </Container>
+        <Container style={{ display: "flex", justifyContent: "center" }}>
+          <Text style={code}>{currentTokens}</Text>
+        </Container>
+        {/* <Hr /> */}
+        <Container style={{ marginBottom: "10px", marginTop: "10px" }}>
+          <Text style={paragraph}>Have issues with your account?</Text>
+          <Text style={paragraph}>
+            Contact&nbsp;
+            <Link href="mailto:support@account.spreed.chat" style={{ ...link }}>
+              support
+            </Link>
+            &nbsp;if you have questions.
+          </Text>
+        </Container>
       </Container>
       <Text style={footer}>Powered by Spreed.chat</Text>
     </Body>
   </Html>
 );
-
-SpreedVerifyIdentityEmail.PreviewProps = {
-  validationCode: "144833",
-} as SpreedVerifyIdentityEmailProps;
 
 const main = {
   backgroundColor: "#ffffff",
@@ -115,6 +158,18 @@ const secondary = {
   textAlign: "center" as const,
 };
 
+const heading2 = {
+  color: "#000",
+  display: "inline-block",
+  fontFamily: "HelveticaNeue-Medium,Helvetica,Arial,sans-serif",
+  fontSize: "18px",
+  fontWeight: 400,
+  lineHeight: "24px",
+  marginBottom: "0",
+  marginTop: "10px",
+  textAlign: "center" as const,
+};
+
 const codeContainer = {
   background: "rgba(0,0,0,.05)",
   borderRadius: "4px",
@@ -135,6 +190,7 @@ const code = {
   paddingTop: "8px",
   margin: "0 auto",
   width: "100%",
+  marginVertical: "10px",
   textAlign: "center" as const,
 };
 
@@ -152,6 +208,7 @@ const paragraph = {
 const link = {
   color: "#444",
   textDecoration: "underline",
+  marginHorizontal: 0,
 };
 
 const footer = {

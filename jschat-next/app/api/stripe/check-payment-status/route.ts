@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db";
 import { addUserToken } from "@/lib/actions";
 import { auth } from "@/auth";
+import { sendEmail } from "@/lib/actions";
 
 export async function GET(request: NextRequest) {
   const session = await auth();
@@ -20,8 +21,24 @@ export async function GET(request: NextRequest) {
   try {
     const resp = await webhookCollection.findOne(
       { id: session_id },
-      { projection: { id: 1, metadata: 1, addedToAccount: 1 } }
+      {
+        projection: {
+          id: 1,
+          metadata: 1,
+          addedToAccount: 1,
+          amount_total: 1,
+          currency: 1,
+          created: 1,
+        },
+      }
     );
+    // console.log("resp", resp);
+    const timestamp = resp?.created;
+    // console.log("timestamp", typeof timestamp);
+    const date = new Date(timestamp * 1000).toString();
+    // console.log("date", date);
+    const currency = resp?.currency;
+    const amount = resp?.amount_total;
     if (resp) {
       // found the event
       console.log("webhook resp", resp);
@@ -44,6 +61,17 @@ export async function GET(request: NextRequest) {
           res.email === email,
           res.tokensRemaining
         );
+        // send email
+        sendEmail({
+          status: "success",
+          sessionId: session_id,
+          tokensRemaining: res.tokensRemaining,
+          email: email,
+          date: date,
+          amount,
+          currency,
+        });
+        //
         return NextResponse.json(
           { message: "success", newTokens: res.tokensRemaining, email: email },
           { status: 201 }

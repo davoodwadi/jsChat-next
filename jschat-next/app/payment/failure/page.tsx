@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLeftLong } from "@fortawesome/free-solid-svg-icons";
+import { sendEmail } from "@/lib/actions";
 
 export default async function Page({
   searchParams,
@@ -19,6 +20,21 @@ export default async function Page({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const filters = await searchParams;
+  const session_id = filters?.session_id;
+  // console.log("Page session_id", session_id);
+  // send email
+  const info = await getTokens(session_id);
+  // console.log("info", info);
+  sendEmail({
+    status: "failure",
+    sessionId: session_id,
+    tokensRemaining: info.tokens,
+    email: info.email,
+    date: info.date,
+    amount: info.amount,
+    currency: info.currency,
+  });
+  //
   // console.log("filters", typeof filters);
   // console.log("typeof session_id", typeof filters.session_id);
   return (
@@ -31,7 +47,7 @@ export default async function Page({
       <CardContent className="text-center">
         <p>Transaction details</p>
         <CardDescription className="">
-          <p>Session ID</p>{" "}
+          <p>Transaction ID</p>
           <Suspense fallback={<Skeleton className="h-4 w-5/6 mx-auto" />}>
             <p>{filters.session_id}</p>
           </Suspense>
@@ -45,7 +61,7 @@ export default async function Page({
           </Suspense> */}
           <p>Tokens remaining</p>
           <Suspense fallback={<Skeleton className="h-4 w-1/2 mx-auto" />}>
-            <p>{getTokens()}</p>
+            <p>{getTokensOnly(session_id)}</p>
           </Suspense>
         </CardDescription>
         <CardDescription className="m-2 mt-6 mx-auto">
@@ -57,4 +73,9 @@ export default async function Page({
       </CardContent>
     </Card>
   );
+}
+
+async function getTokensOnly(session_id: any) {
+  const info = await getTokens(session_id);
+  return info?.tokens;
 }

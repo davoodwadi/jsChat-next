@@ -7,18 +7,72 @@ import { auth, signIn } from "@/auth";
 import { AuthError } from "next-auth";
 import { connectToDatabase } from "@/lib/db";
 import { test } from "@/lib/test";
+import { Resend } from "resend";
+import {
+  EmailTemplate,
+  SpreedVerifyIdentityEmail,
+} from "@/components/EmailTemplate";
+import { render } from "@react-email/render";
+import { v4 as uuid } from "uuid";
 
-export async function sendEmail() {
-  const res = await fetch(`${process.env.NEXT_BASE_URL}/api/send`, {
-    method: "POST",
-    body: { message: "Email to send" },
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+export async function sendEmail({
+  status,
+  sessionId,
+  tokensRemaining,
+  email,
+  date,
+  currency,
+  amount,
+}) {
+  console.log("status", status);
+  console.log("sessionId", sessionId);
+  console.log("tokensRemaining", tokensRemaining);
+  console.log("email", email);
+  console.log("date", date);
+
+  const text = await render(
+    <SpreedVerifyIdentityEmail
+      status={status}
+      currentTokens={tokensRemaining}
+      email={email}
+      sessionId={sessionId}
+      date={date}
+      amount={amount}
+      currency={currency.toUpperCase()}
+    />,
+    {
+      plainText: true,
+    }
+  );
+
+  console.log(text);
+  // return;
+
+  const { data, error } = await resend.emails.send({
+    from: "Spreed.chat Payment <payment@account.spreed.chat>",
+    to: email,
+    subject: "Transaction Details - Spreed.chat",
+    react: (
+      <SpreedVerifyIdentityEmail
+        status={status}
+        currentTokens={tokensRemaining}
+        email={email}
+        sessionId={sessionId}
+        date={date}
+        amount={amount}
+        currency={currency.toUpperCase()}
+      />
+    ),
+    text: text,
+    headers: {
+      "X-Entity-Ref-ID": uuid(),
+    },
   });
-  const data = await res.json();
-  if (res.ok) {
-    console.log("sendEmail data:", data);
-  } else {
-    console.log("sendEmail ERROR data:", data);
-  }
+  console.log("data", data);
+  console.log("error", error);
+  return data;
 }
 
 export async function loadChatSession({ chatId }) {
