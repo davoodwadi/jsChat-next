@@ -59,7 +59,7 @@ export default async function RootLayout(props) {
                 <div className=" items-center place-items-center">
                   <SidebarTrigger className="my-auto content-center items-center" />
                 </div>
-                <div className="flex flex-row ">
+                <div className="flex flex-row  ">
                   <Suspense fallback={<p>Loading AuthButton</p>}>
                     <AuthButton className="mx-1" />
                   </Suspense>

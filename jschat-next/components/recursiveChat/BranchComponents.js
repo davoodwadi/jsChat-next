@@ -5,7 +5,7 @@ import { Trash2, SendHorizontal, Eraser } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useRef, useState, useEffect } from "react";
-import { Skeleton, MultilineSkeleton } from "@/components/ui/skeleton";
+import { MultilineSkeleton } from "@/components/ui/skeleton";
 
 let baseUserClass =
   "  flex flex-col items-center p-4 m-1 rounded-xl bg-sky-50 dark:bg-sky-600 "; //border-2 border-blue-500 min-w-fit
@@ -160,7 +160,6 @@ export function BotMessage(props) {
         ref={isLatestBot ? props.refElementBot : null}
       >
         {props.content === "" ? (
-          // <MultilineSkeleton lines={4} />
           <MultilineSkeleton lines={4}>{props.children}</MultilineSkeleton>
         ) : (
           <MarkdownComponent>{props.children}</MarkdownComponent>

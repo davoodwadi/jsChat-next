@@ -1,11 +1,16 @@
 import { Suspense } from "react";
 
 import dynamic from "next/dynamic";
+import { MultilineSkeleton } from "@/components/ui/skeleton";
 
 const ChatContainer = dynamic(
   () => import("@/components/recursiveChat/RecursiveComponent"),
   {
-    loading: () => <p>Dynamic Loading ChatContainer...</p>,
+    loading: () => (
+      <div className="w-3/4 mx-auto">
+        <MultilineSkeleton lines={4} />
+      </div>
+    ),
   }
 );
 
@@ -22,7 +27,13 @@ export default async function Chat({
 
   return (
     <>
-      <Suspense fallback={<p>Loading ChatContainer</p>}>
+      <Suspense
+        fallback={
+          <div className="w-3/4 mx-auto">
+            <MultilineSkeleton lines={4} />
+          </div>
+        }
+      >
         <ChatContainer chatId={chatId} />
       </Suspense>
     </>

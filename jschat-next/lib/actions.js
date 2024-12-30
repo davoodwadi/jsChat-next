@@ -27,6 +27,28 @@ export async function addUserToken({ email }) {
   // return userDb.tokensRemaining
 }
 
+export async function getSessionTokensLeft() {
+  const session = await auth();
+  const email = session?.user?.email;
+  // const email = "davoodwadi@gmail.com"
+
+  const client = await connectToDatabase();
+  const plansCollection = client.db("chat").collection("plans");
+  const result = await plansCollection.findOne(
+    { username: email },
+    {
+      projection: {
+        tokensRemaining: 1,
+        tokensConsumed: 1,
+        quotaRefreshedAt: 1,
+        lastLogin: 1,
+        createdAt: 1,
+      },
+    }
+  );
+  return { user: result, status: "ok" };
+}
+
 export async function getUserTokensLeft({ user }) {
   const email = user?.email;
   // const email = "davoodwadi@gmail.com"

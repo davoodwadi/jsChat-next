@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLeftLong } from "@fortawesome/free-solid-svg-icons";
+import { getSessionTokensLeft } from "@/lib/actions";
 
 export default async function Page() {
   // const session = await auth();
@@ -42,7 +43,7 @@ export default async function Page() {
         <p>Tokens remaining</p>
         <CardDescription className="">
           <Suspense fallback={<Skeleton className="h-4 w-1/2 mx-auto" />}>
-            <p>{getTokens()}</p>
+            <p>{getTokensOnly()}</p>
           </Suspense>
         </CardDescription>
         <CardDescription className="m-2 mt-6 mx-auto">
@@ -59,4 +60,10 @@ export default async function Page() {
 async function getEmail() {
   const session = await auth();
   return session?.user?.email;
+}
+
+async function getTokensOnly() {
+  const info = await getSessionTokensLeft();
+  console.log("info", info);
+  return info?.user?.tokensRemaining;
 }
