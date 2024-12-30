@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLeftLong } from "@fortawesome/free-solid-svg-icons";
-import { sendEmail } from "@/lib/actions";
+import { sendPaymentEmail } from "@/components/email/emailAction";
 
 export default async function Page({
   searchParams,
@@ -27,7 +27,7 @@ export default async function Page({
   // console.log("info", info);
   if (info.emailSent === false) {
     console.log("fresh failed payment. sending email.");
-    sendEmail({
+    sendPaymentEmail({
       status: "failure",
       sessionId: session_id,
       tokensRemaining: info.tokens,

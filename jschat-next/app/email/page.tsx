@@ -1,5 +1,6 @@
-import { SpreedVerifyIdentityEmail } from "@/components/EmailTemplate";
-import { sendEmail } from "@/lib/actions";
+import { SpreedVerifyIdentityEmail } from "@/components/email/EmailTemplate";
+import { sendPaymentEmail } from "@/components/email/emailAction";
+
 export default async function Page() {
   const status = "success";
   const sessionId =
@@ -10,7 +11,7 @@ export default async function Page() {
   const date = dateObject.toDateString() + " " + dateObject.toTimeString();
   const amount = 499;
   const currency = "usd";
-  await sendEmail({
+  await sendPaymentEmail({
     status: status,
     sessionId: sessionId,
     tokensRemaining: tokensRemaining,

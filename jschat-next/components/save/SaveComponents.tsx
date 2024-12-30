@@ -1,11 +1,11 @@
 "use client";
 
-import { SaveButtonsTooltip } from "@/components/SaveButtonsTooltip";
+import { SaveButtonsTooltip } from "@/components/save/SaveButtonsTooltip";
 import { HardDriveUpload, Save, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import * as React from "react";
 
-import { saveChatSession, loadChatSession } from "@/lib/actions";
+import { saveChatSession, loadChatSession } from "@/lib/save/saveActions";
 import { useRouter } from "next/navigation";
 import { generateChatId } from "@/lib/chatUtils";
 import { useState } from "react";

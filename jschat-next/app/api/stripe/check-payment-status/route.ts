@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db";
 import { addUserToken } from "@/lib/actions";
 import { auth } from "@/auth";
-import { sendEmail } from "@/lib/actions";
+import { sendPaymentEmail } from "@/components/email/emailAction";
 
 export async function GET(request: NextRequest) {
   const session = await auth();
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
           res.tokensRemaining
         );
         // send email
-        sendEmail({
+        sendPaymentEmail({
           status: "success",
           sessionId: session_id,
           tokensRemaining: res.tokensRemaining,
