@@ -15,6 +15,7 @@ import {
   // Branch,
   BranchContainer,
 } from "./BranchComponents";
+import { getBranchKeyToMaximize } from "./RecursiveComponent";
 
 const Branch = dynamic(
   () => import("./BranchComponents").then((mod) => mod.Branch),
@@ -55,7 +56,11 @@ export default function RecursiveBranch(props) {
       <Suspense fallback={<p>Loading...</p>}>
         <BranchContainer id={props.level} key={props.level}>
           {tempUserMessages.map((tm, i) => {
-            // console.log("tm", tm);
+            // console.log(
+            //   "tm.globalIdUser, props.userMessages",
+            //   tm.globalIdUser,
+            //   props.userMessages
+            // );
 
             return (
               <div className="mx-auto flex-1" key={`div ${tm.key}`}>
@@ -66,7 +71,12 @@ export default function RecursiveBranch(props) {
                   key={tm.key}
                   id={tm.key}
                   onClick={(event) =>
-                    onRemoveBranchClick({ event, mainProps: props, toast })
+                    onRemoveBranchClick({
+                      ...props,
+                      event,
+                      toast,
+                      currentGlobalIdUser: tm.globalIdUser,
+                    })
                   }
                 >
                   <Trash2 className="" />
@@ -95,24 +105,11 @@ export default function RecursiveBranch(props) {
                       props.branchKeyToMaximize === tm.key || props.toMaximize
                     }
                     handleSubmit={(botRef, targetId, targetValue) => {
-                      // console.log(targetId, targetValue);
                       handleSubmit({
+                        ...props,
                         botRef,
                         targetId,
                         targetValue,
-                        userMessages: props.userMessages,
-                        setUserMessages: props.setUserMessages,
-                        botMessages: props.botMessages,
-                        setBotMessages: props.setBotMessages,
-                        globalIdUser: props.globalIdUser,
-                        setGlobalIdUser: props.setGlobalIdUser,
-                        globalIdBot: props.globalIdBot,
-                        setGlobalIdBot: props.setGlobalIdBot,
-                        setResponse: props.setResponse,
-                        model: props.model,
-                        setIsDialogOpen: props.setIsDialogOpen,
-                        refChatContainer: props.refChatContainer,
-                        setRandomNumber: props.setRandomNumber,
                       });
                       // } else {
                       // console.log("resizing");
@@ -142,29 +139,14 @@ export default function RecursiveBranch(props) {
                         {getBotMessageForKey(tm.key).content}
                       </BotMessage>
                       <RecursiveBranch
+                        {...props}
                         parentKey={tm.key}
                         parent={JSON.stringify(JSON.parse(tm.key)[props.level])}
                         level={props.level + 1}
-                        refElementUser={props.refElementUser}
-                        refElementBot={props.refElementBot}
-                        setIsDialogOpen={props.setIsDialogOpen}
-                        userMessages={props.userMessages}
-                        setUserMessages={props.setUserMessages}
-                        botMessages={props.botMessages}
-                        setBotMessages={props.setBotMessages}
-                        globalIdBot={props.globalIdBot}
-                        setGlobalIdBot={props.setGlobalIdBot}
-                        globalIdUser={props.globalIdUser}
-                        setGlobalIdUser={props.setGlobalIdUser}
-                        model={props.model}
-                        setResponse={props.setResponse}
-                        branchKeyToMaximize={props.branchKeyToMaximize}
                         toMaximize={
                           props.branchKeyToMaximize === tm.key ||
                           props.toMaximize
                         }
-                        refChatContainer={props.refChatContainer}
-                        setRandomNumber={props.setRandomNumber}
                       />
                     </>
                   )}
@@ -178,14 +160,23 @@ export default function RecursiveBranch(props) {
   );
 }
 
-function onRemoveBranchClick({ event, mainProps, toast }) {
+function onRemoveBranchClick({
+  event,
+  toast,
+  currentGlobalIdUser,
+  ...mainProps
+}) {
   const arr = JSON.parse(event.target.id);
-  // toast({
-  //   title: "Uh oh! Something went wrong.",
-  //   description: "There was a problem with your request.",
-  // });
-  // console.log("event.target.id", event.target.id);
-  // console.log(mainProps);
+
+  console.log("event.target.id", event.target.id);
+  // console.log("mainProps", mainProps);
+  // console.log("currentGlobalIdUser", currentGlobalIdUser);
+  // get parent split branch key
+  const splitParentKey = getBranchSplitKey({
+    currentIdUser: currentGlobalIdUser,
+    userMessages: mainProps.userMessages,
+  });
+  console.log("splitParentKey", splitParentKey);
 
   // 1. remove child branches
   const keptUserMessages = mainProps.userMessages.filter(
@@ -195,21 +186,43 @@ function onRemoveBranchClick({ event, mainProps, toast }) {
         event.target.id
       )
   );
-
+  console.log(
+    "splitParentKey === event.target.id",
+    splitParentKey === event.target.id
+  );
   // console.log("keptUserMessages", keptUserMessages);
-  if (keptUserMessages.length === 0) {
-    // only branch
-    mainProps.setUserMessages(() => [
+  if (splitParentKey === event.target.id) {
+    console.log(
+      "splitParentKey===event.target.id split Branch",
+      splitParentKey === event.target.id
+    );
+    if (keptUserMessages.length === 0) {
+      // only branch
+      mainProps.setUserMessages(() => [
+        {
+          key: "[1]",
+          content: "",
+          role: "user",
+          globalIdUser: mainProps.globalIdUser,
+        },
+      ]);
+    } else {
+      // split branch -> remove everything
+      mainProps.setUserMessages((um) => [...keptUserMessages]);
+    }
+  } else {
+    // serial child branch -> add empty userMessage with key event.target.id
+    mainProps.setUserMessages((um) => [
+      ...keptUserMessages,
       {
-        key: "[1]",
+        key: event.target.id,
         content: "",
         role: "user",
         globalIdUser: mainProps.globalIdUser,
       },
     ]);
-  } else {
-    mainProps.setUserMessages((um) => keptUserMessages);
   }
+
   const keptBotMessages = mainProps.botMessages.filter(
     (subArray) =>
       !(
@@ -219,7 +232,61 @@ function onRemoveBranchClick({ event, mainProps, toast }) {
   );
   // console.log("keptBotMessages", keptBotMessages);
   mainProps.setBotMessages((bm) => keptBotMessages);
-
+  toast({
+    title: "Branch Removed",
+    // description: "There was a problem with your request.",
+  });
   //   console.log("userMessages", mainProps.userMessages);
   //
+}
+
+//
+export function getBranchSplitKey({ currentIdUser, userMessages }) {
+  // console.log("globalIdUser", globalIdUser);
+  // first user message -> maximize
+  // if (currentIdUser <= 1) {
+  //   return JSON.stringify([1]);
+  // }
+  // find user message with globalIdUser
+  const thisUserMessage = userMessages.find(
+    (userMessage) => userMessage.globalIdUser === currentIdUser
+  );
+  const messageKey = thisUserMessage?.key;
+  const splitBranchKey = checkParentSplit(messageKey, userMessages);
+  // console.log("splitBranchKey", splitBranchKey);
+  if (splitBranchKey) {
+    return splitBranchKey;
+  }
+  console.log("splitBranchKey NOT FOUND", splitBranchKey);
+
+  return;
+}
+//
+function checkParentSplit(key, userMessages) {
+  // console.log("key", key);
+  const array = JSON.parse(key);
+  if (array.length === 1) {
+    // it is root array
+    console.log("root branch", key);
+    return key;
+  }
+  // console.log("array", array);
+  // check to see how many siblings this branch has
+  const siblings = userMessages.filter(
+    (um) =>
+      JSON.parse(um.key).length === JSON.parse(key).length && // same length
+      // same parents
+      JSON.stringify(JSON.parse(um.key).slice(0, -1)) ===
+        JSON.stringify(JSON.parse(key).slice(0, -1))
+  );
+  // console.log("siblings", siblings);
+  if (siblings.length > 1) {
+    console.log("siblings.length>1", siblings.length);
+
+    return key;
+  }
+  let parentArray = array.slice(0, -1);
+  console.log("parentArray", parentArray);
+  // for instace parentArray [2, 1, 1]
+  return checkParentSplit(JSON.stringify(parentArray), userMessages);
 }

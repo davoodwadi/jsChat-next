@@ -5,6 +5,7 @@ export const maxDuration = 55;
 import React from "react";
 import { useState, useRef, useEffect } from "react";
 import { Suspense } from "react";
+import { MultilineSkeleton } from "@/components/ui/skeleton";
 
 import { AuthDialog } from "@/components/auth/AuthDialog";
 import SaveItems from "@/components/save/SaveComponents";
@@ -15,7 +16,7 @@ export function RecursiveChatContainer(props) {
   // console.log("starting RecursiveChatContainer");
   // console.log("RecursiveChatContainer props", props);
   // console.log("props.refElementBot.current", props.refElementBot.current);
-  const refChatContainer = useRef(null);
+  // const refChatContainer = useRef(null);
 
   const [globalIdUser, setGlobalIdUser] = useState(1);
   const [globalIdBot, setGlobalIdBot] = useState(0);
@@ -43,7 +44,6 @@ export function RecursiveChatContainer(props) {
       globalIdUser,
       userMessages,
     });
-    // console.log("newBranchKeyToMaximize", newBranchKeyToMaximize);
     setBranchKeyToMaximize(newBranchKeyToMaximize);
   }, [globalIdUser]);
 
@@ -53,18 +53,31 @@ export function RecursiveChatContainer(props) {
   chatContainerClass += " w-[90vw] md:w-[calc(90vw-16rem)] ";
   return (
     <>
-      <Suspense fallback={<p>Loading...</p>}>
+      <Suspense
+        fallback={
+          <div className="w-3/4 mx-auto">
+            <MultilineSkeleton lines={4} />
+          </div>
+        }
+      >
         <div
           id="chat-container"
           className={chatContainerClass}
-          ref={refChatContainer}
+          // ref={refChatContainer}
         >
-          <Suspense fallback={<p>Loading...</p>}>
+          <Suspense
+            fallback={
+              <div className="w-3/4 mx-auto">
+                <MultilineSkeleton lines={4} />
+              </div>
+            }
+          >
             <RecursiveBranch
               level={0}
-              refElementUser={props.refElementUser}
-              refElementBot={props.refElementBot}
-              setIsDialogOpen={props.setIsDialogOpen}
+              {...props}
+              // refElementUser={props.refElementUser}
+              // refElementBot={props.refElementBot}
+              // setIsDialogOpen={props.setIsDialogOpen}
               userMessages={userMessages}
               setUserMessages={setUserMessages}
               botMessages={botMessages}
@@ -76,7 +89,7 @@ export function RecursiveChatContainer(props) {
               model={model}
               setResponse={setResponse}
               branchKeyToMaximize={branchKeyToMaximize}
-              refChatContainer={refChatContainer}
+              // refChatContainer={refChatContainer}
             />
           </Suspense>
         </div>
@@ -97,23 +110,35 @@ export default function ChatContainer(props) {
   // console.log("ChatContainer props", props);
   const refUser = useRef(null);
   const refBot = useRef(null);
-  const [chatContainerKey, setChatContainerKey] = useState(() => 1);
+  // const [chatContainerKey, setChatContainerKey] = useState(() => 1);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   return (
-    <Suspense fallback={<p>Loading...</p>}>
+    <Suspense
+      fallback={
+        <div className="w-3/4 mx-auto">
+          <MultilineSkeleton lines={4} />
+        </div>
+      }
+    >
       <div
-        key={chatContainerKey}
-        id={chatContainerKey}
+        // key={chatContainerKey}
+        // id={chatContainerKey}
         className="flex flex-col mx-auto justify-center items-center py-2 px-4 md:px-6 "
       >
-        <Suspense fallback={<p>Loading...</p>}>
+        <Suspense
+          fallback={
+            <div className="w-3/4 mx-auto">
+              <MultilineSkeleton lines={4} />
+            </div>
+          }
+        >
           <RecursiveChatContainer
-            setChatContainerKey={setChatContainerKey}
+            // setChatContainerKey={setChatContainerKey}
             refElementUser={refUser}
             refElementBot={refBot}
             setIsDialogOpen={setIsDialogOpen}
-            chatId={props.chatId}
+            {...props}
           />
         </Suspense>
         <AuthDialog
@@ -126,17 +151,17 @@ export default function ChatContainer(props) {
 }
 
 //
-function getBranchKeyToMaximize({ globalIdUser, userMessages }) {
+export function getBranchKeyToMaximize({ globalIdUser, userMessages }) {
   // console.log("globalIdUser", globalIdUser);
   // first user message -> maximize
   if (globalIdUser <= 1) {
     return JSON.stringify([1]);
   }
   // find user message with globalIdUser
-  const latestUserMessage = userMessages.find(
+  const thisUserMessage = userMessages.find(
     (userMessage) => userMessage.globalIdUser === globalIdUser
   );
-  const messageKey = latestUserMessage?.key;
+  const messageKey = thisUserMessage?.key;
   const branchToMaxInfo = checkParentBranch(messageKey);
   // console.log("branchToMaxInfo", branchToMaxInfo);
   if (branchToMaxInfo.final) {

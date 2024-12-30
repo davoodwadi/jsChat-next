@@ -43,10 +43,7 @@ export async function handleSubmit({
   // event.target.id
   // event.target.value
   //
-  console.log(
-    " process.env.NEXT_PUBLIC_BASE_URL",
-    process.env.NEXT_PUBLIC_BASE_URL
-  );
+  // console.log("userMessages", userMessages);
   const dummy =
     process.env.NEXT_PUBLIC_BASE_URL === "http://localhost:3000" ? true : false;
   console.log("dummy", dummy);

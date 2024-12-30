@@ -71,29 +71,13 @@ export async function getUserTokensLeft({ user }) {
 }
 
 export async function generateDummmy(id) {
-  // const stream = new ReadableStream({
-  //   start(controller) {
-  //     // Function to enqueue data with a delay
-  //     const enqueueWithDelay = (data, delay) => {
-  //       return new Promise((resolve) => {
-  //         setTimeout(() => {
-  //           controller.enqueue(new TextEncoder().encode(data));
-  //           resolve();
-  //         }, delay);
-  //       });
-  //     };
-
-  //     // Create an async function to handle the streaming
-  //     const streamData = async () => {
-  //       await enqueueWithDelay("Hello ", 2000); // Wait 2 seconds
-  //       await enqueueWithDelay("World", 2000); // Wait 2 seconds
-  //       controller.close(); // Close the stream
-  //     };
-
-  //     // Start streaming the data
-  //     streamData();
-  //   },
-  // });
+  const session = await auth();
+  if (test) {
+    // console.log("session", session);
+  }
+  if (!session?.user) {
+    return { output: null, status: "Not Authenticated" };
+  }
   const stream = createStreamableValue("");
   (async () => {
     // returns "", "Hello ", "world ", "man "
