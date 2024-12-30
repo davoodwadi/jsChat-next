@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
-import { SignButton } from "@/components/AuthButtonsClient";
-import { signinAction, signoutAction } from "@/components/authActions";
+import { SignButton } from "@/components/auth/AuthButtonsClient";
+import { signinAction, signoutAction } from "@/components/auth/authActions";
 // import { delay } from "@/lib/myTools";
 
 export default async function AuthButton(props) {

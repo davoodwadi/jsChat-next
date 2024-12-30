@@ -7,7 +7,7 @@ import { handleSubmit, resizeTextarea } from "@/lib/chatUtils";
 
 import dynamic from "next/dynamic";
 import { Suspense, useState } from "react";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 
 import {
   UserMessage,

@@ -2,10 +2,10 @@ import { test } from "@/lib/test";
 import MarkdownComponent from "@/components/MarkdownComponent";
 import CopyText from "@/components/CopyTextComponent";
 import { Trash2, SendHorizontal, Eraser } from "lucide-react";
-import { Button } from "./ui/button";
-import { Textarea } from "./ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { useRef, useState, useEffect } from "react";
-import { Skeleton, MultilineSkeleton } from "./ui/skeleton";
+import { Skeleton, MultilineSkeleton } from "@/components/ui/skeleton";
 
 let baseUserClass =
   "  flex flex-col items-center p-4 m-1 rounded-xl bg-sky-50 dark:bg-sky-600 "; //border-2 border-blue-500 min-w-fit

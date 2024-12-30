@@ -2,13 +2,12 @@
 
 // import ChatComponent from "@/components/ChatComponent";
 import { useIsMobile } from "@/hooks/use-mobile";
-import RecursiveChat from "@/components/RecursiveComponent";
 import {
   Branch,
   BranchContainer,
   UserMessage,
   BotMessage,
-} from "@/components/BranchComponents";
+} from "@/components/recursiveChat/BranchComponents";
 function DefaultUserMessage(props) {
   return (
     <UserMessage

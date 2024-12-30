@@ -6,11 +6,10 @@ import React from "react";
 import { useState, useRef, useEffect } from "react";
 import { Suspense } from "react";
 
-import { AuthDialog } from "@/components/AuthDialog";
+import { AuthDialog } from "@/components/auth/AuthDialog";
 import SaveItems from "@/components/save/SaveComponents";
 
 import RecursiveBranch from "./RecursiveBranch";
-import { Button } from "./ui/button";
 
 export function RecursiveChatContainer(props) {
   // console.log("starting RecursiveChatContainer");

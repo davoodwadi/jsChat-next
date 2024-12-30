@@ -1,22 +1,20 @@
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { ThemeProvider } from "@/components/layout/theme-provider";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Toaster } from "@/components/ui/toaster";
 
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar } from "@/components/layout/app-sidebar";
 import { lazy } from "react";
 
-const AuthButton = lazy(() => import("@/components/AuthButtonsServer"));
+const AuthButton = lazy(() => import("@/components/auth/AuthButtonsServer"));
 
 import PaymentComponent from "@/components/Payment";
 
 import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 import { Suspense } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
 
-import { inter } from "@/app/ui/fonts";
 import localFont from "next/font/local";
 
 const geistSans = localFont({
