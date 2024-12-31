@@ -33,6 +33,7 @@ export default async function Page({
       tokensRemaining: info.tokens,
       email: info.email,
       date: info.date,
+      time: info.time,
       amount: info.amount,
       currency: info.currency,
     });

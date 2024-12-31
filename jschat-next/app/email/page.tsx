@@ -8,7 +8,9 @@ export default async function Page() {
   const tokensRemaining = 20000;
   const email = "delivered@resend.dev";
   const dateObject = new Date();
-  const date = dateObject.toDateString() + " " + dateObject.toTimeString();
+  // const date = dateObject.toDateString() + " " + dateObject.toTimeString();
+  const date = dateObject.toDateString();
+  const time = dateObject.toLocaleTimeString().toUpperCase();
   const amount = 499;
   const currency = "usd";
   await sendPaymentEmail({
@@ -17,6 +19,7 @@ export default async function Page() {
     tokensRemaining: tokensRemaining,
     email: email,
     date: date,
+    time: time,
     amount: amount,
     currency: currency.toUpperCase(),
   });
@@ -27,6 +30,7 @@ export default async function Page() {
       email={email}
       sessionId={sessionId}
       date={date}
+      time={time}
       amount={amount}
       currency={currency.toUpperCase()}
     />

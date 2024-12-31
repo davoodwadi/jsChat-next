@@ -1,4 +1,5 @@
 import * as React from "react";
+import { CSSProperties } from "react";
 import {
   Body,
   Container,
@@ -32,6 +33,7 @@ interface SpreedVerifyIdentityEmailProps {
   email: string;
   sessionId: string;
   date: string;
+  time: string;
   amount: number;
   currency: string;
 }
@@ -46,6 +48,7 @@ export const SpreedVerifyIdentityEmail = ({
   email,
   sessionId,
   date,
+  time,
   amount,
   currency,
 }: SpreedVerifyIdentityEmailProps) => (
@@ -67,40 +70,215 @@ export const SpreedVerifyIdentityEmail = ({
             {status === "success" ? "was successful" : "failed"}.
           </Heading>
         </Container>
-        <Section
+        <table
           style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            fontSize: "10px",
+            width: "100%",
+            borderCollapse: "collapse",
             background: "rgba(0,0,0,.05)",
-            borderRadius: "4px",
             margin: "16px 10px 14px 10px",
             marginLeft: "auto",
             marginRight: "auto",
             padding: "4px",
-            width: "300px",
           }}
         >
-          <ul>
-            <li>Date: {date}</li>
-            <li>Status: {status === "success" ? "Success" : "Failure"}</li>
-            <li>
-              Amount: {amount / 100} {currency}
-            </li>
-          </ul>
-        </Section>
-        {/* <Container style={{ display: "flex", justifyContent: "center" }}> */}
-        {/* <Section style={codeContainer}>
-          <Heading style={heading2}>Current tokens:</Heading>
-        </Section> */}
-        {/* </Container> */}
-        {/* <Container style={{ display: "flex", justifyContent: "center" }}> */}
+          <tbody>
+            <tr>
+              <td
+                style={{
+                  padding: "8px",
+                  // border: "1px solid #ddd",
+                  textAlign: "left",
+                  width: "50%",
+                  fontSize: "0.7rem",
+                  color: "rgba(0,0,0,0.5)",
+                }}
+              >
+                Transaction date
+              </td>
+              <td
+                style={{
+                  padding: "8px",
+                  // border: "1px solid #ddd",
+                  textAlign: "right",
+                  width: "50%",
+                  fontSize: "0.7rem",
+                }}
+              >
+                Mon Dec 30 2024
+              </td>
+            </tr>
+            <tr>
+              <td
+                style={{
+                  padding: "8px",
+                  // border: "1px solid #ddd",
+                  textAlign: "left",
+                  width: "50%",
+                  fontSize: "0.7rem",
+                  color: "rgba(0,0,0,0.5)",
+                }}
+              >
+                Transaction time
+              </td>
+              <td
+                style={{
+                  padding: "8px",
+                  // border: "1px solid #ddd",
+                  textAlign: "right",
+                  width: "50%",
+                  fontSize: "0.7rem",
+                }}
+              >
+                8:07:15 P.M.
+              </td>
+            </tr>
+            <tr>
+              <td
+                style={{
+                  padding: "8px",
+                  // border: "1px solid #ddd",
+                  textAlign: "left",
+                  width: "50%",
+                  fontSize: "0.7rem",
+                  color: "rgba(0,0,0,0.5)",
+                }}
+              >
+                Status
+              </td>
+              <td
+                style={{
+                  padding: "8px",
+                  // border: "1px solid #ddd",
+                  textAlign: "right",
+                  width: "50%",
+                  fontSize: "0.7rem",
+                }}
+              >
+                Failure
+              </td>
+            </tr>
+            <tr>
+              <td
+                style={{
+                  padding: "8px",
+                  // border: "1px solid #ddd",
+                  textAlign: "left",
+                  width: "50%",
+                  fontSize: "0.7rem",
+                  color: "rgba(0,0,0,0.5)",
+                }}
+              >
+                Amount
+              </td>
+              <td
+                style={{
+                  padding: "8px",
+                  // border: "1px solid #ddd",
+                  textAlign: "right",
+                  width: "50%",
+                  fontSize: "0.7rem",
+                }}
+              >
+                4.99 USD
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        {/* <div
+          style={{
+            background: "rgba(0,0,0,.05)",
+            margin: "16px 10px 14px 10px",
+            padding: "4px",
+            fontSize: "0.7rem",
+            // fontWeight: 100,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              padding: "5px 0",
+            }}
+          >
+            <div
+              style={{
+                textAlign: "left",
+                flex: 1,
+                color: "rgba(0, 0, 0, 0.5)",
+              }}
+            >
+              Transaction date
+            </div>
+            <div style={{ textAlign: "right", flex: 1 }}>{date}</div>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              padding: "5px 0",
+            }}
+          >
+            <div
+              style={{
+                textAlign: "left",
+                flex: 1,
+                color: "rgba(0, 0, 0, 0.5)",
+              }}
+            >
+              Transaction time
+            </div>
+            <div style={{ textAlign: "right", flex: 1 }}>{time}</div>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              padding: "5px 0",
+            }}
+          >
+            <div
+              style={{
+                textAlign: "left",
+                flex: 1,
+                color: "rgba(0, 0, 0, 0.5)",
+              }}
+            >
+              Status
+            </div>
+            <div style={{ textAlign: "right", flex: 1 }}>
+              {status === "success" ? "Success" : "Failure"}
+            </div>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              padding: "5px 0",
+            }}
+          >
+            <div
+              style={{
+                textAlign: "left",
+                flex: 1,
+                color: "rgba(0, 0, 0, 0.5)",
+              }}
+            >
+              Amount
+            </div>
+            <div style={{ textAlign: "right", flex: 1 }}>
+              {amount / 100} {currency}
+            </div>
+          </div>
+        </div> */}
         <Section style={codeContainer}>
           <Heading style={heading2}>Current tokens:</Heading>
           <Text style={code}>{currentTokens}</Text>
         </Section>
         {/* </Container> */}
+        <Link style={{ ...button }} href="https://spreed.chat/profile">
+          Go to Spreed.chat
+        </Link>
+
         {/* <Hr /> */}
         <Container>
           <Text style={paragraph}>Have issues with your account?</Text>
@@ -122,7 +300,23 @@ const main = {
   backgroundColor: "#ffffff",
   fontFamily: "HelveticaNeue,Helvetica,Arial,sans-serif",
 };
-
+const label: CSSProperties = {
+  textAlign: "left",
+  flex: "1",
+};
+const value: CSSProperties = {
+  textAlign: "right",
+  flex: "1",
+};
+const button: CSSProperties = {
+  backgroundColor: "#0284c7",
+  color: "#f0f9ff",
+  marginLeft: "auto",
+  marginRight: "auto",
+  display: "block",
+  textAlign: "center",
+  marginBottom: "1rem",
+};
 const container = {
   backgroundColor: "#ffffff",
   border: "1px solid #eee",

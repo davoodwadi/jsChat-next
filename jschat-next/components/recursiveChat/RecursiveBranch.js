@@ -168,7 +168,7 @@ function onRemoveBranchClick({
 }) {
   const arr = JSON.parse(event.target.id);
 
-  console.log("event.target.id", event.target.id);
+  // console.log("event.target.id", event.target.id);
   // console.log("mainProps", mainProps);
   // console.log("currentGlobalIdUser", currentGlobalIdUser);
   // get parent split branch key
@@ -176,7 +176,7 @@ function onRemoveBranchClick({
     currentIdUser: currentGlobalIdUser,
     userMessages: mainProps.userMessages,
   });
-  console.log("splitParentKey", splitParentKey);
+  // console.log("splitParentKey", splitParentKey);
 
   // 1. remove child branches
   const keptUserMessages = mainProps.userMessages.filter(
@@ -186,16 +186,16 @@ function onRemoveBranchClick({
         event.target.id
       )
   );
-  console.log(
-    "splitParentKey === event.target.id",
-    splitParentKey === event.target.id
-  );
+  // console.log(
+  //   "splitParentKey === event.target.id",
+  //   splitParentKey === event.target.id
+  // );
   // console.log("keptUserMessages", keptUserMessages);
   if (splitParentKey === event.target.id) {
-    console.log(
-      "splitParentKey===event.target.id split Branch",
-      splitParentKey === event.target.id
-    );
+    // console.log(
+    //   "splitParentKey===event.target.id split Branch",
+    //   splitParentKey === event.target.id
+    // );
     if (keptUserMessages.length === 0) {
       // only branch
       mainProps.setUserMessages(() => [
@@ -257,7 +257,7 @@ export function getBranchSplitKey({ currentIdUser, userMessages }) {
   if (splitBranchKey) {
     return splitBranchKey;
   }
-  console.log("splitBranchKey NOT FOUND", splitBranchKey);
+  // console.log("splitBranchKey NOT FOUND", splitBranchKey);
 
   return;
 }
@@ -267,7 +267,7 @@ function checkParentSplit(key, userMessages) {
   const array = JSON.parse(key);
   if (array.length === 1) {
     // it is root array
-    console.log("root branch", key);
+    // console.log("root branch", key);
     return key;
   }
   // console.log("array", array);
@@ -281,12 +281,12 @@ function checkParentSplit(key, userMessages) {
   );
   // console.log("siblings", siblings);
   if (siblings.length > 1) {
-    console.log("siblings.length>1", siblings.length);
+    // console.log("siblings.length>1", siblings.length);
 
     return key;
   }
   let parentArray = array.slice(0, -1);
-  console.log("parentArray", parentArray);
+  // console.log("parentArray", parentArray);
   // for instace parentArray [2, 1, 1]
   return checkParentSplit(JSON.stringify(parentArray), userMessages);
 }

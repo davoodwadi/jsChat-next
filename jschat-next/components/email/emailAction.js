@@ -13,6 +13,7 @@ export async function sendPaymentEmail({
   tokensRemaining,
   email,
   date,
+  time,
   currency,
   amount,
 }) {
@@ -27,6 +28,7 @@ export async function sendPaymentEmail({
       status={status}
       currentTokens={tokensRemaining}
       email={email}
+      time={time}
       sessionId={sessionId}
       date={date}
       amount={amount}
@@ -51,6 +53,7 @@ export async function sendPaymentEmail({
         email={email}
         sessionId={sessionId}
         date={date}
+        time={time}
         amount={amount}
         currency={currency.toUpperCase()}
       />

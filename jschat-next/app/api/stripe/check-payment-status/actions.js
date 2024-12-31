@@ -42,13 +42,16 @@ export async function getTokens(session_id) {
     emailSent = true;
   }
   const timestamp = transaction?.created;
-  const date = new Date(timestamp * 1000).toString();
+  const fullDate = new Date(timestamp * 1000);
+  const date = fullDate.toDateString();
+  const time = fullDate.toLocaleTimeString().toUpperCase();
   return {
     tokens: tokens?.tokensRemaining,
     email: transaction?.metadata?.userId,
     amount: transaction?.amount_total,
     currency: transaction?.currency,
     date: date,
+    time: time,
     emailSent: emailSent,
   };
 }

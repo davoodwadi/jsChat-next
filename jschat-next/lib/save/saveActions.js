@@ -11,14 +11,24 @@ export async function loadChatSession({ chatId }) {
   const client = await connectToDatabase();
   const plansCollection = client.db("chat").collection("plans");
   const results = await plansCollection.findOne(
-    { username: email, "lastSession.chatid": chatId },
+    { username: email }, // Ensure we are looking for the correct chatId in the sessions array
     {
-      projection: { username: 1, lastSession: 1, tokensRemaining: 1 }, // Only return the tokensRemaining field
+      projection: {
+        username: 1,
+        tokensRemaining: 1,
+        sessions: {
+          $filter: {
+            input: "$sessions",
+            as: "session",
+            cond: { $eq: ["$$session.chatid", chatId] }, // Filter sessions to find the one with the matching chatId
+          },
+        },
+      },
     }
   );
-  if (results) {
-    // console.log("results", results);
-    return results.lastSession;
+  if (results.sessions[0]) {
+    console.log("results.sessions[0]", results.sessions[0]);
+    return results.sessions[0];
   } else {
     return;
   }
@@ -41,21 +51,59 @@ export async function saveChatSession({
   const plansCollection = client.db("chat").collection("plans");
   const results = await plansCollection.findOneAndUpdate(
     { username: email },
-    {
-      $set: {
-        lastSession: {
-          chatid: chatId,
-          content: {
-            userMessages,
-            botMessages,
+    [
+      {
+        $set: {
+          sessions: {
+            $cond: {
+              if: { $in: [chatId, "$sessions.chatid"] },
+              then: {
+                $map: {
+                  input: "$sessions",
+                  as: "session",
+                  in: {
+                    $cond: {
+                      if: { $eq: ["$$session.chatid", chatId] },
+                      then: {
+                        chatid: chatId,
+                        content: {
+                          userMessages,
+                          botMessages,
+                        },
+                      },
+                      else: "$$session",
+                    },
+                  },
+                },
+              },
+              else: {
+                $concatArrays: [
+                  "$sessions",
+                  [
+                    {
+                      chatid: chatId,
+                      content: {
+                        userMessages,
+                        botMessages,
+                      },
+                    },
+                  ],
+                ],
+              },
+            },
           },
         },
       },
-    },
+    ],
     {
       returnDocument: "after", // Return the document after the update
-      projection: { username: 1, "lastSession.chatid": 1, tokensRemaining: 1 }, // Only return the tokensRemaining field
+      projection: {
+        username: 1,
+        tokensRemaining: 1,
+        // sessions: { $slice: -1 },
+      },
     }
   );
+
   console.log("results", results);
 }

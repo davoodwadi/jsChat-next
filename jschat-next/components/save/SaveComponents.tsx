@@ -57,8 +57,8 @@ export default function SaveItems({
       onClickFn: async () => {
         setLoadingLoad(true);
         console.log(`CLIENT: load ${chatId}`);
-        const lastSession = await loadChatSession({ chatId });
-        if (!lastSession) {
+        const thisSession = await loadChatSession({ chatId });
+        if (!thisSession) {
           console.log("No session found for chatid");
           toast({
             variant: "destructive",
@@ -69,7 +69,7 @@ export default function SaveItems({
 
           return;
         } else {
-          const content = lastSession.content;
+          const content = thisSession.content;
           console.log(`CLIENT: content`, content);
 
           setUserMessages(content.userMessages);

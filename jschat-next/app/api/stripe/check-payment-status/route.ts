@@ -35,7 +35,9 @@ export async function GET(request: NextRequest) {
     // console.log("resp", resp);
     const timestamp = resp?.created;
     // console.log("timestamp", typeof timestamp);
-    const date = new Date(timestamp * 1000).toString();
+    const fullDate = new Date(timestamp * 1000);
+    const date = fullDate.toDateString();
+    const time = fullDate.toLocaleTimeString().toUpperCase();
     // console.log("date", date);
     const currency = resp?.currency;
     const amount = resp?.amount_total;
@@ -68,6 +70,7 @@ export async function GET(request: NextRequest) {
           tokensRemaining: res.tokensRemaining,
           email: email,
           date: date,
+          time: time,
           amount,
           currency,
         });
