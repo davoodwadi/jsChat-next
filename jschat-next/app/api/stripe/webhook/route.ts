@@ -42,21 +42,7 @@ export async function POST(request: NextRequest) {
     });
   // eventType is checkout.session.completed or checkout.session.async_payment_succeeded
   const data = event.data.object;
-  //   const metadata = data.metadata as METADATA
-  //   const userId = metadata.userId
-  //   const priceId = metadata.priceId
-  //   const created = data.created
-  //   const currency = data.currency
-  //   const customerDetails = data.customer_details
-  //   const amount = data.amount_total
-  //   const transactionDetails = {
-  //     userId,
-  //     priceId,
-  //     created,
-  //     currency,
-  //     customerDetails,
-  //     amount,
-  //   }
+
   try {
     // database update here
     console.log("WEBHOOK data", data);

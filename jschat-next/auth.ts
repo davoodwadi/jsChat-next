@@ -2,6 +2,8 @@ import NextAuth, { Profile } from "next-auth";
 import { authConfig } from "./auth.config";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import { connectToDatabase } from "@/lib/db";
+
+console.log();
 // type Provider = "google" | "github";
 
 type Doc = {
@@ -105,17 +107,55 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   session: { strategy: "jwt" }, // force JWT session with a database
   callbacks: {
     async signIn({ account, profile }) {
+      // console.log("account signIn callback", account);
       if (account && profile) {
         console.log("signed in with provoider: ", account.provider);
 
-        await createOrUpdateUser({
+        const info = await createOrUpdateUser({
           profile: profile,
           provider: account.provider,
         });
+        // console.log("toReturn info", info);
+        // profile.tokensRemaining = info.tokensRemaining;
+        // console.log("profile signIn callback", profile);
+
         return true;
       } else {
         return false;
       }
+    },
+    async jwt({ token, account, profile }) {
+      // console.log("account jwt auth.ts", account);
+      // console.log("token jwt auth.ts", token);
+      // console.log("profile jwt auth.ts", profile);
+      // Persist the OAuth access_token to the token right after signin
+      if (account) {
+        token.accessToken = account.access_token;
+        token.picture = profile?.picture;
+        token.name = profile?.name;
+        // token.tokensRemaining = profile?.tokensRemaining;
+      }
+      // console.log("new token jwt auth.ts", token);
+
+      return token;
+    },
+    async session({ session, token, user }) {
+      // console.log("user session auth.ts", user);
+      // console.log("token session auth.ts", token);
+
+      // Send properties to the client, like an access_token from a provider.
+      // session.accessToken = token.accessToken;
+      session.user.image = token.picture;
+      session.user.name = token.name;
+      // if (
+      //   typeof token.tokensRemaining === "number" &&
+      //   Number.isFinite(token.tokensRemaining)
+      // ) {
+      //   session.user.tokensRemaining = token.tokensRemaining;
+      // }
+      // console.log("session session auth.ts", session);
+
+      return session;
     },
   },
 });

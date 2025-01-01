@@ -8,7 +8,7 @@ const providers: Provider[] = [
     clientSecret: process.env.AUTH_GOOGLE_SECRET,
     allowDangerousEmailAccountLinking: true,
     async profile(profile) {
-      // console.log("profile:", profile)
+      // console.log("profile:", profile);
 
       return { email: profile.email };
     },

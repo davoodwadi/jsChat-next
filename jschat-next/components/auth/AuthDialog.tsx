@@ -2,6 +2,7 @@
 
 import { providerMap } from "@/auth.config";
 import { signInClientAction } from "@/lib/actions";
+import PaymentComponent from "@/components/Payment";
 
 import {
   Dialog,
@@ -11,11 +12,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGithub, faGoogle } from "@fortawesome/free-brands-svg-icons";
-
 type Provider = {
   id: string;
   name: string;
@@ -63,6 +63,38 @@ export const AuthDialog: React.FC<AuthDialogProps> = (props) => {
               {Object.values(providerMap).map((provider, i) => (
                 <InlineAuthButton provider={provider} key={i} />
               ))}
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
+const InlineTopupButton: React.FC<{}> = () => {
+  const [loading, setLoading] = useState(false);
+
+  return (
+    <PaymentComponent
+      priceId={process.env.NEXT_PUBLIC_PRICE_ID || ""}
+      price=""
+      description="Top up"
+      className="mx-auto"
+    />
+  );
+};
+
+export const TopupDialog: React.FC<AuthDialogProps> = (props) => {
+  return (
+    <>
+      <Dialog open={props.isDialogOpen} onOpenChange={props.setIsDialogOpen}>
+        <DialogContent className="sm:w-1/2 rounded-xl">
+          <DialogHeader>
+            <DialogTitle className="mx-auto mb-4">
+              Not Enough Tokens
+            </DialogTitle>
+            <DialogDescription className="flex flex-col gap-y-2">
+              <InlineTopupButton />
             </DialogDescription>
           </DialogHeader>
         </DialogContent>

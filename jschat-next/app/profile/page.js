@@ -63,7 +63,6 @@ async function getEmail() {
 }
 
 async function getTokensOnly() {
-  const info = await getSessionTokensLeft();
-  console.log("info", info);
-  return info?.user?.tokensRemaining;
+  const { tokensRemaining } = await getSessionTokensLeft();
+  return tokensRemaining;
 }

@@ -2,7 +2,7 @@ import { SpreedVerifyIdentityEmail } from "@/components/email/EmailTemplate";
 import { sendPaymentEmail } from "@/components/email/emailAction";
 
 export default async function Page() {
-  const status = "success";
+  const status = "failure";
   const sessionId =
     "cs_test_a1NVAQEWmfi82hjWE9iDLPbwZRLy2IZ8Mj1vOyOi0vEDPx7UvYxllwmvf5";
   const tokensRemaining = 20000;
@@ -25,12 +25,12 @@ export default async function Page() {
   });
   return (
     <SpreedVerifyIdentityEmail
-      currentTokens={tokensRemaining}
+      tokensRemaining={tokensRemaining}
       status={status}
       email={email}
       sessionId={sessionId}
       date={date}
-      time={time}
+      time={time.replace(/\./g, "")}
       amount={amount}
       currency={currency.toUpperCase()}
     />

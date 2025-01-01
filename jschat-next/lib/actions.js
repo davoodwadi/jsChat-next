@@ -6,6 +6,7 @@ import { createStreamableValue } from "ai/rsc";
 import { auth, signIn } from "@/auth";
 import { AuthError } from "next-auth";
 import { connectToDatabase } from "@/lib/db";
+import { cookies } from "next/headers";
 import { test } from "@/lib/test";
 
 export async function addUserToken({ email }) {
@@ -13,7 +14,7 @@ export async function addUserToken({ email }) {
   const plansCollection = client.db("chat").collection("plans");
   const results = await plansCollection.findOneAndUpdate(
     { username: email },
-    { $inc: { tokensRemaining: 10000 } },
+    { $inc: { tokensRemaining: 100000 } },
     {
       returnDocument: "after", // Return the document after the update
       projection: { tokensRemaining: 1 }, // Only return the tokensRemaining field
@@ -46,7 +47,46 @@ export async function getSessionTokensLeft() {
       },
     }
   );
-  return { user: result, status: "ok" };
+  return { tokensRemaining: result.tokensRemaining, status: "ok" };
+}
+
+export async function getSessionTokensRemaining() {
+  const session = await auth();
+  const email = session?.user?.email;
+
+  const client = await connectToDatabase();
+  const plansCollection = client.db("chat").collection("plans");
+  const result = await plansCollection.findOne(
+    { username: email },
+    {
+      projection: {
+        tokensRemaining: 1,
+      },
+    }
+  );
+  return { tokensRemaining: result.tokensRemaining, status: "ok" };
+}
+
+export async function decreaseSessionTokensRemaining(amount) {
+  if (!amount) {
+    return { tokensRemaining: null, status: "error" };
+  }
+  const session = await auth();
+  const email = session?.user?.email;
+
+  const client = await connectToDatabase();
+  const plansCollection = client.db("chat").collection("plans");
+  const result = await plansCollection.findOneAndUpdate(
+    { username: email },
+    {
+      $inc: { tokensRemaining: -amount },
+    },
+    {
+      returnDocument: "after",
+      projection: { tokensRemaining: 1 },
+    }
+  );
+  return { tokensRemaining: result.tokensRemaining, status: "ok" };
 }
 
 export async function getUserTokensLeft({ user }) {
@@ -72,17 +112,32 @@ export async function getUserTokensLeft({ user }) {
 
 export async function generateDummmy(id) {
   const session = await auth();
+  const tokensRemaining = await checkTokensRemaining();
+  if (tokensRemaining <= 100000) {
+    return { output: null, status: "Not Enough Tokens" };
+  }
   if (test) {
-    // console.log("session", session);
+    console.log("session generate", session);
   }
   if (!session?.user) {
     return { output: null, status: "Not Authenticated" };
   }
+
   const stream = createStreamableValue("");
-  (async () => {
-    // returns "", "Hello ", "world ", "man "
-    // const s = `${id} Hello world man late later `;
-    const s = `${id} Optimistically updating forms 
+
+  streamDummyFunction(stream, id);
+
+  return { output: stream.value, status: "ok" };
+}
+
+async function checkTokensRemaining() {
+  const tokensRemaining = await getSessionTokensRemaining();
+  return tokensRemaining.tokensRemaining;
+}
+
+async function streamDummyFunction(stream, id) {
+  console.log("START streamDummyFunction ");
+  const s = `${id} Optimistically updating forms 
 The useOptimistic Hook provides a way to optimistically update the user interface before a background operation, like a network request, completes. In the context of forms, this technique helps to make apps feel more responsive. When a user submits a form, instead of waiting for the server’s response to reflect the changes, the interface is immediately updated with the expected outcome.
 
 \`\`\`jsx
@@ -91,75 +146,116 @@ print(np.mean([1,2,3,4,5,6,7,1,2,3,4,5,6,7,1,2,3,4,5,6,7,1,2,3,4,5,6,7,1,2,3]))
 \`\`\`
 
 For example, when a user types a message into the form and hits the “Send” button, the useOptimistic Hook allows the message to immediately appear in the list with a “Sending…” label, even before the message is actually sent to a server. This “optimistic” approach gives the impression of speed and responsiveness. The form then attempts to truly send the message in the background. Once the server confirms the message has been received, the “Sending…” label is removed.`;
-    // Split the string at whitespace
-    // const splitString = s.split(/\s+/);
 
-    // Loop through the array and log each substring
-    // splitString.forEach(async (word, index) => {
-    //   await wait(100);
-    //   console.log(`Substring ${index}: ${word}`);
-    //   stream.update(word);
-    // });
-    const chunkSize = 15;
-    for (let i = 0; i < s.length; i += chunkSize) {
-      await wait(10);
-      const char = s.substring(i, i + chunkSize);
-      // console.log(`Substring: ${char}`);
-      stream.update(char);
-    }
+  const chunkSize = 15;
+  for (let i = 0; i < s.length; i += chunkSize) {
+    await wait(10);
+    const char = s.substring(i, i + chunkSize);
+    // console.log(`Substring: ${char}`);
+    stream.update(char);
+  }
+  const amount = 250;
+  const newTokensRemaining = await decreaseSessionTokensRemaining(amount);
+  if (newTokensRemaining.status !== "ok") {
+    console.log("newTokensRemaining.status not ok", newTokensRemaining.status);
+  } else {
+    console.log("newTokensRemaining.status", newTokensRemaining.status);
+  }
+  // console.log(
+  //   "streamDummyFunction newTokensRemaining.tokensRemaining ",
+  //   newTokensRemaining.tokensRemaining
+  // );
+
+  console.log("END streamDummyFunction ");
+
+  stream.done();
+}
+
+export async function generateTestDummmy() {
+  const stream = createStreamableValue("");
+  let char;
+  (async () => {
+    "use server";
+    await wait(2000);
+    char = "1s";
+    console.log(`Substring: ${char}`);
+    stream.update(char);
+
+    await wait(5000);
+    char = "2s";
+    console.log(`Substring: ${char}`);
+    stream.update(char);
+
+    await wait(5000);
+    char = "3s";
+    console.log(`Substring: ${char}`);
+    stream.update(char);
 
     stream.done();
   })();
+  console.log("server done");
 
   return { output: stream.value, status: "ok" };
+}
+
+async function streamFunction(stream, messages, model) {
+  const { fullStream } = streamText({
+    model: openai(model),
+    messages: messages,
+    maxTokens: 2000,
+  });
+  let totalTokens;
+  for await (const delta of fullStream) {
+    if (test) {
+      // console.log("server delta.type:", delta.type);
+    }
+    if (delta.type === "finish") {
+      // count tokens and update database for user
+      console.log("delta.usage.totalTokens", delta.usage.totalTokens);
+      totalTokens = delta.usage.totalTokens;
+    } else if (delta.type === "text-delta") {
+      stream.update(delta.textDelta);
+    } else if (delta.type === "error") {
+      console.log("ERROR in LLM:", delta.error);
+      stream.done();
+      break;
+    }
+  }
+  console.log("totalTokens", totalTokens);
+  const newTokensRemaining = await decreaseSessionTokensRemaining(totalTokens);
+  if (newTokensRemaining.status !== "ok") {
+    console.log("newTokensRemaining.status not ok", newTokensRemaining.status);
+  } else {
+    console.log("newTokensRemaining.status ok", newTokensRemaining.status);
+  }
+  stream.done();
 }
 
 export async function generate({ messages, model }) {
   const session = await auth();
+  // console.log("test", test);
   if (test) {
-    // console.log("session", session);
+    // console.log("session generate", session);
   }
   if (!session?.user) {
     return { output: null, status: "Not Authenticated" };
   }
+
+  const tokensRemaining = await checkTokensRemaining();
+  if (tokensRemaining <= 0) {
+    return { output: null, status: "Not Enough Tokens" };
+  }
+
   const stream = createStreamableValue("");
   if (test) {
     // console.log("server messages:", messages);
   }
-  (async () => {
-    const { fullStream } = streamText({
-      model: openai(model),
-      messages: messages,
-      maxTokens: 2000,
-    });
-    // START: simulate wait
-    // console.log("waiting: 4000ms");
-    // await wait(4000);
-    // console.log("done: 4000ms");
 
-    // END: simulate wait
-
-    for await (const delta of fullStream) {
-      if (test) {
-        // console.log("server delta.type:", delta.type);
-      }
-      if (delta.type === "finish") {
-        // count tokens and update database for user
-        console.log("delta.usage.totalTokens", delta.usage.totalTokens);
-      } else if (delta.type === "text-delta") {
-        stream.update(delta.textDelta);
-      } else if (delta.type === "error") {
-        console.log("ERROR in LLM:", delta.error);
-        stream.done();
-        break;
-      }
-    }
-
-    stream.done();
-  })();
+  streamFunction(stream, messages, model);
 
   return { output: stream.value, status: "ok" };
 }
+
 export async function wait(duration) {
   return new Promise((resolve) => {
     setTimeout(() => {

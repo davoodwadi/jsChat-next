@@ -1,4 +1,9 @@
-import { generate, generateDummmy } from "@/lib/actions";
+import {
+  generate,
+  generateDummmy,
+  generateTestDummmy,
+  setCookies,
+} from "@/lib/actions";
 import { readStreamableValue } from "@/lib/aiRSCUtils";
 import { wait } from "@/lib/actions";
 import { v4 as uuidv4 } from "uuid";
@@ -13,6 +18,17 @@ export const generateChatId = () => {
   const timestamp = Date.now().toString(36);
   return `${randomString}-${timestamp}`;
 };
+
+export async function handleTestDummy(setText) {
+  const streamIterator = await generateTestDummmy();
+  console.log("streamIterator.output is a promise");
+
+  for await (const delta of readStreamableValue(streamIterator.output)) {
+    console.log("delta", delta);
+    setText((t) => t + " " + delta);
+  }
+  console.log("done");
+}
 
 export async function handleDummy({ setText }) {
   const streamIterator = await generateDummmy();
@@ -37,6 +53,7 @@ export async function handleSubmit({
   setResponse,
   model,
   setIsDialogOpen,
+  setIsTopupDialogOpen,
   refChatContainer,
   setRandomNumber,
 }) {
@@ -46,6 +63,7 @@ export async function handleSubmit({
   // console.log("userMessages", userMessages);
   const dummy =
     process.env.NEXT_PUBLIC_BASE_URL === "http://localhost:3000" ? true : false;
+  // const dummy = false;
   console.log("dummy", dummy);
   let chain;
   let streamIterator;
@@ -199,9 +217,19 @@ export async function handleSubmit({
         model: model,
       });
     }
-    if (streamIterator.status !== "ok") {
-      console.log("streamIterator.status not ok", streamIterator.status);
+    if (streamIterator.status === "Not Authenticated") {
+      console.log(
+        "streamIterator.status Not Authenticated",
+        streamIterator.status
+      );
       setIsDialogOpen(true);
+      return;
+    } else if (streamIterator.status === "Not Enough Tokens") {
+      console.log(
+        "streamIterator.status Not Enough Tokens",
+        streamIterator.status
+      );
+      setIsTopupDialogOpen(true);
       return;
     }
 

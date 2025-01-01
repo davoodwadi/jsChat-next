@@ -5,7 +5,6 @@ import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { useTraceUpdate } from "@/lib/myToolsClient";
 type props = {
   priceId: string;
   price: string;

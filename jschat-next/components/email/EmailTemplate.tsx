@@ -28,7 +28,7 @@ export const EmailTemplate: React.FC<Readonly<EmailTemplateProps>> = ({
 );
 
 interface SpreedVerifyIdentityEmailProps {
-  currentTokens?: number;
+  tokensRemaining?: number;
   status: string;
   email: string;
   sessionId: string;
@@ -43,7 +43,7 @@ const baseUrl = process.env.VERCEL_URL
   : "";
 
 export const SpreedVerifyIdentityEmail = ({
-  currentTokens,
+  tokensRemaining,
   status,
   email,
   sessionId,
@@ -67,7 +67,7 @@ export const SpreedVerifyIdentityEmail = ({
         <Container style={{ display: "flex", justifyContent: "center" }}>
           <Heading style={secondary}>
             Your transaction&nbsp;
-            {status === "success" ? "was successful" : "failed"}.
+            {status === "success" ? "was successful" : "failed"}
           </Heading>
         </Container>
         <table
@@ -104,7 +104,7 @@ export const SpreedVerifyIdentityEmail = ({
                   fontSize: "0.7rem",
                 }}
               >
-                Mon Dec 30 2024
+                {date}
               </td>
             </tr>
             <tr>
@@ -129,7 +129,7 @@ export const SpreedVerifyIdentityEmail = ({
                   fontSize: "0.7rem",
                 }}
               >
-                8:07:15 P.M.
+                {time}
               </td>
             </tr>
             <tr>
@@ -154,7 +154,7 @@ export const SpreedVerifyIdentityEmail = ({
                   fontSize: "0.7rem",
                 }}
               >
-                Failure
+                {status === "success" ? "Successful" : "Failed"}
               </td>
             </tr>
             <tr>
@@ -179,7 +179,7 @@ export const SpreedVerifyIdentityEmail = ({
                   fontSize: "0.7rem",
                 }}
               >
-                4.99 USD
+                {amount / 100} {currency}
               </td>
             </tr>
           </tbody>
@@ -272,7 +272,7 @@ export const SpreedVerifyIdentityEmail = ({
         </div> */}
         <Section style={codeContainer}>
           <Heading style={heading2}>Current tokens:</Heading>
-          <Text style={code}>{currentTokens}</Text>
+          <Text style={code}>{tokensRemaining}</Text>
         </Section>
         {/* </Container> */}
         <Link style={{ ...button }} href="https://spreed.chat/profile">
@@ -347,13 +347,15 @@ const tertiary = {
 
 const secondary = {
   color: "#000",
-  display: "inline-block",
+  // display: "inline-block",
   fontFamily: "HelveticaNeue-Medium,Helvetica,Arial,sans-serif",
   fontSize: "20px",
   fontWeight: 500,
   lineHeight: "24px",
   marginBottom: "0",
   marginTop: "0",
+  marginLeft: "auto",
+  marginRight: "auto",
   textAlign: "center" as const,
 };
 

@@ -7,8 +7,9 @@ import { useState, useRef, useEffect } from "react";
 import { Suspense } from "react";
 import { MultilineSkeleton } from "@/components/ui/skeleton";
 
-import { AuthDialog } from "@/components/auth/AuthDialog";
+import { AuthDialog, TopupDialog } from "@/components/auth/AuthDialog";
 import SaveItems from "@/components/save/SaveComponents";
+import { getSessionTokensLeft } from "@/lib/actions";
 
 import RecursiveBranch from "./RecursiveBranch";
 
@@ -110,9 +111,17 @@ export default function ChatContainer(props) {
   // console.log("ChatContainer props", props);
   const refUser = useRef(null);
   const refBot = useRef(null);
-  // const [chatContainerKey, setChatContainerKey] = useState(() => 1);
-
+  const [tokens, setTokens] = useState();
+  useEffect(() => {
+    const getTokensLeftAction = async () => {
+      const { tokensRemaining } = await getSessionTokensLeft();
+      setTokens(tokensRemaining);
+    };
+    getTokensLeftAction();
+  }, []);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isTopupDialogOpen, setIsTopupDialogOpen] = useState(false);
+
   return (
     <Suspense
       fallback={
@@ -121,11 +130,8 @@ export default function ChatContainer(props) {
         </div>
       }
     >
-      <div
-        // key={chatContainerKey}
-        // id={chatContainerKey}
-        className="flex flex-col mx-auto justify-center items-center py-2 px-4 md:px-6 "
-      >
+      <div>Tokens: {tokens}</div>
+      <div className="flex flex-col mx-auto justify-center items-center py-2 px-4 md:px-6 ">
         <Suspense
           fallback={
             <div className="w-3/4 mx-auto">
@@ -138,12 +144,17 @@ export default function ChatContainer(props) {
             refElementUser={refUser}
             refElementBot={refBot}
             setIsDialogOpen={setIsDialogOpen}
+            setIsTopupDialogOpen={setIsTopupDialogOpen}
             {...props}
           />
         </Suspense>
         <AuthDialog
           isDialogOpen={isDialogOpen}
           setIsDialogOpen={setIsDialogOpen}
+        />
+        <TopupDialog
+          isDialogOpen={isTopupDialogOpen}
+          setIsDialogOpen={setIsTopupDialogOpen}
         />
       </div>
     </Suspense>

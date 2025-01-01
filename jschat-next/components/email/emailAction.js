@@ -26,9 +26,9 @@ export async function sendPaymentEmail({
   const text = await render(
     <SpreedVerifyIdentityEmail
       status={status}
-      currentTokens={tokensRemaining}
+      tokensRemaining={tokensRemaining}
       email={email}
-      time={time}
+      time={time.replace(/\./g, "")}
       sessionId={sessionId}
       date={date}
       amount={amount}
@@ -49,11 +49,11 @@ export async function sendPaymentEmail({
     react: (
       <SpreedVerifyIdentityEmail
         status={status}
-        currentTokens={tokensRemaining}
+        tokensRemaining={tokensRemaining}
         email={email}
         sessionId={sessionId}
         date={date}
-        time={time}
+        time={time.replace(/\./g, "")}
         amount={amount}
         currency={currency.toUpperCase()}
       />
