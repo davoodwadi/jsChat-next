@@ -82,7 +82,7 @@ export default async function RootLayout(props) {
                 </p>
                 <a
                   className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-                  href="https://spreed.chat/privacy.html"
+                  href="/privacy"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
