@@ -13,6 +13,7 @@ import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLeftLong } from "@fortawesome/free-solid-svg-icons";
 import { sendPaymentEmail } from "@/components/email/emailAction";
+import { expireSession } from "@/components/payment/paymentActions";
 
 export default async function Page({
   searchParams,
@@ -22,6 +23,10 @@ export default async function Page({
   const filters = await searchParams;
   const session_id = filters?.session_id;
   // console.log("Page session_id", session_id);
+  // expire the session
+  const expired = await expireSession(session_id);
+  console.log("session status", expired);
+  //
   // send email
   const info = await getTokens(session_id);
   // console.log("info", info);

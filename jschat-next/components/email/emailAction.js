@@ -6,7 +6,8 @@ import { render } from "@react-email/render";
 import { v4 as uuid } from "uuid";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-
+const dummy =
+  process.env.NEXT_PUBLIC_BASE_URL === "http://localhost:3000" ? true : false;
 export async function sendPaymentEmail({
   status,
   sessionId,
@@ -22,12 +23,12 @@ export async function sendPaymentEmail({
   // console.log("tokensRemaining", tokensRemaining);
   // console.log("email", email);
   // console.log("date", date);
-
+  const emailFinal = dummy ? "delivered@resend.dev" : email;
   const text = await render(
     <SpreedVerifyIdentityEmail
       status={status}
       tokensRemaining={tokensRemaining}
-      email={email}
+      email={emailFinal}
       time={time.replace(/\./g, "")}
       sessionId={sessionId}
       date={date}
@@ -44,13 +45,13 @@ export async function sendPaymentEmail({
 
   const { data, error } = await resend.emails.send({
     from: "Spreed.chat Payment <payment@account.spreed.chat>",
-    to: email,
+    to: emailFinal,
     subject: "Transaction Details - Spreed.chat",
     react: (
       <SpreedVerifyIdentityEmail
         status={status}
         tokensRemaining={tokensRemaining}
-        email={email}
+        email={emailFinal}
         sessionId={sessionId}
         date={date}
         time={time.replace(/\./g, "")}

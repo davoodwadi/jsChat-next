@@ -4,20 +4,13 @@ import { headers } from "next/headers";
 import { connectToDatabase } from "@/lib/db";
 import { MongoError } from "mongodb";
 
-type METADATA = {
-  userId: string;
-  priceId: string;
-};
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
   const endpointSecret = process.env.STRIPE_SECRET_WEBHOOK_KEY!;
   const headerList = await headers();
-  //   console.log("headerList", typeof headerList)
-  //   for (const [key, value] of headerList.entries()) {
-  //     console.log(`${key}: ${value}`)
-  //   }
+
   const sig = headerList.get("stripe-signature") as string;
   //   console.log("sig", sig)
   let event: Stripe.Event;

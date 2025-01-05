@@ -24,7 +24,6 @@ export async function POST(request: NextRequest) {
     const data = await request.json();
     const priceId = data.priceId;
     // Check if priceId is valid
-    // Check if priceId is valid
     if (typeof priceId !== "string" || priceId.trim() === "") {
       console.error("Price ID is required and must be a non-empty string");
       return NextResponse.json({ result: null, ok: false });
@@ -48,7 +47,7 @@ export async function POST(request: NextRequest) {
         cancel_url: `${process.env.NEXT_BASE_URL}/payment/failure?session_id={CHECKOUT_SESSION_ID}`,
         metadata: metadata,
       });
-    // console.log("checkoutSession", checkoutSession);
+    console.log("checkoutSession.status", checkoutSession.status);
     try {
       const resp = await collection.insertOne(checkoutSession);
       console.log("checkoutSession added", resp);
