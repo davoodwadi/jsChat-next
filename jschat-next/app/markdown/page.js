@@ -1,4 +1,8 @@
 import MarkdownComponent from "@/components/MarkdownComponent";
+import Markdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
+import rehypeKatex from "rehype-katex";
+import React from "react";
 
 const markdownSample = `The \`MLPClassifier\` from the \`scikit-learn\` library.
 \`<!DOCTYPE html>\`
@@ -70,8 +74,9 @@ cikit-learn\` library.
 
 `;
 // const partialHtml = markdownSample.slice(0, 650);
-const longMarkdown = `
+const longMarkdown = `<think>
 Sure! Let's break down each part of the code step by step, explaining what each line does.
+</think>
 
 ### Step 1: Set Up Your Next.js Project
 
@@ -258,6 +263,32 @@ The lift coefficient ($C_L$) is a dimensionless coefficient.
 This step-by-step breakdown explains how to set up a Next.js application that renders Markdown content. Each part of the code is designed to work together to read a Markdown file, convert it to HTML, and display it in a React component. You can further customize and extend this setup based on your needs.
 `;
 // console.log("partial html", longMarkdown);
+const deepSeek = `<think>
+Okay, the user asked for a funny joke. Let me think of a good one. They might want something light-hearted and not too complicated.
+
+I should check if they have any preferences, but since they didn't specify, a general joke is safe. Maybe something with a pun or a play on words, those usually work well.
+
+Let me recall some classic jokes. The skeleton one is popular. "Why didn't the skeleton fight? Because he didn't have the guts!" That's a pun on "guts" meaning both courage and internal organs. It's simple and quick.
+
+Wait, did I use that joke before? I need to make sure it's not a repeat. If the user has heard it before, maybe they want a different one. But since I can't check past interactions, I'll go with it. It's a common joke, so even if they've heard it, it's still a good example.
+
+Also, adding an emoji like 😂 can make the response friendlier. Let me make sure the joke is appropriate and not offensive. The skeleton joke is harmless and suitable for all ages. Alright, that should work.
+</think>
+
+Sure! Here's a classic:  
+Why didn’t the skeleton fight anyone?  
+…*Because he didn’t have the guts!* 😂  
+
+Need another? Just ask!`;
+
+const deepSeekPartial = `<think>
+Okay, the user asked for a funny joke. Let me think of a good one. They might want something light-hearted and not too complicated.
+
+I should check if they have any preferences, but since they didn't specify, a general joke is safe. Maybe something with a pun or a play on words, those usually work well.
+
+Let me recall some classic jokes. The skeleton one is popular. "Why didn't the skeleton fight? Because he didn't have the guts!" That's a pun on "guts" meaning both courage and internal organs. It's simple and quick.
+
+Wait, did I use that joke before? I need to make sure it's not a repeat. If the user has heard it before, maybe they want a different one. But since I can't check past interactions, I'll go with it. It's a common joke, so even if they've heard it, it's still a good example.`;
 
 export default async function MarkdownPage() {
   return (
@@ -266,8 +297,22 @@ export default async function MarkdownPage() {
       {/* <Markdown remarkPlugins={[remarkGfm]}>{markdownSample}</Markdown> */}
 
       <div className="break-words max-w-[85vw] mx-auto">
-        <MarkdownComponent model="gpt-4o-mini">{partialHtml}</MarkdownComponent>
+        <MarkdownComponent model="gpt-4o-mini">
+          {deepSeekPartial}
+        </MarkdownComponent>
       </div>
     </>
   );
+  // return (
+  //   <Markdown
+  //     rehypePlugins={[rehypeKatex, rehypeRaw]}
+  //     children={longMarkdown}
+  //     components={{
+  //       think: CustomThink, // Handle <think> tags separately
+  //     }}
+  //   />
+  // );
 }
+const CustomThink = ({ children }) => {
+  return <span className="text-gray-500 italic">{children}</span>;
+};

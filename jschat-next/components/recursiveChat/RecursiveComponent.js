@@ -6,6 +6,18 @@ import React from "react";
 import { useState, useRef, useEffect } from "react";
 import { Suspense } from "react";
 import { MultilineSkeleton } from "@/components/ui/skeleton";
+// import { ModelDropdown } from "./modelDropdown";
+
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import { AuthDialog, TopupDialog } from "@/components/auth/AuthDialog";
 import SaveItems from "@/components/save/SaveComponents";
@@ -73,6 +85,27 @@ export function RecursiveChatContainer(props) {
               </div>
             }
           >
+            <div className="mx-auto w-1/3 flex justify-center p-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">Model: {model}</Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56">
+                  <DropdownMenuRadioGroup
+                    value={model}
+                    onValueChange={setModel}
+                  >
+                    <DropdownMenuRadioItem value="gpt-4o-mini">
+                      gpt-4o-mini
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="DeepSeek-R1">
+                      DeepSeek-R1
+                    </DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
             <RecursiveBranch
               level={0}
               {...props}

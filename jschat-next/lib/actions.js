@@ -8,6 +8,11 @@ import { AuthError } from "next-auth";
 import { connectToDatabase } from "@/lib/db";
 import { cookies } from "next/headers";
 import { test } from "@/lib/test";
+import { createDeepInfra } from "@ai-sdk/deepinfra";
+
+const deepinfra = createDeepInfra({
+  apiKey: process.env.DEEPINFRA_TOKEN,
+});
 
 export async function addUserToken({ email }) {
   const client = await connectToDatabase();
@@ -110,9 +115,10 @@ export async function getUserTokensLeft({ user }) {
   return { user: result, status: "ok" };
 }
 
-export async function generateDummmy(id) {
+export async function generateDummmy(id, model) {
   const session = await auth();
   const tokensRemaining = await checkTokensRemaining();
+  console.log("model", id, model);
   if (tokensRemaining <= 100000) {
     return { output: null, status: "Not Enough Tokens" };
   }
@@ -199,11 +205,24 @@ export async function generateTestDummmy() {
 }
 
 async function streamFunction(stream, messages, model) {
-  const { fullStream } = streamText({
-    model: openai(model),
-    messages: messages,
-    maxTokens: 2000,
-  });
+  // console.log("streamFunction model: ", model);
+  let result;
+  if (model.includes("gpt")) {
+    // console.log("gpt");
+    result = streamText({
+      model: openai(model),
+      messages: messages,
+    });
+  } else {
+    // console.log("deepinfra");
+
+    result = streamText({
+      model: deepinfra("deepseek-ai/DeepSeek-R1"),
+      messages: messages,
+    });
+  }
+  const fullStream = result.fullStream;
+
   let totalTokens;
   for await (const delta of fullStream) {
     if (test) {

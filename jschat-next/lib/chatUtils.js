@@ -60,10 +60,10 @@ export async function handleSubmit({
   // event.target.id
   // event.target.value
   //
-  // console.log("userMessages", userMessages);
-  const dummy =
-    process.env.NEXT_PUBLIC_BASE_URL === "http://localhost:3000" ? true : false;
-  // const dummy = false;
+  // console.log("model", model);
+  // const dummy =
+  //   process.env.NEXT_PUBLIC_BASE_URL === "http://localhost:3000" ? true : false;
+  const dummy = false;
   console.log("dummy", dummy);
   let chain;
   let streamIterator;
@@ -119,7 +119,9 @@ export async function handleSubmit({
     //
 
     if (dummy) {
-      streamIterator = await generateDummmy(JSON.stringify(array));
+      // console.log("model dummy", model);
+
+      streamIterator = await generateDummmy(JSON.stringify(array), model);
     } else {
       streamIterator = await generate({
         messages: chain,
@@ -210,7 +212,7 @@ export async function handleSubmit({
     // streaming the LLM new user
     // // //
     if (dummy) {
-      streamIterator = await generateDummmy(JSON.stringify(array));
+      streamIterator = await generateDummmy(JSON.stringify(array), model);
     } else {
       streamIterator = await generate({
         messages: chain,

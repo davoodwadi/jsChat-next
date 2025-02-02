@@ -1,6 +1,6 @@
 import Markdown from "react-markdown";
-import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 import rehypeKatex from "rehype-katex";
 import remarkMath from "remark-math";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -15,23 +15,32 @@ import CopyText from "@/components/CopyTextComponent";
 // import "@/node_modules/github-markdown-css/github-markdown.css";
 import "@/styles/markdown.css";
 // const inter = Inter({ subsets: ["latin"] });
+const preprocessMarkdown = (text) => {
+  // return text;
+  return text.replace(
+    /<think>([\s\S]*?)<\/think>/g,
+    "\n\n<think>\n$1\n</think>\n\n"
+  );
+};
 export default function MarkdownComponent(props) {
+  const processedText = preprocessMarkdown(props.children);
   const style = a11yDark;
   let language;
-
+  // console.log("markdown props.children", props.children);
+  console.log("markdown processedText", processedText);
   return (
     <>
       <Markdown
-        rehypePlugins={[rehypeRaw, rehypeKatex]}
+        rehypePlugins={[rehypeKatex, rehypeRaw]}
         remarkPlugins={[remarkGfm, remarkMath]}
-        children={props.children}
+        // children={props.children}
         className={`markdown-body `}
         components={{
           code(props) {
             const { children, className, node, ...rest } = props;
             const text = children;
-            // console.log("children", children)
-            // console.log("className", className)
+            // console.log("code children", children);
+            // console.log("code className", className);
             // console.log("node", node)
             // console.log("...rest", rest)
             const match = /language-(\w+)/.exec(className || "");
@@ -73,8 +82,20 @@ export default function MarkdownComponent(props) {
               );
             }
           },
+          // think: CustomThink, // Handle <think> tags separately
+          think({ node, children }) {
+            console.log("node", node);
+            console.log("children", children);
+            return <CustomThink>{children}</CustomThink>;
+          },
         }}
-      />
+      >
+        {processedText}
+      </Markdown>
     </>
   );
 }
+
+const CustomThink = ({ children }) => {
+  return <span className="text-gray-500 italic">{children}</span>;
+};
