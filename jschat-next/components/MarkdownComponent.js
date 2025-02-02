@@ -84,8 +84,8 @@ export default function MarkdownComponent(props) {
           },
           // think: CustomThink, // Handle <think> tags separately
           think({ node, children }) {
-            console.log("node", node);
-            console.log("children", children);
+            // console.log("node", node);
+            // console.log("children", children);
             return <CustomThink>{children}</CustomThink>;
           },
         }}
