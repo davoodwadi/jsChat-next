@@ -14,6 +14,7 @@ import PaymentComponent from "@/components/Payment";
 import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 import { Suspense } from "react";
+import { MultilineSkeleton } from "@/components/ui/skeleton";
 
 import localFont from "next/font/local";
 
@@ -60,7 +61,13 @@ export default async function RootLayout(props) {
                   <SidebarTrigger className="my-auto content-center items-center" />
                 </div>
                 <div className="flex flex-row  ">
-                  <Suspense fallback={<p>Loading AuthButton</p>}>
+                  <Suspense
+                    fallback={
+                      <div className="w-3/4 mx-auto">
+                        <MultilineSkeleton lines={4} />
+                      </div>
+                    }
+                  >
                     <AuthButton className="mx-1" />
                   </Suspense>
 

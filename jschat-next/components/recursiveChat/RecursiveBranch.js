@@ -8,6 +8,7 @@ import { handleSubmit, resizeTextarea } from "@/lib/chatUtils";
 import dynamic from "next/dynamic";
 import { Suspense, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { MultilineSkeleton } from "@/components/ui/skeleton";
 
 import {
   UserMessage,
@@ -53,7 +54,13 @@ export default function RecursiveBranch(props) {
 
   return (
     tempUserMessages[0] && (
-      <Suspense fallback={<p>Loading...</p>}>
+      <Suspense
+        fallback={
+          <div className="w-3/4 mx-auto">
+            <MultilineSkeleton lines={4} />
+          </div>
+        }
+      >
         <BranchContainer id={props.level} key={props.level}>
           {tempUserMessages.map((tm, i) => {
             // console.log(

@@ -27,7 +27,7 @@ export default function MarkdownComponent(props) {
   const style = a11yDark;
   let language;
   // console.log("markdown props.children", props.children);
-  console.log("markdown processedText", processedText);
+  // console.log("markdown processedText", processedText);
   return (
     <>
       <Markdown
