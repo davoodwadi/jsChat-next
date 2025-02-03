@@ -1,6 +1,6 @@
 "use client";
 
-export const maxDuration = 55;
+// export const maxDuration = 55;
 
 import React from "react";
 import { useState, useRef, useEffect } from "react";

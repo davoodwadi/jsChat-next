@@ -21,14 +21,13 @@ import { getBranchKeyToMaximize } from "./RecursiveComponent";
 const Branch = dynamic(
   () => import("./BranchComponents").then((mod) => mod.Branch),
   {
-    loading: () => <p>Loading Branch...</p>,
+    loading: () => <MultilineSkeleton lines={5} />,
   }
 );
 
 export default function RecursiveBranch(props) {
   // console.log("RecursiveBranch props", props);
   // console.log('runtime', typeof globalThis)
-
 
   const getBotMessageForKey = (key) =>
     props.botMessages.find((m) => m.key === key); // returns BotMessage for a given key
