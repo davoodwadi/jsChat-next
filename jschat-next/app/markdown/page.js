@@ -4,6 +4,9 @@ import rehypeRaw from "rehype-raw";
 import rehypeKatex from "rehype-katex";
 import React from "react";
 
+import {test} from '@/lib/testAction'
+
+
 const markdownSample = `The \`MLPClassifier\` from the \`scikit-learn\` library.
 \`<!DOCTYPE html>\`
 
@@ -291,6 +294,10 @@ Let me recall some classic jokes. The skeleton one is popular. "Why didn't the s
 Wait, did I use that joke before? I need to make sure it's not a repeat. If the user has heard it before, maybe they want a different one. But since I can't check past interactions, I'll go with it. It's a common joke, so even if they've heard it, it's still a good example.`;
 
 export default async function MarkdownPage() {
+  console.log('Markdown Page')
+  console.log('page runtime',process.env.NEXT_RUNTIME);
+
+  await test()
   return (
     <>
       {/* <div dangerouslySetInnerHTML={{ __html: result }} /> */}
@@ -313,6 +320,3 @@ export default async function MarkdownPage() {
   //   />
   // );
 }
-const CustomThink = ({ children }) => {
-  return <span className="text-gray-500 italic">{children}</span>;
-};

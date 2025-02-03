@@ -179,24 +179,13 @@ For example, when a user types a message into the form and hits the “Send” b
 
 export async function generateTestDummmy() {
   const stream = createStreamableValue("");
-  let char;
   (async () => {
     "use server";
-    await wait(2000);
-    char = "1s";
-    console.log(`Substring: ${char}`);
-    stream.update(char);
-
-    await wait(5000);
-    char = "2s";
-    console.log(`Substring: ${char}`);
-    stream.update(char);
-
-    await wait(5000);
-    char = "3s";
-    console.log(`Substring: ${char}`);
-    stream.update(char);
-
+    for (let i = 0; i < 80; i++) {
+    await wait(1000);
+    stream.update(`${i}s`);
+     
+    }
     stream.done();
   })();
   console.log("server done");
@@ -252,6 +241,8 @@ async function streamFunction(stream, messages, model) {
 
 export async function generate({ messages, model }) {
   const session = await auth();
+  console.log('actions runtime',process.env.NEXT_RUNTIME);
+
   // console.log("test", test);
   if (test) {
     // console.log("session generate", session);

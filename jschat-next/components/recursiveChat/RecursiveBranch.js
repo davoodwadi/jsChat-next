@@ -27,6 +27,8 @@ const Branch = dynamic(
 
 export default function RecursiveBranch(props) {
   // console.log("RecursiveBranch props", props);
+  // console.log('runtime', typeof globalThis)
+
 
   const getBotMessageForKey = (key) =>
     props.botMessages.find((m) => m.key === key); // returns BotMessage for a given key

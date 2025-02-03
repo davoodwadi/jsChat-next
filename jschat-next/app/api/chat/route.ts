@@ -4,12 +4,19 @@
 import { NextResponse, NextRequest } from "next/server";
 // // Allow streaming responses up to 30 seconds
 // export const maxDuration = 30
+export const runtime = 'edge'
 
 export async function POST(req: Request) {
+  const name = 'john'
   console.log("header:", req.headers);
+  console.log('route runtime',process.env.NEXT_RUNTIME);
+  return Response.json({ message: `Hello, ${name}!` }, { status: 200 });
 }
 export async function GET(req: Request) {
   // console.log("header:", req.headers);
+  console.log('runtime',process.env.NEXT_RUNTIME);
+
+  // return Response.json({name: 'hello'}, {status:200})
   const stream = new ReadableStream({
     start(controller) {
       // Function to enqueue data with a delay
@@ -24,10 +31,14 @@ export async function GET(req: Request) {
 
       // Create an async function to handle the streaming
       const streamData = async () => {
-        await enqueueWithDelay("Hello ", 2000); // Wait 2 seconds
-        await enqueueWithDelay("World", 2000); // Wait 2 seconds
+        for (let i = 0; i < 80; i++) {
+          await enqueueWithDelay(`${i}s`, 1000);
+           
+          }
         controller.close(); // Close the stream
       };
+
+      
 
       // Start streaming the data
       streamData();
