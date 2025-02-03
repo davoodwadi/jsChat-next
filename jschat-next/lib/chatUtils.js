@@ -1,5 +1,5 @@
 import {
-  generate,
+  getAuth,
   generateDummmy,
   generateTestDummmy,
   setCookies,
@@ -119,26 +119,43 @@ export async function handleSubmit({
 
     // streaming the LLM old user
     //
+    const authStatus = await getAuth()
+    console.log('authStatus', authStatus)
 
-    if (dummy) {
-      // console.log("model dummy", model);
-
-      streamIterator = await generateDummmy(JSON.stringify(array), model);
-    } else {
-      streamIterator = await generate({
-        messages: chain,
-        model: model,
-      });
-    }
-    if (streamIterator.status !== "ok") {
-      console.log("streamIterator.status not ok", streamIterator.status);
+    if (authStatus === 400) {
+      console.log(
+        "Not Authenticated",
+        authStatus
+      );
       setIsDialogOpen(true);
       return;
-      // return <Toast>Failed</Toast>;
+    } else if (authStatus===401){
+      console.log(
+        "authStatus Not Enough Tokens",
+        authStatus
+      );
+      setIsTopupDialogOpen(true);
+      return
     }
-    let counter = 0;
-    tempChunks = "";
-    // console.log("client wait start");
+    const data = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/chat`,{
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ messages: chain, model: model, email:authStatus })
+    });
+    // if (dummy) {
+    //   streamIterator = await generateDummmy(JSON.stringify(array), model);
+    // } else {
+    //   streamIterator = await generate({
+    //     messages: chain,
+    //     model: model,
+    //   });
+    // }
+
+  const reader = data.body.getReader();
+  const decoder = new TextDecoder();
+  tempChunks = "";
 
     newBotEntry = {
       key: JSON.stringify(array),
@@ -150,8 +167,15 @@ export async function handleSubmit({
     };
     setBotMessages((v) => [...v, newBotEntry]);
 
-    for await (const delta of readStreamableValue(streamIterator.output)) {
-      tempChunks = delta ? tempChunks + delta : tempChunks;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      
+      const chunk = decoder.decode(value, { stream: true });
+      // console.log('Received chunk:', chunk);
+
+        tempChunks = chunk ? tempChunks + chunk : tempChunks;
+
 
       newBotEntry = {
         key: JSON.stringify(array),
@@ -165,7 +189,6 @@ export async function handleSubmit({
         v.map((m) => (m.key === JSON.stringify(array) ? newBotEntry : m))
       );
 
-      counter += 1;
     }
     // END: streaming the LLM
     // // //
@@ -213,34 +236,44 @@ export async function handleSubmit({
 
     // streaming the LLM new user
     // // //
-    if (dummy) {
-      streamIterator = await generateDummmy(JSON.stringify(array), model);
-    } else {
-      streamIterator = await generate({
-        messages: chain,
-        model: model,
-      });
-    }
-    if (streamIterator.status === "Not Authenticated") {
+    // if (dummy) {
+    //   streamIterator = await generateDummmy(JSON.stringify(array), model);
+    // } else {
+    //   streamIterator = await generate({
+    //     messages: chain,
+    //     model: model,
+    //   });
+    // }
+    const authStatus = await getAuth()
+    console.log('authStatus', authStatus)
+
+    if (authStatus === 400) {
       console.log(
-        "streamIterator.status Not Authenticated",
-        streamIterator.status
+        "Not Authenticated",
+        authStatus
       );
       setIsDialogOpen(true);
       return;
-    } else if (streamIterator.status === "Not Enough Tokens") {
+    } else if (authStatus===401){
       console.log(
-        "streamIterator.status Not Enough Tokens",
-        streamIterator.status
+        "authStatus Not Enough Tokens",
+        authStatus
       );
       setIsTopupDialogOpen(true);
-      return;
+      return
     }
-
-    let counter = 0;
+    const data = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/chat`,{
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ messages: chain, model: model, email:authStatus })
+    });
+    // console.log('data', data)
+    const reader = data.body.getReader();
+    const decoder = new TextDecoder();
     tempChunks = "";
 
-    // console.log("client wait start");
     newBotEntry = {
       key: JSON.stringify(array),
       globalIdBot: newGlobalIdBot,
@@ -249,8 +282,8 @@ export async function handleSubmit({
       status: "pending", // pending | reading | done
       model: model,
     };
+
     setBotMessages((v) => {
-      // console.log("botMessages pending", v);
       return [...v, newBotEntry];
     });
     newBotEntry = {
@@ -264,35 +297,35 @@ export async function handleSubmit({
     setBotMessages((v) => {
       // console.log("botMessages pending", v);
       return v.map((m) => (m.key === JSON.stringify(array) ? newBotEntry : m));
+    });  
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    
+    let chunk = decoder.decode(value, { stream: true });
+    // chunk = `{${chunk.replace('\n', ',')}}`
+    // console.log('Received chunk:', chunk);
+
+    tempChunks = chunk ? tempChunks + chunk : tempChunks;
+
+    newBotEntry = {
+      key: JSON.stringify(array),
+      globalIdBot: newGlobalIdBot,
+      content: tempChunks,
+      role: "bot",
+      status: "reading",
+      model: model,
+    };
+    setBotMessages((v) => {
+      // console.log("botMessages counter:", counter, delta, v);
+
+      return v.map((m) =>
+        m.key === JSON.stringify(array) ? newBotEntry : m
+      );
     });
 
-    // await wait(4000);
-
-    for await (const delta of readStreamableValue(streamIterator.output)) {
-      // console.log("botMessage: ", newBotEntry, array);
-      // console.log("delta", delta);
-      // setResponse({ status: streamIterator.status });
-      tempChunks = delta ? tempChunks + delta : tempChunks;
-      // console.log("delta", delta);
-
-      newBotEntry = {
-        key: JSON.stringify(array),
-        globalIdBot: newGlobalIdBot,
-        content: tempChunks,
-        role: "bot",
-        status: "reading",
-        model: model,
-      };
-      setBotMessages((v) => {
-        // console.log("botMessages counter:", counter, delta, v);
-
-        return v.map((m) =>
-          m.key === JSON.stringify(array) ? newBotEntry : m
-        );
-      });
-
-      counter += 1;
-    }
+  }
     // END: streaming the LLM
     //
     const newGlobalIdUser = globalIdUser + 1;
@@ -363,4 +396,3 @@ export function resizeTextarea(event) {
 
   event.target.style.height = `${height}px`;
 }
-//

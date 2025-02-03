@@ -44,7 +44,7 @@ async function getStreamDummy(setText, duration){
     if (done) break;
     
     const chunk = decoder.decode(value, { stream: true });
-    // console.log('Received chunk:', chunk);
+    console.log('Received chunk:', chunk);
 
     result += '         '+chunk; // Append the chunk to the result
     setText(result)

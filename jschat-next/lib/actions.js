@@ -239,11 +239,21 @@ async function streamFunction(stream, messages, model) {
   stream.done();
 }
 
+export async function getAuth(){
+  const session = await auth();
+  if (!session?.user) {
+    return 400
+  }
+  const tokensRemaining = await checkTokensRemaining();
+  if (tokensRemaining <= 0) {
+    return 401
+  }
+  return session.user.email
+}
+
 export async function generate({ messages, model }) {
   const session = await auth();
-  console.log('actions runtime',process.env.NEXT_RUNTIME);
 
-  // console.log("test", test);
   if (test) {
     // console.log("session generate", session);
   }
