@@ -23,7 +23,7 @@ import { ClearChatHistoryButton } from "@/components/layout/ClearChatHistoryButt
 import { loadAllChatSessions, loadChatSession } from "@/lib/save/saveActions";
 
 import Link from "next/link";
-
+import { NavigationEvents } from "@/components/recursiveChat/NavigationEvents";
 import { auth } from "@/auth";
 
 // Menu items.
@@ -54,8 +54,6 @@ export async function AppSidebar() {
   }
   const session = await auth();
 
-  const snippetToShow = 100;
-
   return (
     <Sidebar>
       <SidebarContent>
@@ -67,7 +65,7 @@ export async function AppSidebar() {
                 <SidebarMenuButton asChild>
                   <Link href="/">
                     <MessageCircle />
-                    <span>Chat</span>
+                    <span>New Chat</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -84,49 +82,51 @@ export async function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        {chatHistoryTrue && (
-          <SidebarGroup>
-            <SidebarGroupLabel>History</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {chatHistory.map((item, i) => {
-                  const userMessageArray = item?.content?.userMessages;
-                  if (!Array.isArray(userMessageArray)) {
-                    return;
-                  }
-                  const snippetArray = userMessageArray.map((m) => m.content);
-                  const snippet = snippetArray
-                    .join(" - ")
-                    .slice(0, snippetToShow);
-                  return (
-                    <SidebarMenuItem key={i}>
-                      <SidebarMenuButton asChild>
-                        <Link href={`/chat/${item.chatid}`}>
-                          {/* <MessageCircle /> */}
-                          <span>{snippet.trim()}...</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-        {chatHistoryTrue && (
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <ClearChatHistoryButton />
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
+        <NavigationEvents />
       </SidebarContent>
     </Sidebar>
   );
 }
+
+// {chatHistoryTrue && (
+//   <SidebarGroup>
+//     <SidebarGroupLabel>History</SidebarGroupLabel>
+//     <SidebarGroupContent>
+//       <SidebarMenu>
+//         {chatHistory.map((item, i) => {
+//           const userMessageArray = item?.content?.userMessages;
+//           if (!Array.isArray(userMessageArray)) {
+//             return;
+//           }
+//           const snippetArray = userMessageArray.map((m) => m.content);
+//           const snippet = snippetArray
+//             .join(" - ")
+//             .slice(0, snippetToShow);
+//           return (
+//             <SidebarMenuItem key={i}>
+//               <SidebarMenuButton asChild>
+//                 <Link href={`/chat/${item.chatid}`}>
+//                   {/* <MessageCircle /> */}
+//                   <span>{snippet.trim()}...</span>
+//                 </Link>
+//               </SidebarMenuButton>
+//             </SidebarMenuItem>
+//           );
+//         })}
+//       </SidebarMenu>
+//     </SidebarGroupContent>
+//   </SidebarGroup>
+// )}
+// {chatHistoryTrue && (
+//   <SidebarGroup>
+//     <SidebarGroupContent>
+//       <SidebarMenu>
+//         <SidebarMenuItem>
+//           <SidebarMenuButton asChild>
+//             <ClearChatHistoryButton />
+//           </SidebarMenuButton>
+//         </SidebarMenuItem>
+//       </SidebarMenu>
+//     </SidebarGroupContent>
+//   </SidebarGroup>
+// )}

@@ -1,8 +1,9 @@
 import { openai } from "@ai-sdk/openai";
 import { streamText } from "ai";
 import OpenAI from "openai";
-
 import { createDeepInfra } from "@ai-sdk/deepinfra";
+
+import { revalidatePath } from "next/cache";
 
 const deepinfra = createDeepInfra({
   apiKey: process.env.DEEPINFRA_TOKEN,
@@ -22,6 +23,7 @@ export async function POST(req) {
   const data = await req.json();
 
   console.log("route runtime", process.env.NEXT_RUNTIME);
+  // revalidatePath("/", "layout");
 
   const stream = new ReadableStream({
     async start(controller) {

@@ -8,8 +8,7 @@ import { readStreamableValue } from "@/lib/aiRSCUtils";
 import { wait } from "@/lib/actions";
 import { v4 as uuidv4 } from "uuid";
 import { saveChatSession } from "./save/saveActions";
-
-// import { revalidatePath } from "next/cache";
+// import { useTransition } from "react";
 
 const idInUserMessages = (id, userMessages) =>
   userMessages.filter((m) => m.key === id).length > 0; // bool; if id is in userMessages
@@ -63,7 +62,6 @@ export async function handleSubmit({
   // event.target.id
   // event.target.value
   //
-  // revalidatePath("/", "layout");
   console.log("rest", rest);
   rest.setBotMessageFinished(false);
 

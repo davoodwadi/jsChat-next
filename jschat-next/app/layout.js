@@ -51,7 +51,7 @@ export default async function RootLayout({ params, children }) {
           disableTransitionOnChange
         >
           <SidebarProvider>
-            <AppSidebar chatid="1" />
+            <AppSidebar />
             <div
               className={` flex flex-col overflow-hidden min-h-screen mx-auto w-full `} //
             >

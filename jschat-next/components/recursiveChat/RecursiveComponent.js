@@ -3,7 +3,9 @@
 // export const maxDuration = 55;
 
 import React from "react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useTransition } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
+
 import { Suspense } from "react";
 import { MultilineSkeleton } from "@/components/ui/skeleton";
 
@@ -30,6 +32,11 @@ export function RecursiveChatContainer(props) {
   // console.log("RecursiveChatContainer props", props);
   // console.log("props.refElementBot.current", props.refElementBot.current);
   // const refChatContainer = useRef(null);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const [isPending, startTransition] = useTransition();
 
   const [globalIdUser, setGlobalIdUser] = useState(1);
   const [globalIdBot, setGlobalIdBot] = useState(0);
@@ -54,7 +61,7 @@ export function RecursiveChatContainer(props) {
       // console.log("loading history for ", props.chatId);
       const thisSession = await loadChatSession({ chatId: props.chatId });
       if (!thisSession) {
-        console.log("thisSession undefined");
+        // console.log("thisSession undefined");
         setLoadingHistory(false);
 
         return;
@@ -80,6 +87,27 @@ export function RecursiveChatContainer(props) {
         userMessages: userMessages,
         botMessages: botMessages,
       });
+
+      // push {status: new} to query params to prompt layout to refetch chatHistory only if botMessages.length===1
+      if (botMessages.length === 1) {
+        console.log("botMessages.length===1", botMessages.length === 1);
+        // console.log("pathname", pathname);
+        // console.log("searchParams", searchParams);
+        const params = new URLSearchParams(searchParams.toString());
+        params.set("status", "new");
+        // console.log("params", params);
+
+        router.push(pathname + "?" + params.toString());
+      }
+      //
+      // refresh the page to reflect new chat in sidebar
+      // startTransition(() => {
+      //   // Refresh the current route and fetch new data from the server without
+      //   // losing client-side browser or React state.
+      //   console.log("router.refresh();");
+      //   router.refresh();
+      // });
+      //
     }
   }, [botMessages]);
 
@@ -167,6 +195,8 @@ export function RecursiveChatContainer(props) {
                 setResponse={setResponse}
                 branchKeyToMaximize={branchKeyToMaximize}
                 setBotMessageFinished={setBotMessageFinished}
+                router={router}
+                startTransition={startTransition}
                 // refChatContainer={refChatContainer}
               />
             )}

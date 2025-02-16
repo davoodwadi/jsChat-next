@@ -2,11 +2,12 @@
 
 import { auth } from "@/auth";
 import { connectToDatabase } from "@/lib/db";
+import { revalidatePath } from "next/cache";
 
 export async function clearAllChatSessions() {
   const session = await auth();
   const email = session?.user?.email;
-  console.log("clearAllChatSessions email", email);
+  // console.log("clearAllChatSessions email", email);
   if (!email) {
     return null;
   }
@@ -20,13 +21,13 @@ export async function clearAllChatSessions() {
       },
     }
   );
-  console.log("clearAllChatSessions result", result);
+  // console.log("clearAllChatSessions result", result);
 }
 
 export async function loadAllChatSessions() {
   const session = await auth();
   const email = session?.user?.email;
-  console.log("loadAllChatSessions email", email);
+  // console.log("loadAllChatSessions email", email);
   if (!email) {
     return null;
   }
@@ -49,27 +50,24 @@ export async function loadAllChatSessions() {
     }
   );
 
-  console.log("results.sessions loadallchatsessions", results.sessions);
-  return results.sessions;
+  // console.log("results.sessions loadallchatsessions", results.sessions);
 
   if (!results.sessions) {
-    console.log("results.sessions null", results.sessions);
-
+    // console.log("results.sessions null", results.sessions);
     return;
   } else if (!results.sessions[0]) {
-    console.log("results.sessions[0] null", results.sessions[0]);
-
+    // console.log("results.sessions[0] null", results.sessions[0]);
     return;
   } else {
-    return results.sessions[0];
+    return results.sessions;
   }
 }
 
 export async function loadChatSession({ chatId }) {
-  console.log("SERVER ACTION load", chatId);
+  // console.log("SERVER ACTION load", chatId);
   const session = await auth();
   const email = session?.user?.email;
-  console.log("email", email);
+  // console.log("email", email);
   const client = await connectToDatabase();
   const plansCollection = client.db("chat").collection("plans");
   const results = await plansCollection.findOne(
@@ -90,10 +88,10 @@ export async function loadChatSession({ chatId }) {
   );
   // console.log("results", results);
   if (!results?.sessions) {
-    console.log("results.sessions null", results?.sessions);
+    // console.log("results.sessions null");
     return;
   } else if (!results.sessions[0]) {
-    console.log("results.sessions[0] null", results.sessions[0]);
+    // console.log("results.sessions[0] null");
     return;
   } else {
     return results.sessions[0];
@@ -101,12 +99,12 @@ export async function loadChatSession({ chatId }) {
 }
 
 export async function saveChatSession({ chatId, userMessages, botMessages }) {
-  console.log("SERVER ACTION save", chatId);
+  // console.log("SERVER ACTION save", chatId);
   const session = await auth();
   const email = session?.user?.email;
-  console.log("email", email);
-  console.log("email", userMessages);
-  console.log("email", botMessages);
+  // console.log("email", email);
+  // console.log("email", userMessages);
+  // console.log("email", botMessages);
   const client = await connectToDatabase();
   const plansCollection = client.db("chat").collection("plans");
   const results = await plansCollection.findOneAndUpdate(
