@@ -3,29 +3,37 @@
 import { auth } from "@/auth";
 import { connectToDatabase } from "@/lib/db";
 
-const chatId = "8g2tcoyirak-m723viv8";
-const chatText = "Hello sir";
-const chatSessions = [
-  {
-    title: chatText,
-    url: `/chat/${chatId}`,
-  },
-
-  {
-    title: chatText,
-    url: `/chat/${chatId}`,
-  },
-];
+export async function clearAllChatSessions() {
+  const session = await auth();
+  const email = session?.user?.email;
+  console.log("clearAllChatSessions email", email);
+  if (!email) {
+    return null;
+  }
+  const client = await connectToDatabase();
+  const plansCollection = client.db("chat").collection("plans");
+  const result = await plansCollection.updateOne(
+    { username: email }, // Ensure we are looking for the correct username
+    {
+      $set: {
+        "sessions.$[].hidden": true, // Set hidden attribute to true for each session
+      },
+    }
+  );
+  console.log("clearAllChatSessions result", result);
+}
 
 export async function loadAllChatSessions() {
   const session = await auth();
   const email = session?.user?.email;
   console.log("loadAllChatSessions email", email);
-  return chatSessions;
+  if (!email) {
+    return null;
+  }
   const client = await connectToDatabase();
   const plansCollection = client.db("chat").collection("plans");
   const results = await plansCollection.findOne(
-    { username: email }, // Ensure we are looking for the correct chatId in the sessions array
+    { username: email }, // Ensure we are looking for the correct username
     {
       projection: {
         username: 1,
@@ -34,13 +42,16 @@ export async function loadAllChatSessions() {
           $filter: {
             input: "$sessions",
             as: "session",
-            cond: { $eq: ["$$session.chatid", chatId] }, // Filter sessions to find the one with the matching chatId
+            cond: { $ne: ["$$session.hidden", true] }, // Filter out sessions where hidden is true
           },
         },
       },
     }
   );
-  console.log("results", results);
+
+  console.log("results.sessions loadallchatsessions", results.sessions);
+  return results.sessions;
+
   if (!results.sessions) {
     console.log("results.sessions null", results.sessions);
 
@@ -77,14 +88,12 @@ export async function loadChatSession({ chatId }) {
       },
     }
   );
-  console.log("results", results);
-  if (!results.sessions) {
-    console.log("results.sessions null", results.sessions);
-
+  // console.log("results", results);
+  if (!results?.sessions) {
+    console.log("results.sessions null", results?.sessions);
     return;
   } else if (!results.sessions[0]) {
     console.log("results.sessions[0] null", results.sessions[0]);
-
     return;
   } else {
     return results.sessions[0];

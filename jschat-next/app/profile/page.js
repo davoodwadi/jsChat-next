@@ -18,7 +18,7 @@ import { faLeftLong } from "@fortawesome/free-solid-svg-icons";
 import { getSessionTokensLeft } from "@/lib/actions";
 
 export default async function Page() {
-  // const session = await auth();
+  const session = await auth();
   // console.log("session", session?.user);
   // const client = await connectToDatabase();
   // const plansCollection = client.db("chat").collection("plans");
@@ -32,20 +32,32 @@ export default async function Page() {
       <CardHeader className="text-center">
         <CardTitle>Account information</CardTitle>
         <CardDescription className="">
-          <p>Email Address</p>
-          <Suspense fallback={<Skeleton className="h-4 w-5/6 mx-auto" />}>
-            <p>{getEmail()}</p>
-          </Suspense>
+          {session ? (
+            <>
+              <p>Email Address</p>
+              <Suspense fallback={<Skeleton className="h-4 w-5/6 mx-auto" />}>
+                <p>{getEmail()}</p>
+              </Suspense>
+            </>
+          ) : (
+            <p>Not Logged In</p>
+          )}
         </CardDescription>
       </CardHeader>
 
+      {session && (
+        <CardContent className="text-center">
+          <>
+            <p>Tokens remaining</p>
+            <CardDescription className="">
+              <Suspense fallback={<Skeleton className="h-4 w-1/2 mx-auto" />}>
+                <p>{getTokensOnly()}</p>
+              </Suspense>
+            </CardDescription>
+          </>
+        </CardContent>
+      )}
       <CardContent className="text-center">
-        <p>Tokens remaining</p>
-        <CardDescription className="">
-          <Suspense fallback={<Skeleton className="h-4 w-1/2 mx-auto" />}>
-            <p>{getTokensOnly()}</p>
-          </Suspense>
-        </CardDescription>
         <CardDescription className="m-2 mt-6 mx-auto">
           <Link href="/">
             <FontAwesomeIcon icon={faLeftLong} className="mx-2" /> Go Back To

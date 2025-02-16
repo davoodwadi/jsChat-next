@@ -53,6 +53,12 @@ export function RecursiveChatContainer(props) {
     const loadHistory = async () => {
       // console.log("loading history for ", props.chatId);
       const thisSession = await loadChatSession({ chatId: props.chatId });
+      if (!thisSession) {
+        console.log("thisSession undefined");
+        setLoadingHistory(false);
+
+        return;
+      }
       if (thisSession?.content?.userMessages) {
         // console.log(`CLIENT: thisSession?.content`, thisSession?.content);
 
@@ -203,7 +209,6 @@ export default function ChatContainer(props) {
         </div>
       }
     >
-      {/* <div>Tokens: {tokens}</div> */}
       <div className="flex flex-col mx-auto justify-center items-center py-2 px-4 md:px-6 ">
         <Suspense
           fallback={

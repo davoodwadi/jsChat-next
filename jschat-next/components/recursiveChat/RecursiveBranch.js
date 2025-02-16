@@ -30,8 +30,14 @@ export default function RecursiveBranch(props) {
   // console.log("RecursiveBranch props", props);
   // console.log('runtime', typeof globalThis)
 
-  const getBotMessageForKey = (key) =>
-    props.botMessages.find((m) => m.key === key); // returns BotMessage for a given key
+  const getBotMessageForKey = (key) => {
+    try {
+      return props.botMessages.find((m) => m.key === key); // returns BotMessage for a given key
+    } catch (error) {
+      console.log("getBotMessageForKey", error);
+      return null;
+    }
+  };
 
   // tempMessages should be messages whose length is props.parentKey.length+1
   // and .slice(0,-1) JSON.stringify is equal to parent

@@ -35,6 +35,9 @@ export async function addUserToken({ email }) {
 
 export async function getSessionTokensLeft() {
   const session = await auth();
+  if (!session) {
+    return { tokensRemaining: undefined, status: "not logged in" };
+  }
   const email = session?.user?.email;
   // const email = "davoodwadi@gmail.com"
 
@@ -182,9 +185,8 @@ export async function generateTestDummmy() {
   (async () => {
     "use server";
     for (let i = 0; i < 80; i++) {
-    await wait(1000);
-    stream.update(`${i}s`);
-     
+      await wait(1000);
+      stream.update(`${i}s`);
     }
     stream.done();
   })();
@@ -239,16 +241,16 @@ async function streamFunction(stream, messages, model) {
   stream.done();
 }
 
-export async function getAuth(){
+export async function getAuth() {
   const session = await auth();
   if (!session?.user) {
-    return 400
+    return 400;
   }
   const tokensRemaining = await checkTokensRemaining();
   if (tokensRemaining <= 0) {
-    return 401
+    return 401;
   }
-  return session.user.email
+  return session.user.email;
 }
 
 export async function generate({ messages, model }) {

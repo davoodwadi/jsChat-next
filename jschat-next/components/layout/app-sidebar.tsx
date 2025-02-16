@@ -6,6 +6,7 @@ import {
   Settings,
   MessageCircle,
   User2,
+  Trash,
 } from "lucide-react";
 
 import {
@@ -18,7 +19,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { ClearChatHistoryButton } from "@/components/layout/ClearChatHistoryButton";
 import { loadAllChatSessions, loadChatSession } from "@/lib/save/saveActions";
+
+import Link from "next/link";
 
 import { auth } from "@/auth";
 
@@ -40,13 +44,18 @@ const items = [
 // Menu items.
 
 export async function AppSidebar() {
-  const session = await auth();
   const chatHistory = await loadAllChatSessions();
-  if (!chatHistory) {
-    console.log("loadAllChatSessions failed.");
-    return;
+  const chatHistoryTrue =
+    chatHistory !== undefined &&
+    Array.isArray(chatHistory) &&
+    chatHistory.length > 0;
+  if (chatHistoryTrue) {
+    chatHistory.reverse();
   }
-  console.log("chatHistory", chatHistory);
+  const session = await auth();
+
+  const snippetToShow = 100;
+
   return (
     <Sidebar>
       <SidebarContent>
@@ -54,38 +63,70 @@ export async function AppSidebar() {
           <SidebarGroupLabel>Spreed</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
+              <SidebarMenuItem key="1">
+                <SidebarMenuButton asChild>
+                  <Link href="/">
+                    <MessageCircle />
+                    <span>Chat</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              {session && (
+                <SidebarMenuItem key="2">
                   <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </a>
+                    <Link href="/profile">
+                      <User2 />
+                      <span>Profile</span>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              ))}
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        {chatHistoryTrue && (
+          <SidebarGroup>
+            <SidebarGroupLabel>History</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {chatHistory.map((item, i) => {
+                  const userMessageArray = item?.content?.userMessages;
+                  if (!Array.isArray(userMessageArray)) {
+                    return;
+                  }
+                  const snippetArray = userMessageArray.map((m) => m.content);
+                  const snippet = snippetArray
+                    .join(" - ")
+                    .slice(0, snippetToShow);
+                  return (
+                    <SidebarMenuItem key={i}>
+                      <SidebarMenuButton asChild>
+                        <Link href={`/chat/${item.chatid}`}>
+                          {/* <MessageCircle /> */}
+                          <span>{snippet.trim()}...</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+        {chatHistoryTrue && (
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <ClearChatHistoryButton />
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
     </Sidebar>
   );
 }
-
-// <SidebarGroup>
-//           <SidebarGroupLabel>History</SidebarGroupLabel>
-//           <SidebarGroupContent>
-//             <SidebarMenu>
-//               {chatHistory.map((item, i) => (
-//                 <SidebarMenuItem key={i}>
-//                   <SidebarMenuButton asChild>
-//                     <a href={item.url}>
-//                       {/* <MessageCircle /> */}
-//                       <span>{item.title}</span>
-//                     </a>
-//                   </SidebarMenuButton>
-//                 </SidebarMenuItem>
-//               ))}
-//             </SidebarMenu>
-//           </SidebarGroupContent>
-//         </SidebarGroup>
