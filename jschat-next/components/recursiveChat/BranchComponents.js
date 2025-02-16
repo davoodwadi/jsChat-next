@@ -53,19 +53,9 @@ export function UserMessage(props) {
     <>
       <div className={baseUserClass}>
         <Textarea
-          placeholder="Type your message and press Enter ↵ ..."
+          placeholder="Type your message..."
           className={textareaClass}
           style={{ resize: "none" }}
-          // onKeyDown={(event) => {
-          // if (event.key === "Enter" && !event.shiftKey) {
-          // if (props.children) {
-          //   // set old value
-          //   setFinalValue((v) => props.children);
-          // }
-          // event.target.blur();
-          // props.handleSubmit(event);
-          // }
-          // }}
           value={finalValue} // props.children
           onChange={(e) => {
             setFinalValue((v) => e.target.value); // enable editing of textarea's text

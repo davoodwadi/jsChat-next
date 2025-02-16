@@ -19,10 +19,7 @@ export default async function Chat({
 }: {
   params: Promise<{ chatid: string }>;
 }) {
-  // console.log("loading ChatContainer");
-
   const chatId = (await params).chatid;
-
   // console.log("chatId", chatId);
 
   return (

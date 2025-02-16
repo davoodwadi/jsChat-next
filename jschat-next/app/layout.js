@@ -1,11 +1,13 @@
 import "./globals.css";
 import { ThemeProvider } from "@/components/layout/theme-provider";
-import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Toaster } from "@/components/ui/toaster";
 
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/app-sidebar";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { lazy } from "react";
+import { Suspense } from "react";
+import { MultilineSkeleton } from "@/components/ui/skeleton";
 
 const AuthButton = lazy(() => import("@/components/auth/AuthButtonsServer"));
 
@@ -13,8 +15,6 @@ import PaymentComponent from "@/components/Payment";
 
 import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
-import { Suspense } from "react";
-import { MultilineSkeleton } from "@/components/ui/skeleton";
 
 import localFont from "next/font/local";
 
@@ -37,12 +37,12 @@ export const metadata = {
   description: "Non-linear LLM chat interface",
 };
 
-export default async function RootLayout(props) {
+export default async function RootLayout({ params, children }) {
   // console.log("starting root layout");
+
   return (
     <html lang="en" suppressHydrationWarning className="light">
       <body className={`${geistSans.className} antialiased`}>
-        {/* <Suspense fallback={<p>Loading Root Layout</p>}> */}
         <ThemeProvider
           attribute="class"
           // defaultTheme="dark"
@@ -51,8 +51,7 @@ export default async function RootLayout(props) {
           disableTransitionOnChange
         >
           <SidebarProvider>
-            <AppSidebar />
-            {/* <Suspense fallback={<p>Loading</p>}> */}
+            <AppSidebar chatid="1" />
             <div
               className={` flex flex-col overflow-hidden min-h-screen mx-auto w-full `} //
             >
@@ -81,8 +80,7 @@ export default async function RootLayout(props) {
                 </div>
               </div>
 
-              {props.children}
-
+              {children}
               <footer className="flex gap-2 p-6 flex-wrap items-center justify-center mt-auto text-xs md:text-sm">
                 <p className="flex items-center gap-2">
                   © 2024 Spreed.chat. All rights reserved.
@@ -97,11 +95,9 @@ export default async function RootLayout(props) {
                 </a>
               </footer>
             </div>
-            {/* </Suspense> */}
           </SidebarProvider>
         </ThemeProvider>
         <Toaster />
-        {/* </Suspense> */}
       </body>
     </html>
   );

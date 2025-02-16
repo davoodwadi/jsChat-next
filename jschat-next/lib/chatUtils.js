@@ -7,8 +7,7 @@ import {
 import { readStreamableValue } from "@/lib/aiRSCUtils";
 import { wait } from "@/lib/actions";
 import { v4 as uuidv4 } from "uuid";
-
-
+import { saveChatSession } from "./save/saveActions";
 
 const idInUserMessages = (id, userMessages) =>
   userMessages.filter((m) => m.key === id).length > 0; // bool; if id is in userMessages
@@ -57,12 +56,14 @@ export async function handleSubmit({
   setIsDialogOpen,
   setIsTopupDialogOpen,
   refChatContainer,
-  setRandomNumber,
+  ...rest
 }) {
   // event.target.id
   // event.target.value
   //
-  // console.log("model", model);
+  console.log("rest", rest);
+  rest.setBotMessageFinished(false);
+
   // const dummy =
   //   process.env.NEXT_PUBLIC_BASE_URL === "http://localhost:3000" ? true : false;
   const dummy = false;
@@ -119,30 +120,28 @@ export async function handleSubmit({
 
     // streaming the LLM old user
     //
-    const authStatus = await getAuth()
-    console.log('authStatus', authStatus)
+    const authStatus = await getAuth();
+    console.log("authStatus", authStatus);
 
     if (authStatus === 400) {
-      console.log(
-        "Not Authenticated",
-        authStatus
-      );
+      console.log("Not Authenticated", authStatus);
       setIsDialogOpen(true);
       return;
-    } else if (authStatus===401){
-      console.log(
-        "authStatus Not Enough Tokens",
-        authStatus
-      );
+    } else if (authStatus === 401) {
+      console.log("authStatus Not Enough Tokens", authStatus);
       setIsTopupDialogOpen(true);
-      return
+      return;
     }
-    const data = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/chat`,{
+    const data = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/chat`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ messages: chain, model: model, email:authStatus })
+      body: JSON.stringify({
+        messages: chain,
+        model: model,
+        email: authStatus,
+      }),
     });
     // if (dummy) {
     //   streamIterator = await generateDummmy(JSON.stringify(array), model);
@@ -153,9 +152,9 @@ export async function handleSubmit({
     //   });
     // }
 
-  const reader = data.body.getReader();
-  const decoder = new TextDecoder();
-  tempChunks = "";
+    const reader = data.body.getReader();
+    const decoder = new TextDecoder();
+    tempChunks = "";
 
     newBotEntry = {
       key: JSON.stringify(array),
@@ -170,12 +169,11 @@ export async function handleSubmit({
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      
+
       const chunk = decoder.decode(value, { stream: true });
       // console.log('Received chunk:', chunk);
 
-        tempChunks = chunk ? tempChunks + chunk : tempChunks;
-
+      tempChunks = chunk ? tempChunks + chunk : tempChunks;
 
       newBotEntry = {
         key: JSON.stringify(array),
@@ -188,7 +186,6 @@ export async function handleSubmit({
       setBotMessages((v) =>
         v.map((m) => (m.key === JSON.stringify(array) ? newBotEntry : m))
       );
-
     }
     // END: streaming the LLM
     // // //
@@ -244,30 +241,28 @@ export async function handleSubmit({
     //     model: model,
     //   });
     // }
-    const authStatus = await getAuth()
-    console.log('authStatus', authStatus)
+    const authStatus = await getAuth();
+    console.log("authStatus", authStatus);
 
     if (authStatus === 400) {
-      console.log(
-        "Not Authenticated",
-        authStatus
-      );
+      console.log("Not Authenticated", authStatus);
       setIsDialogOpen(true);
       return;
-    } else if (authStatus===401){
-      console.log(
-        "authStatus Not Enough Tokens",
-        authStatus
-      );
+    } else if (authStatus === 401) {
+      console.log("authStatus Not Enough Tokens", authStatus);
       setIsTopupDialogOpen(true);
-      return
+      return;
     }
-    const data = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/chat`,{
+    const data = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/chat`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ messages: chain, model: model, email:authStatus })
+      body: JSON.stringify({
+        messages: chain,
+        model: model,
+        email: authStatus,
+      }),
     });
     // console.log('data', data)
     const reader = data.body.getReader();
@@ -297,35 +292,34 @@ export async function handleSubmit({
     setBotMessages((v) => {
       // console.log("botMessages pending", v);
       return v.map((m) => (m.key === JSON.stringify(array) ? newBotEntry : m));
-    });  
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    
-    let chunk = decoder.decode(value, { stream: true });
-    // chunk = `{${chunk.replace('\n', ',')}}`
-    // console.log('Received chunk:', chunk);
-
-    tempChunks = chunk ? tempChunks + chunk : tempChunks;
-
-    newBotEntry = {
-      key: JSON.stringify(array),
-      globalIdBot: newGlobalIdBot,
-      content: tempChunks,
-      role: "bot",
-      status: "reading",
-      model: model,
-    };
-    setBotMessages((v) => {
-      // console.log("botMessages counter:", counter, delta, v);
-
-      return v.map((m) =>
-        m.key === JSON.stringify(array) ? newBotEntry : m
-      );
     });
 
-  }
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      let chunk = decoder.decode(value, { stream: true });
+      // chunk = `{${chunk.replace('\n', ',')}}`
+      // console.log('Received chunk:', chunk);
+
+      tempChunks = chunk ? tempChunks + chunk : tempChunks;
+
+      newBotEntry = {
+        key: JSON.stringify(array),
+        globalIdBot: newGlobalIdBot,
+        content: tempChunks,
+        role: "bot",
+        status: "reading",
+        model: model,
+      };
+      setBotMessages((v) => {
+        // console.log("botMessages counter:", counter, delta, v);
+
+        return v.map((m) =>
+          m.key === JSON.stringify(array) ? newBotEntry : m
+        );
+      });
+    }
     // END: streaming the LLM
     //
     const newGlobalIdUser = globalIdUser + 1;
@@ -352,10 +346,13 @@ export async function handleSubmit({
     status: "done",
     model: model,
   };
-  setBotMessages((v) =>
-    v.map((m) => (m.key === JSON.stringify(array) ? newBotEntry : m))
-  );
-  // console.log("done newBotEntry:", newBotEntry);
+  setBotMessages((v) => {
+    const updatedBotMessages = v.map((m) =>
+      m.key === JSON.stringify(array) ? newBotEntry : m
+    );
+    rest.setBotMessageFinished(true);
+    return updatedBotMessages;
+  });
 }
 
 function getChain({ targetId, userMessages, botMessages }) {

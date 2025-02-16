@@ -21,6 +21,7 @@ import {
 import { AuthDialog, TopupDialog } from "@/components/auth/AuthDialog";
 import SaveItems from "@/components/save/SaveComponents";
 import { getSessionTokensLeft } from "@/lib/actions";
+import { loadChatSession, saveChatSession } from "@/lib/save/saveActions";
 
 import RecursiveBranch from "./RecursiveBranch";
 
@@ -44,7 +45,37 @@ export function RecursiveChatContainer(props) {
     },
   ]);
   const [botMessages, setBotMessages] = useState(() => []);
-  // console.log("botMessages", botMessages);
+  // load history if exists
+  const [loadingHistory, setLoadingHistory] = useState(true);
+  const [botMessageFinished, setBotMessageFinished] = useState(false);
+
+  useEffect(() => {
+    const loadHistory = async () => {
+      // console.log("loading history for ", props.chatId);
+      const thisSession = await loadChatSession({ chatId: props.chatId });
+      if (thisSession?.content?.userMessages) {
+        // console.log(`CLIENT: thisSession?.content`, thisSession?.content);
+
+        setUserMessages(thisSession?.content?.userMessages);
+        setBotMessages(thisSession?.content?.botMessages);
+      }
+      setLoadingHistory(false);
+    };
+    loadHistory();
+  }, [props.chatId]);
+
+  useEffect(() => {
+    // // save chat session
+    // console.log("botMessageFinished", botMessageFinished);
+    if (botMessageFinished) {
+      // console.log("chat saved on submit", botMessages);
+      saveChatSession({
+        chatId: props.chatId,
+        userMessages: userMessages,
+        botMessages: botMessages,
+      });
+    }
+  }, [botMessages]);
 
   const [response, setResponse] = useState({});
   const [branchKeyToMaximize, setBranchKeyToMaximize] = useState(
@@ -63,6 +94,7 @@ export function RecursiveChatContainer(props) {
     "  overflow-y-auto overflow-x-auto h-[70vh] rounded-xl mx-auto"; // flex flex-col overflow-auto
 
   chatContainerClass += " w-[90vw] md:w-[calc(90vw-16rem)] ";
+
   return (
     <>
       <Suspense
@@ -104,26 +136,34 @@ export function RecursiveChatContainer(props) {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-
-            <RecursiveBranch
-              level={0}
-              {...props}
-              // refElementUser={props.refElementUser}
-              // refElementBot={props.refElementBot}
-              // setIsDialogOpen={props.setIsDialogOpen}
-              userMessages={userMessages}
-              setUserMessages={setUserMessages}
-              botMessages={botMessages}
-              setBotMessages={setBotMessages}
-              globalIdBot={globalIdBot}
-              setGlobalIdBot={setGlobalIdBot}
-              globalIdUser={globalIdUser}
-              setGlobalIdUser={setGlobalIdUser}
-              model={model}
-              setResponse={setResponse}
-              branchKeyToMaximize={branchKeyToMaximize}
-              // refChatContainer={refChatContainer}
-            />
+            {loadingHistory ? (
+              <>
+                <div className="w-3/4 mx-auto">
+                  <MultilineSkeleton lines={4} />
+                </div>
+              </>
+            ) : (
+              <RecursiveBranch
+                level={0}
+                {...props}
+                // refElementUser={props.refElementUser}
+                // refElementBot={props.refElementBot}
+                // setIsDialogOpen={props.setIsDialogOpen}
+                userMessages={userMessages}
+                setUserMessages={setUserMessages}
+                botMessages={botMessages}
+                setBotMessages={setBotMessages}
+                globalIdBot={globalIdBot}
+                setGlobalIdBot={setGlobalIdBot}
+                globalIdUser={globalIdUser}
+                setGlobalIdUser={setGlobalIdUser}
+                model={model}
+                setResponse={setResponse}
+                branchKeyToMaximize={branchKeyToMaximize}
+                setBotMessageFinished={setBotMessageFinished}
+                // refChatContainer={refChatContainer}
+              />
+            )}
           </Suspense>
         </div>
         <SaveItems
@@ -140,6 +180,7 @@ export function RecursiveChatContainer(props) {
 }
 
 export default function ChatContainer(props) {
+  // has chatId prop
   // console.log("ChatContainer props", props);
   const refUser = useRef(null);
   const refBot = useRef(null);

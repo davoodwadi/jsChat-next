@@ -18,6 +18,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { loadAllChatSessions, loadChatSession } from "@/lib/save/saveActions";
+
+import { auth } from "@/auth";
 
 // Menu items.
 const items = [
@@ -34,7 +37,16 @@ const items = [
   },
 ];
 
-export function AppSidebar() {
+// Menu items.
+
+export async function AppSidebar() {
+  const session = await auth();
+  const chatHistory = await loadAllChatSessions();
+  if (!chatHistory) {
+    console.log("loadAllChatSessions failed.");
+    return;
+  }
+  console.log("chatHistory", chatHistory);
   return (
     <Sidebar>
       <SidebarContent>
@@ -59,3 +71,21 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
+
+// <SidebarGroup>
+//           <SidebarGroupLabel>History</SidebarGroupLabel>
+//           <SidebarGroupContent>
+//             <SidebarMenu>
+//               {chatHistory.map((item, i) => (
+//                 <SidebarMenuItem key={i}>
+//                   <SidebarMenuButton asChild>
+//                     <a href={item.url}>
+//                       {/* <MessageCircle /> */}
+//                       <span>{item.title}</span>
+//                     </a>
+//                   </SidebarMenuButton>
+//                 </SidebarMenuItem>
+//               ))}
+//             </SidebarMenu>
+//           </SidebarGroupContent>
+//         </SidebarGroup>

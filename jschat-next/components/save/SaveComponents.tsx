@@ -70,7 +70,7 @@ export default function SaveItems({
           return;
         } else {
           const content = thisSession.content;
-          console.log(`CLIENT: content`, content);
+          // console.log(`CLIENT: content`, content);
 
           setUserMessages(content.userMessages);
           setBotMessages(content.botMessages);
@@ -89,14 +89,9 @@ export default function SaveItems({
       loading: loadingSave,
       onClickFn: () => {
         setLoadingSave(true);
-
         console.log(`CLIENT: save ${chatId}`);
-        const userMessagesJSON = JSON.stringify(userMessages);
-        const botMessagesJSON = JSON.stringify(botMessages);
         saveChatSession({
           chatId,
-          userMessagesJSON,
-          botMessagesJSON,
           userMessages,
           botMessages,
         });
@@ -115,8 +110,6 @@ export default function SaveItems({
       onClickFn: () => {
         setLoadingReset(true);
 
-        // console.log("toast");
-        // setChatContainerKey((v) => v + 1);
         const newChatId = generateChatId();
         router.push(`/chat/${newChatId}`);
         toast({
