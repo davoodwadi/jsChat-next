@@ -133,6 +133,7 @@ export default function RecursiveBranch(props) {
                     }}
                     refElementUser={props.refElementUser}
                     refElementBot={props.refElementBot}
+                    userMessages={props.userMessages}
                   >
                     {tm.content}
                   </UserMessage>

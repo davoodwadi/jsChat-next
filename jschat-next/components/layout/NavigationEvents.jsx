@@ -24,7 +24,7 @@ export function NavigationEvents() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const snippetToShow = 100;
-
+  // to reflect updates on new messages
   useEffect(() => {
     const getChatHistory = async () => {
       const status = searchParams.get("status");
@@ -44,6 +44,21 @@ export function NavigationEvents() {
     };
     getChatHistory();
   }, [searchParams]);
+
+  // to show history on page load
+  useEffect(() => {
+    const getChatHistory = async () => {
+      const result = await loadAllChatSessions();
+      if (result) {
+        result.reverse();
+        setChatHistory(result);
+        //   console.log("chatHistory loaded INSIDE", result);
+      } else {
+        setChatHistory(null);
+      }
+    };
+    getChatHistory();
+  }, []);
 
   const chatHistoryTrue =
     chatHistory !== undefined &&

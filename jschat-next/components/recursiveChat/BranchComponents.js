@@ -26,9 +26,11 @@ let baseBotClass =
 
 export function UserMessage(props) {
   // console.log("User props", props);
-  // console.log("UserMessage props.id", props.id);
+  // console.log(
+  //   "UserMessage props.userMessages.length===1",
+  //   props.userMessages.length === 1
+  // );
 
-  // useTraceUpdate(props);
   const [finalValue, setFinalValue] = useState(
     props.children === "" ? "" : undefined
   );
@@ -49,6 +51,16 @@ export function UserMessage(props) {
     }
   }, [props.children]);
 
+  useEffect(() => {
+    // console.log("refUser.current", refUser.current);
+    if (props.userMessages.length === 1) {
+      // console.log("refUser.current", refUser.current);
+      if (refUser.current) {
+        refUser.current.focus();
+      }
+    }
+  }, [refUser.current]);
+
   return (
     <>
       <div className={baseUserClass}>
@@ -59,6 +71,18 @@ export function UserMessage(props) {
           value={finalValue} // props.children
           onChange={(e) => {
             setFinalValue((v) => e.target.value); // enable editing of textarea's text
+          }}
+          onKeyDown={(e) => {
+            if (e.ctrlKey === true && e.code === "Enter") {
+              console.log(e.ctrlKey === true && e.code === "Enter");
+              if (props.children) {
+                // set old value
+                setFinalValue((v) => props.children);
+              }
+              if (refUser.current) {
+                props.handleSubmit(props.refElementBot, props.id, finalValue);
+              }
+            }
           }}
           id={props.id}
           globaliduser={props.globalIdUser}
@@ -89,24 +113,13 @@ export function UserMessage(props) {
                 setFinalValue((v) => props.children);
               }
               if (refUser.current) {
-                // Create a new keyboard event
-                // const event = new KeyboardEvent("keydown", {
-                //   key: "Enter",
-                //   code: "Enter",
-                //   charCode: 13,
-                //   keyCode: 13,
-                //   bubbles: true, // Allow the event to bubble up
-                // });
-                // console.log(props.id);
-                // console.log(finalValue);
                 props.handleSubmit(props.refElementBot, props.id, finalValue);
-                // Dispatch the event on the input element
-                // refUser.current.dispatchEvent(event);
               }
             }}
           >
             <span className="inline-flex text-sm items-center">
-              <SendHorizontal className="mx-2" /> Send
+              <SendHorizontal className="mx-2" /> <span>Send</span>&nbsp;
+              <span className="text-gray-500"> Ctrl + ↵</span>
             </span>
           </Button>
         </div>
