@@ -7,6 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useRef, useState, useEffect } from "react";
 import { MultilineSkeleton } from "@/components/ui/skeleton";
 
+import { useSidebar } from "@/components/ui/sidebar";
+
 let baseUserClass =
   "  flex flex-col items-center p-4 m-1 rounded-xl bg-sky-50 dark:bg-sky-600 "; //border-2 border-blue-500 min-w-fit
 const textareaClass = ` min-w-40 md:min-w-64  mx-4 p-2.5 
@@ -170,12 +172,27 @@ export function BotMessage(props) {
 
 export function Branch(props) {
   // console.log("Branch props", props);
+  const {
+    state,
+    open,
+    setOpen,
+    openMobile,
+    setOpenMobile,
+    isMobile,
+    toggleSidebar,
+  } = useSidebar();
 
   const isPenultimateBranch = props.globalIdBot === props.maxGlobalIdBot;
   // console.log("props", props);
   // console.log("props.toMaximize", props.toMaximize);
   let baseClass = "mx-auto"; //border-2 border-red-300 flex-1
-  let w = " w-[85vw] shrink-0 md:w-[calc(85vw-16rem)] ";
+  let w;
+  if (!open) {
+    w = " w-[85vw] shrink-0 md:w-[85vw] ";
+  } else {
+    w = " w-[85vw] shrink-0 md:w-[calc(85vw-16rem)] ";
+  }
+
   baseClass += props.toMaximize || props.maxGlobalIdBot === 0 ? w : " flex-1 "; // min-w-[85vw] max-w-[90vw]
 
   return (
