@@ -26,10 +26,6 @@ let baseBotClass =
 
 export function UserMessage(props) {
   // console.log("User props", props);
-  // console.log(
-  //   "UserMessage props.userMessages.length===1",
-  //   props.userMessages.length === 1
-  // );
 
   const [finalValue, setFinalValue] = useState(
     props.children === "" ? "" : undefined

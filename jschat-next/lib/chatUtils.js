@@ -57,18 +57,19 @@ export async function handleSubmit({
   setIsDialogOpen,
   setIsTopupDialogOpen,
   refChatContainer,
+  systemPrompt,
   ...rest
 }) {
   // event.target.id
   // event.target.value
   //
-  console.log("rest", rest);
+  // console.log("rest", rest);
   rest.setBotMessageFinished(false);
 
   // const dummy =
   //   process.env.NEXT_PUBLIC_BASE_URL === "http://localhost:3000" ? true : false;
   const dummy = false;
-  console.log("dummy", dummy);
+  // console.log("dummy", dummy);
   let chain;
   let streamIterator;
   let tempChunks = "";
@@ -112,7 +113,13 @@ export async function handleSubmit({
       },
     ]);
     // get chain old message
-    chain = getChain({ targetId, userMessages, botMessages });
+    chain = getChain({
+      targetId,
+      userMessages,
+      botMessages,
+      systemPrompt,
+      model,
+    });
     chain.push({
       key: JSON.stringify(array),
       content: targetValue,
@@ -211,7 +218,13 @@ export async function handleSubmit({
     newArray.push(1);
 
     // get chain new message
-    chain = getChain({ targetId, userMessages, botMessages });
+    chain = getChain({
+      targetId,
+      userMessages,
+      botMessages,
+      systemPrompt,
+      model,
+    });
     chain.push({
       key: JSON.stringify(array),
       content: targetValue,
@@ -356,10 +369,23 @@ export async function handleSubmit({
   });
 }
 
-function getChain({ targetId, userMessages, botMessages }) {
+function getChain({
+  targetId,
+  userMessages,
+  botMessages,
+  systemPrompt,
+  model,
+}) {
   // event.target.id
   const array = JSON.parse(targetId);
   const chain = [];
+  if (systemPrompt !== "") {
+    chain.push({
+      content: systemPrompt,
+      role: model.includes("gpt") ? "developer" : "system",
+    });
+  }
+
   for (let i = 1; i < array.length; i++) {
     // console.log("i", i);
     const parentArray = array.slice(0, i);
@@ -373,6 +399,8 @@ function getChain({ targetId, userMessages, botMessages }) {
       role: "assistant",
     });
   }
+  // console.log("chain messages", chain);
+
   return chain;
 }
 //

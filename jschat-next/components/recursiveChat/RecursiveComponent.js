@@ -9,21 +9,11 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { MultilineSkeleton } from "@/components/ui/skeleton";
 
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
 import { AuthDialog, TopupDialog } from "@/components/auth/AuthDialog";
 import SaveItems from "@/components/save/SaveComponents";
-import { getSessionTokensLeft } from "@/lib/actions";
 import { loadChatSession, saveChatSession } from "@/lib/save/saveActions";
+
+import { useSidebar } from "@/components/ui/sidebar";
 
 import RecursiveBranch from "./RecursiveBranch";
 
@@ -32,6 +22,7 @@ export function RecursiveChatContainer(props) {
   // console.log("RecursiveChatContainer props", props);
   // console.log("props.refElementBot.current", props.refElementBot.current);
   // const refChatContainer = useRef(null);
+  // console.log("props.model", props.model);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -40,8 +31,6 @@ export function RecursiveChatContainer(props) {
 
   const [globalIdUser, setGlobalIdUser] = useState(1);
   const [globalIdBot, setGlobalIdBot] = useState(0);
-
-  const [model, setModel] = useState("gpt-4o-mini");
 
   const [userMessages, setUserMessages] = useState(() => [
     {
@@ -99,15 +88,6 @@ export function RecursiveChatContainer(props) {
 
         router.push(pathname + "?" + params.toString());
       }
-      //
-      // refresh the page to reflect new chat in sidebar
-      // startTransition(() => {
-      //   // Refresh the current route and fetch new data from the server without
-      //   // losing client-side browser or React state.
-      //   console.log("router.refresh();");
-      //   router.refresh();
-      // });
-      //
     }
   }, [botMessages]);
 
@@ -124,10 +104,23 @@ export function RecursiveChatContainer(props) {
     setBranchKeyToMaximize(newBranchKeyToMaximize);
   }, [globalIdUser]);
 
+  const {
+    state,
+    open,
+    setOpen,
+    openMobile,
+    setOpenMobile,
+    isMobile,
+    toggleSidebar,
+  } = useSidebar();
+
   let chatContainerClass =
     "  overflow-y-auto overflow-x-auto h-[70vh] rounded-xl mx-auto"; // flex flex-col overflow-auto
-
-  chatContainerClass += " w-[90vw] md:w-[calc(90vw-16rem)] ";
+  if (!open) {
+    chatContainerClass += " w-[90vw] md:w-[90vw] ";
+  } else {
+    chatContainerClass += " w-[90vw] md:w-[calc(90vw-16rem)] ";
+  }
 
   return (
     <>
@@ -150,26 +143,6 @@ export function RecursiveChatContainer(props) {
               </div>
             }
           >
-            <div className="mx-auto w-1/3 flex justify-center p-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline">Model: {model}</Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56">
-                  <DropdownMenuRadioGroup
-                    value={model}
-                    onValueChange={setModel}
-                  >
-                    <DropdownMenuRadioItem value="gpt-4o-mini">
-                      gpt-4o-mini
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="DeepSeek-R1">
-                      DeepSeek-R1
-                    </DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
             {loadingHistory ? (
               <>
                 <div className="w-3/4 mx-auto">
@@ -191,7 +164,7 @@ export function RecursiveChatContainer(props) {
                 setGlobalIdBot={setGlobalIdBot}
                 globalIdUser={globalIdUser}
                 setGlobalIdUser={setGlobalIdUser}
-                model={model}
+                model={props.model}
                 setResponse={setResponse}
                 branchKeyToMaximize={branchKeyToMaximize}
                 setBotMessageFinished={setBotMessageFinished}

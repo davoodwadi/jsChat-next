@@ -1,23 +1,30 @@
-import { openai } from "@ai-sdk/openai";
+// import { openai } from "@ai-sdk/openai";
 import { streamText } from "ai";
 import OpenAI from "openai";
 import { createDeepInfra } from "@ai-sdk/deepinfra";
+import Groq from "groq-sdk";
 
-import { revalidatePath } from "next/cache";
+// // Allow streaming responses up to 30 seconds
+// export const maxDuration = 30
+export const runtime = "edge";
+
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 const deepinfra = createDeepInfra({
   apiKey: process.env.DEEPINFRA_TOKEN,
 });
 
-// import { z } from "zod"
-import { NextResponse, NextRequest } from "next/server";
-// // Allow streaming responses up to 30 seconds
-// export const maxDuration = 30
-export const runtime = "edge";
-
-const client = new OpenAI({
+const openai = new OpenAI({
   apiKey: process.env["OPENAI_API_KEY"], // This is the default and can be omitted
 });
+
+const groqModels = [
+  "llama-3.3-70b-versatile",
+  "llama-3.3-70b-specdec",
+  "deepseek-r1-distill-llama-70b",
+];
+const deepinfraModels = ["DeepSeek-R1"];
+const openaiModels = ["gpt-4o-mini"];
 
 export async function POST(req) {
   const data = await req.json();
@@ -31,9 +38,14 @@ export async function POST(req) {
         const encoder = new TextEncoder();
 
         let result;
-        if (data.model.includes("gpt")) {
-          const stream = await client.chat.completions.create({
-            messages: data.messages,
+        if (groqModels.includes(data.model)) {
+          console.log("groq");
+          const stream = await groq.chat.completions.create({
+            messages: data.messages.map((m) => ({
+              role: m.role,
+              content: m.content,
+            })),
+            // model: "llama-3.3-70b-versatile",
             model: data.model,
             stream: true,
             stream_options: { include_usage: true },
@@ -58,7 +70,8 @@ export async function POST(req) {
               });
             }
           }
-        } else {
+        } else if (deepinfraModels.includes(data.model)) {
+          console.log("deepinfra");
           result = streamText({
             model: deepinfra("deepseek-ai/DeepSeek-R1"),
             messages: data.messages,
@@ -84,6 +97,39 @@ export async function POST(req) {
               });
             }
           }
+        } else if (openaiModels.includes(data.model)) {
+          console.log("openai");
+          const stream = await openai.chat.completions.create({
+            messages: data.messages.map((m) => ({
+              role: m.role,
+              content: m.content,
+            })),
+            model: data.model,
+            stream: true,
+            stream_options: { include_usage: true },
+            max_completion_tokens: 16384,
+          });
+
+          for await (const chunk of stream) {
+            if (chunk.choices[0]?.delta?.content) {
+              controller.enqueue(
+                encoder.encode(chunk.choices[0]?.delta?.content)
+              );
+            } else if (chunk?.usage?.total_tokens) {
+              fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  amount: chunk?.usage?.total_tokens,
+                  email: data.email,
+                }),
+              });
+            }
+          }
+        } else {
+          console.log(`Model ${model} not found in any list.`);
         }
 
         controller.close(); // Close the stream
