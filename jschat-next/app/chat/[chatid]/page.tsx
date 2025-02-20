@@ -46,7 +46,12 @@ export default function Chat() {
   const [model, setModel] = useState("gpt-4o-mini");
   const [systemPrompt, setSystemPrompt] = useState("");
   // console.log("systemPrompt", systemPrompt);
-  const models = ["gpt-4o-mini", "DeepSeek-R1", "llama-3.3-70b-versatile"];
+  const models = [
+    "gpt-4o-mini",
+    "DeepSeek-R1",
+    "llama-3.3-70b-versatile",
+    "deepseek-r1-distill-llama-70b",
+  ];
 
   return (
     <>
