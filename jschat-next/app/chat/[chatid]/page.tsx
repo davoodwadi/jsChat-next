@@ -74,6 +74,7 @@ export default function Chat() {
               {models.map((m) => {
                 return (
                   <AccordionContent
+                    className="hover:cursor-pointer"
                     key={m}
                     onClick={() => {
                       setModel(m);
