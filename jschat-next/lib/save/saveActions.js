@@ -98,13 +98,23 @@ export async function loadChatSession({ chatId }) {
   }
 }
 
-export async function saveChatSession({ chatId, userMessages, botMessages }) {
-  // console.log("SERVER ACTION save", chatId);
+export async function saveChatSession(
+  params
+  //   {
+  //   chatId,
+  //   userMessages,
+  //   botMessages,
+  //   systemPrompt,
+  // }
+) {
+  console.log("SERVER ACTION save systemPrompt", params.systemPrompt);
   const session = await auth();
   const email = session?.user?.email;
   // console.log("email", email);
   // console.log("email", userMessages);
   // console.log("email", botMessages);
+  const content = params;
+  const chatId = params.chatId;
   const client = await connectToDatabase();
   const plansCollection = client.db("chat").collection("plans");
   const results = await plansCollection.findOneAndUpdate(
@@ -130,10 +140,7 @@ export async function saveChatSession({ chatId, userMessages, botMessages }) {
                       if: { $eq: ["$$session.chatid", chatId] },
                       then: {
                         chatid: chatId,
-                        content: {
-                          userMessages,
-                          botMessages,
-                        },
+                        content: content,
                       },
                       else: "$$session",
                     },
@@ -146,10 +153,7 @@ export async function saveChatSession({ chatId, userMessages, botMessages }) {
                   [
                     {
                       chatid: chatId,
-                      content: {
-                        userMessages,
-                        botMessages,
-                      },
+                      content: content,
                     },
                   ],
                 ],

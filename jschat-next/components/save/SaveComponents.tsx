@@ -10,45 +10,44 @@ import { useRouter } from "next/navigation";
 import { generateChatId } from "@/lib/chatUtils";
 import { useState } from "react";
 
-type UserMessages = {
-  key: string;
-  content: string;
-  role: string;
-  globalIdUser: number;
-}[];
+import {
+  createSaveChatSessionParams,
+  SaveChatSessionParams,
+  SaveItemParams,
+} from "@/app/types/types";
 
-type BotMessages = {
-  key: string;
-  content: string;
-  role: string;
-  globalIdBot: number;
-  status: string;
-  model: string;
-}[];
-
-export default function SaveItems({
-  chatId,
-  userMessages,
-  botMessages,
-  setUserMessages,
-  setBotMessages,
-  setChatContainerKey,
-}: {
-  chatId: string;
-  userMessages: UserMessages;
-  botMessages: BotMessages;
-  setUserMessages: (userMessages: UserMessages) => void;
-  setBotMessages: (botMessages: BotMessages) => void;
-  setChatContainerKey: (updater: (key: number) => number) => void;
-}) {
+export default function SaveItems(
+  params: SaveItemParams
+  //   {
+  //   chatId,
+  //   userMessages,
+  //   botMessages,
+  //   setUserMessages,
+  //   setBotMessages,
+  //   systemPrompt,
+  //   setSystemPrompt,
+  //   ...props
+  // }
+  // : {
+  //   chatId: string;
+  //   userMessages: UserMessages;
+  //   botMessages: BotMessages;
+  //   setUserMessages: SetUserMessages;
+  //   setBotMessages: SetBotMessages;
+  //   systemPrompt: string;
+  //   setSystemPrompt: SetSystemPrompt;
+  // }
+) {
   // console.log("SaveItems userMessages", userMessages);
   // console.log("SaveItems botMessages", botMessages);
+  // console.log("SaveItems props", props);
+  // console.log("SaveItems systemPrompt", systemPrompt);
   const { toast } = useToast();
   const router = useRouter();
   const [loadingSave, setLoadingSave] = useState(false);
   const [loadingLoad, setLoadingLoad] = useState(false);
   const [loadingReset, setLoadingReset] = useState(false);
-
+  const chatId = params.chatId;
   const elements = [
     {
       Element: HardDriveUpload,
@@ -56,7 +55,7 @@ export default function SaveItems({
       loading: loadingLoad,
       onClickFn: async () => {
         setLoadingLoad(true);
-        console.log(`CLIENT: load ${chatId}`);
+        console.log(`CLIENT: load ${params.chatId}`);
         const thisSession = await loadChatSession({ chatId });
         if (!thisSession) {
           console.log("No session found for chatid");
@@ -72,8 +71,14 @@ export default function SaveItems({
           const content = thisSession.content;
           // console.log(`CLIENT: content`, content);
 
-          setUserMessages(content.userMessages);
-          setBotMessages(content.botMessages);
+          params.setUserMessages(content.userMessages);
+          params.setBotMessages(content.botMessages);
+          if (!content?.systemPrompt) {
+            // console.log("no system prompt", "setting it to empty string");
+            params.setSystemPrompt("");
+          } else {
+            params.setSystemPrompt(content.systemPrompt);
+          }
           toast({
             variant: "default",
             title: "Successful load",
@@ -89,12 +94,9 @@ export default function SaveItems({
       loading: loadingSave,
       onClickFn: () => {
         setLoadingSave(true);
-        console.log(`CLIENT: save ${chatId}`);
-        saveChatSession({
-          chatId,
-          userMessages,
-          botMessages,
-        });
+        console.log(`CLIENT: save ${params.chatId}`);
+        const saveChatSessionParams = createSaveChatSessionParams(params);
+        saveChatSession(saveChatSessionParams);
         toast({
           variant: "default",
           title: "Successful Save",

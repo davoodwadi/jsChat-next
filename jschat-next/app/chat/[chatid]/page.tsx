@@ -117,6 +117,7 @@ export default function Chat() {
           chatId={chatId}
           model={model}
           systemPrompt={systemPrompt}
+          setSystemPrompt={setSystemPrompt}
         />
       </Suspense>
     </>

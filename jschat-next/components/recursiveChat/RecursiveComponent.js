@@ -19,7 +19,7 @@ import RecursiveBranch from "./RecursiveBranch";
 
 export function RecursiveChatContainer(props) {
   // console.log("starting RecursiveChatContainer");
-  // console.log("RecursiveChatContainer props", props);
+  // console.log("RecursiveChatContainer props", props.systemPrompt);
   // console.log("props.refElementBot.current", props.refElementBot.current);
   // const refChatContainer = useRef(null);
   // console.log("props.model", props.model);
@@ -45,6 +45,15 @@ export function RecursiveChatContainer(props) {
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [botMessageFinished, setBotMessageFinished] = useState(false);
 
+  // chatId={props.chatId}
+  // userMessages={userMessages}
+  // botMessages={botMessages}
+  // setUserMessages={setUserMessages}
+  // setBotMessages={setBotMessages}
+  // setChatContainerKey={props.setChatContainerKey}
+  // systemPrompt={props.systemPrompt}
+  // setSystemPrompt={props.setSystemPrompt}
+
   useEffect(() => {
     const loadHistory = async () => {
       // console.log("loading history for ", props.chatId);
@@ -60,6 +69,11 @@ export function RecursiveChatContainer(props) {
 
         setUserMessages(thisSession?.content?.userMessages);
         setBotMessages(thisSession?.content?.botMessages);
+        if (!thisSession?.content?.systemPrompt) {
+          props.setSystemPrompt("");
+        } else {
+          props.setSystemPrompt(thisSession?.content?.systemPrompt);
+        }
       }
       setLoadingHistory(false);
     };
@@ -75,6 +89,7 @@ export function RecursiveChatContainer(props) {
         chatId: props.chatId,
         userMessages: userMessages,
         botMessages: botMessages,
+        systemPrompt: props.systemPrompt,
       });
 
       // push {status: new} to query params to prompt layout to refetch chatHistory only if botMessages.length===1
@@ -168,9 +183,8 @@ export function RecursiveChatContainer(props) {
                 setResponse={setResponse}
                 branchKeyToMaximize={branchKeyToMaximize}
                 setBotMessageFinished={setBotMessageFinished}
-                router={router}
-                startTransition={startTransition}
-                // refChatContainer={refChatContainer}
+                // router={router}
+                // startTransition={startTransition}
               />
             )}
           </Suspense>
@@ -182,6 +196,9 @@ export function RecursiveChatContainer(props) {
           setUserMessages={setUserMessages}
           setBotMessages={setBotMessages}
           setChatContainerKey={props.setChatContainerKey}
+          systemPrompt={props.systemPrompt}
+          setSystemPrompt={props.setSystemPrompt}
+          {...props}
         />
       </Suspense>
     </>
