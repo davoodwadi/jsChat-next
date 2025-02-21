@@ -48,10 +48,14 @@ export default function Chat() {
   // console.log("systemPrompt", systemPrompt);
   const models = [
     "gpt-4o-mini",
-    "DeepSeek-R1",
+    "deepseek-ai/DeepSeek-R1",
     "llama-3.3-70b-versatile",
     "deepseek-r1-distill-llama-70b",
+    "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
+    "nvidia/Llama-3.1-Nemotron-70B-Instruct",
+    "Qwen/Qwen2.5-72B-Instruct",
   ];
+  console.log("model client", model);
 
   return (
     <>

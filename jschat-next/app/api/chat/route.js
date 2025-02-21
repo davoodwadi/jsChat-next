@@ -23,7 +23,12 @@ const groqModels = [
   "llama-3.3-70b-specdec",
   "deepseek-r1-distill-llama-70b",
 ];
-const deepinfraModels = ["DeepSeek-R1"];
+const deepinfraModels = [
+  "deepseek-ai/DeepSeek-R1",
+  "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
+  "nvidia/Llama-3.1-Nemotron-70B-Instruct",
+  "Qwen/Qwen2.5-72B-Instruct",
+];
 const openaiModels = ["gpt-4o-mini"];
 
 export async function POST(req) {
@@ -31,6 +36,7 @@ export async function POST(req) {
 
   console.log("route runtime", process.env.NEXT_RUNTIME);
   // revalidatePath("/", "layout");
+  console.log("model server", data.model);
 
   const stream = new ReadableStream({
     async start(controller) {
@@ -73,7 +79,7 @@ export async function POST(req) {
         } else if (deepinfraModels.includes(data.model)) {
           console.log("deepinfra");
           result = streamText({
-            model: deepinfra("deepseek-ai/DeepSeek-R1"),
+            model: deepinfra(data.model),
             messages: data.messages,
             maxTokens: 16384,
           });
