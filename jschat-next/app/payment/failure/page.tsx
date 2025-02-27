@@ -13,7 +13,7 @@ import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLeftLong } from "@fortawesome/free-solid-svg-icons";
 import { sendPaymentEmail } from "@/components/email/emailAction";
-import { expireSession } from "@/components/payment/paymentActions";
+import { expireSession } from "@/lib/payment/paymentActions";
 
 export default async function Page({
   searchParams,

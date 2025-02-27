@@ -2,7 +2,7 @@
 
 import { providerMap } from "@/auth.config";
 import { signInClientAction } from "@/lib/actions";
-import PaymentComponent from "@/components/Payment";
+import PaymentComponent from "@/components/payment/Payment";
 
 import {
   Dialog,

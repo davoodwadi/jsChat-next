@@ -6,7 +6,7 @@ import { Suspense } from "react";
 
 import { lazy } from "react";
 const AuthButton = lazy(() => import("@/components/auth/AuthButtonsServer"));
-import PaymentComponent from "@/components/Payment";
+import PaymentComponent from "@/components/payment/Payment";
 
 export function SidebarInnerServer({ children }) {
   return (
