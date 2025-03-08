@@ -71,9 +71,9 @@ export default function Chat() {
   console.log("model client", model);
   // return <div>Hello</div>;
   const baseClass =
-    "flex flex-row justify-between  px-1 pb-2 items-center border-b hover:cursor-pointer ";
+    "flex flex-row justify-between  px-1 pb-2 items-center border-b hover:cursor-pointer rounded-lg hover:bg-sky-100 hover:dark:bg-sky-950";
   const selectedClass =
-    "flex flex-row justify-between  px-1 pb-2 items-center border-b hover:cursor-pointer rounded-lg bg-sky-200 dark:bg-sky-950 ";
+    "flex flex-row justify-between  px-1 pb-2 items-center border-b hover:cursor-pointer rounded-lg bg-sky-200 dark:bg-sky-900 ";
   return (
     <Suspense
       fallback={
@@ -112,12 +112,12 @@ export default function Chat() {
                               </span>
                             </div>
                           </div>
-                          {model === m.model && (
+                          {/* {model === m.model && (
                             <Check
                               className="mr-1 ml-2 stroke-sky-600 "
                               size={16}
                             />
-                          )}
+                          )} */}
                         </div>
                       );
                     })}
