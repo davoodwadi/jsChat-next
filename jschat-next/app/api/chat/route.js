@@ -3,6 +3,7 @@ import { streamText } from "ai";
 import OpenAI from "openai";
 import { createDeepInfra } from "@ai-sdk/deepinfra";
 import Groq from "groq-sdk";
+import { groqModels, openaiModels, deepinfraModels } from "@/app/models";
 
 // // Allow streaming responses up to 30 seconds
 // export const maxDuration = 30
@@ -13,23 +14,9 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const deepinfra = createDeepInfra({
   apiKey: process.env.DEEPINFRA_TOKEN,
 });
-
 const openai = new OpenAI({
-  apiKey: process.env["OPENAI_API_KEY"], // This is the default and can be omitted
+  apiKey: process.env["OPENAI_KEY"], // This is the default and can be omitted
 });
-
-const groqModels = [
-  "llama-3.3-70b-versatile",
-  "llama-3.3-70b-specdec",
-  "deepseek-r1-distill-llama-70b",
-];
-const deepinfraModels = [
-  "deepseek-ai/DeepSeek-R1",
-  "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
-  "nvidia/Llama-3.1-Nemotron-70B-Instruct",
-  "Qwen/Qwen2.5-72B-Instruct",
-];
-const openaiModels = ["gpt-4o-mini"];
 
 export async function POST(req) {
   const data = await req.json();

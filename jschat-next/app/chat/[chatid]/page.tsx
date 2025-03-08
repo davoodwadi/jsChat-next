@@ -39,14 +39,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { useParams } from "next/navigation";
 
-const models = [
-  "gpt-4o-mini",
-  "deepseek-ai/DeepSeek-R1",
-  "llama-3.3-70b-versatile",
-  "deepseek-r1-distill-llama-70b",
-  "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
-  "nvidia/Llama-3.1-Nemotron-70B-Instruct",
-  "Qwen/Qwen2.5-72B-Instruct",
+import { openaiModels, groqModels, deepinfraModels } from "@/app/models";
+
+const models = [...openaiModels, ...groqModels, ...deepinfraModels];
+// console.log(openaiModels);
+// console.log(models);
+const modelMeta = [
+  { desc: "OpenAI Models (Closed-source, Fast)", models: openaiModels },
+  { desc: "Groq Models (Open-source, Fast)", models: groqModels },
+  { desc: "DeepInfra Models (Open-source, Slow)", models: deepinfraModels },
 ];
 
 export default function Chat() {
@@ -59,7 +60,7 @@ export default function Chat() {
   const chatId = params?.chatid;
   // console.log("chatId", chatId);
 
-  // console.log("systemPrompt", systemPrompt);
+  // console.log("", models.includes(model));
   console.log("model client", model);
   // return <div>Hello</div>;
   return (
@@ -75,23 +76,34 @@ export default function Chat() {
         <Accordion type="single" collapsible>
           <AccordionItem value="item-1" key="item-1">
             <AccordionTrigger>Model</AccordionTrigger>
-            {models.map((m) => {
-              return (
-                <AccordionContent
-                  className="hover:cursor-pointer"
-                  key={m}
-                  onClick={() => {
-                    setModel(m);
-                  }}
-                >
-                  <span className="inline-flex items-center">
-                    <span>{m}</span>
+            <AccordionContent>
+              {modelMeta.map((mm, i) => {
+                return (
+                  <div className="pb-2" key={i}>
+                    <p className="font-bold">{mm.desc}</p>
+                    {mm.models.map((m) => {
+                      return (
+                        <p
+                          className="hover:cursor-pointer"
+                          key={m}
+                          onClick={() => {
+                            setModel(m);
+                          }}
+                        >
+                          <span className="inline-flex items-center">
+                            <span>{m}</span>
 
-                    {model === m && <Check className="mr-1 ml-2" size={16} />}
-                  </span>
-                </AccordionContent>
-              );
-            })}
+                            {model === m && (
+                              <Check className="mr-1 ml-2" size={16} />
+                            )}
+                          </span>
+                        </p>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </AccordionContent>
           </AccordionItem>
         </Accordion>
         {/* system prompt */}
