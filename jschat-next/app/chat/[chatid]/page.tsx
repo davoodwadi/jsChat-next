@@ -39,15 +39,22 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { useParams } from "next/navigation";
 
-import { openaiModels, groqModels, deepinfraModels } from "@/app/models";
+import {
+  openaiModels,
+  groqModels,
+  deepinfraModels,
+  openaiModelsWithMeta,
+  groqModelsWithMeta,
+  deepinfraModelsWithMeta,
+} from "@/app/models";
 
 const models = [...openaiModels, ...groqModels, ...deepinfraModels];
 // console.log(openaiModels);
 // console.log(models);
 const modelMeta = [
-  { desc: "OpenAI Models (Closed-source, Fast)", models: openaiModels },
-  { desc: "Groq Models (Open-source, Fast)", models: groqModels },
-  { desc: "DeepInfra Models (Open-source, Slow)", models: deepinfraModels },
+  { desc: "OpenAI Models (Closed-source)", models: openaiModelsWithMeta },
+  { desc: "Groq Models (Open-source)", models: groqModelsWithMeta },
+  { desc: "DeepInfra Models (Open-source)", models: deepinfraModelsWithMeta },
 ];
 
 export default function Chat() {
@@ -63,6 +70,10 @@ export default function Chat() {
   // console.log("", models.includes(model));
   console.log("model client", model);
   // return <div>Hello</div>;
+  const baseClass =
+    "flex flex-row justify-between  px-1 pb-2 items-center border-b hover:cursor-pointer ";
+  const selectedClass =
+    "flex flex-row justify-between  px-1 pb-2 items-center border-b hover:cursor-pointer rounded-lg bg-sky-200 dark:bg-sky-950 ";
   return (
     <Suspense
       fallback={
@@ -83,21 +94,31 @@ export default function Chat() {
                     <p className="font-bold">{mm.desc}</p>
                     {mm.models.map((m) => {
                       return (
-                        <p
-                          className="hover:cursor-pointer"
-                          key={m}
+                        <div
+                          className={
+                            model === m.model ? selectedClass : baseClass
+                          }
+                          key={m.model}
                           onClick={() => {
-                            setModel(m);
+                            setModel(m.model);
                           }}
                         >
-                          <span className="inline-flex items-center">
-                            <span>{m}</span>
-
-                            {model === m && (
-                              <Check className="mr-1 ml-2" size={16} />
-                            )}
-                          </span>
-                        </p>
+                          <div className="flex items-baseline gap-2 pt-2">
+                            <span className="">{m?.icon && m.icon()}</span>
+                            <div className="flex flex-col ">
+                              <span className="">{m.name}</span>
+                              <span className="text-gray-500 text-xs">
+                                {m.meta}
+                              </span>
+                            </div>
+                          </div>
+                          {model === m.model && (
+                            <Check
+                              className="mr-1 ml-2 stroke-sky-600 "
+                              size={16}
+                            />
+                          )}
+                        </div>
                       );
                     })}
                   </div>
