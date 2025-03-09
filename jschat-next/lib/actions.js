@@ -14,12 +14,12 @@ const deepinfra = createDeepInfra({
   apiKey: process.env.DEEPINFRA_TOKEN,
 });
 
-export async function addUserToken({ email }) {
+export async function addUserToken({ email, amount }) {
   const client = await connectToDatabase();
   const plansCollection = client.db("chat").collection("plans");
   const results = await plansCollection.findOneAndUpdate(
     { username: email },
-    { $inc: { tokensRemaining: 100000 } },
+    { $inc: { tokensRemaining: amount } },
     {
       returnDocument: "after", // Return the document after the update
       projection: { tokensRemaining: 1 }, // Only return the tokensRemaining field

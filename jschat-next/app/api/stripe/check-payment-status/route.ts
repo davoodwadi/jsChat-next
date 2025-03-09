@@ -3,7 +3,10 @@ import { connectToDatabase } from "@/lib/db";
 import { addUserToken } from "@/lib/actions";
 import { auth } from "@/auth";
 import { sendPaymentEmail } from "@/components/email/emailAction";
-
+import {
+  PRICE_ID_100K,
+  PRICE_ID_200K,
+} from "@/components/payment/PaymentConfig";
 export async function GET(request: NextRequest) {
   const session = await auth();
   const searchParams = request.nextUrl.searchParams;
@@ -46,6 +49,14 @@ export async function GET(request: NextRequest) {
       console.log("webhook resp", resp);
       console.log("webhook resp.metadata?.userId", resp.metadata?.userId);
       const email = resp?.metadata?.userId;
+      const priceId = resp?.metadata?.priceId;
+      let TOKEN_TO_BE_CREDITED;
+      if (priceId === PRICE_ID_200K) {
+        TOKEN_TO_BE_CREDITED = 200000;
+      } else {
+        TOKEN_TO_BE_CREDITED = 100000;
+      }
+      console.log("TOKEN_TO_BE_CREDITED", TOKEN_TO_BE_CREDITED);
       if (!resp.addedToAccount) {
         // fresh payment
         await webhookCollection.updateOne(
@@ -56,7 +67,7 @@ export async function GET(request: NextRequest) {
             },
           }
         );
-        const res = await addUserToken({ email }); // return email, tokensRemaining
+        const res = await addUserToken({ email, amount: TOKEN_TO_BE_CREDITED }); // return email, tokensRemaining
         console.log(
           "tokens updated for email",
           res.email,

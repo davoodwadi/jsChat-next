@@ -7,7 +7,7 @@ import { Suspense } from "react";
 import { lazy } from "react";
 const AuthButton = lazy(() => import("@/components/auth/AuthButtonsServer"));
 import PaymentComponent from "@/components/payment/Payment";
-
+import { PRICE_ID_200K } from "@/components/payment/PaymentConfig";
 export function SidebarInnerServer({ children }) {
   return (
     <>
@@ -31,7 +31,7 @@ export function SidebarInnerServer({ children }) {
             </Suspense>
 
             <PaymentComponent
-              priceId={process.env.NEXT_PUBLIC_PRICE_ID}
+              priceId={PRICE_ID_200K}
               price=""
               description="Top up"
               className="mx-1"
