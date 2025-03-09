@@ -32,13 +32,12 @@ export async function POST(req) {
 
         let result;
         if (groqModels.includes(data.model)) {
-          console.log("groq");
+          // console.log("groq");
           const stream = await groq.chat.completions.create({
             messages: data.messages.map((m) => ({
               role: m.role,
               content: m.content,
             })),
-            // model: "llama-3.3-70b-versatile",
             model: data.model,
             stream: true,
             stream_options: { include_usage: true },
@@ -50,21 +49,24 @@ export async function POST(req) {
               controller.enqueue(
                 encoder.encode(chunk.choices[0]?.delta?.content)
               );
-            } else if (chunk?.usage?.total_tokens) {
+            } else if (typeof chunk?.choices[0]?.finish_reason === "string") {
+              // console.log("chunk", chunk);
+
+              // console.log("finished: ", chunk?.x_groq?.usage?.total_tokens);
               fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                  amount: chunk?.usage?.total_tokens,
+                  amount: chunk?.x_groq?.usage?.total_tokens,
                   email: data.email,
                 }),
               });
             }
           }
         } else if (deepinfraModels.includes(data.model)) {
-          console.log("deepinfra");
+          // console.log("deepinfra");
           result = streamText({
             model: deepinfra(data.model),
             messages: data.messages,
@@ -72,7 +74,7 @@ export async function POST(req) {
           });
           const fullStream = result.fullStream;
           for await (const fullPart of fullStream) {
-            // console.log(fullPart);
+            console.log("fullPart", fullPart);
             if (fullPart.type === "text-delta") {
               const chunk = fullPart.textDelta;
               // console.log(chunk);
@@ -91,7 +93,7 @@ export async function POST(req) {
             }
           }
         } else if (openaiModels.includes(data.model)) {
-          console.log("openai");
+          // console.log("openai");
           const stream = await openai.chat.completions.create({
             messages: data.messages.map((m) => ({
               role: m.role,
@@ -104,6 +106,7 @@ export async function POST(req) {
           });
 
           for await (const chunk of stream) {
+            // console.log("chunk", chunk);
             if (chunk.choices[0]?.delta?.content) {
               controller.enqueue(
                 encoder.encode(chunk.choices[0]?.delta?.content)
