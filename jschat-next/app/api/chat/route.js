@@ -37,10 +37,13 @@ export async function POST(req) {
     async start(controller) {
       try {
         const encoder = new TextEncoder();
-
         let result;
         if (anthropicModels.includes(data.model)) {
           // console.log("Anthropic Model", data.model);
+          const thinking = data.model.includes("claude-3-7-sonnet")
+            ? { thinking: { type: "enabled", budget_tokens: 8000 } }
+            : {};
+          // console.log("thinking", thinking);
           const stream = await anthropic.messages.create({
             max_tokens: 8192,
             messages: data.messages.map((m) => ({
@@ -49,10 +52,7 @@ export async function POST(req) {
             })),
             model: data.model,
             stream: true,
-            thinking: {
-              type: "enabled",
-              budget_tokens: 8000,
-            },
+            ...thinking,
           });
           let total_tokens = 0;
           // const all_models = await anthropic.models.list({
