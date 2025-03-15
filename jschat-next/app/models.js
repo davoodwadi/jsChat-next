@@ -106,16 +106,31 @@ export const openaiModelsWithMeta = [
   },
   {
     name: "chatgpt-4o-latest",
-
     model: "chatgpt-4o-latest",
     meta: "Flagship GPT Model Used in ChatGPT",
     icon: DetailedIcon,
   },
 ];
 
+export const anthropicModelsWithMeta = [
+  {
+    name: "Claude 3.5 Haiku",
+    model: "claude-3-5-haiku-latest",
+    meta: "Fastest Anthropic Model For Daily Tasks",
+    icon: FastIcon,
+  },
+  {
+    name: "Claude 3.7 Sonnet",
+    model: "claude-3-7-sonnet-latest",
+    meta: "Anthropic's Most Intelligent Model Capable of Reasoning",
+    icon: BrainIcon,
+  },
+];
+
 export const groqModels = groqModelsWithMeta.map((m) => m.model);
 export const deepinfraModels = deepinfraModelsWithMeta.map((m) => m.model);
 export const openaiModels = openaiModelsWithMeta.map((m) => m.model);
+export const anthropicModels = anthropicModelsWithMeta.map((m) => m.model);
 
 // console.log(groqModels);
 // console.log(deepinfraModels);

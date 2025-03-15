@@ -11,6 +11,7 @@
   "dependencies": {
     "@ai-sdk/deepinfra": "^0.1.8",
     "@ai-sdk/openai": "^1.0.8",
+    "@anthropic-ai/sdk": "^0.39.0",
     "@auth/mongodb-adapter": "^3.7.4",
     "@emotion/react": "^11.13.5",
     "@emotion/styled": "^11.13.5",

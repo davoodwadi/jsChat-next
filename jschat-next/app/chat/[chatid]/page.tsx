@@ -43,18 +43,26 @@ import {
   openaiModels,
   groqModels,
   deepinfraModels,
+  anthropicModels,
   openaiModelsWithMeta,
   groqModelsWithMeta,
   deepinfraModelsWithMeta,
+  anthropicModelsWithMeta,
 } from "@/app/models";
 
-const models = [...openaiModels, ...groqModels, ...deepinfraModels];
+const models = [
+  ...openaiModels,
+  ...groqModels,
+  ...deepinfraModels,
+  ...anthropicModels,
+];
 // console.log(openaiModels);
 // console.log(models);
 const modelMeta = [
   { desc: "OpenAI Models (Closed-source)", models: openaiModelsWithMeta },
   { desc: "Groq Models (Open-source)", models: groqModelsWithMeta },
   { desc: "DeepInfra Models (Open-source)", models: deepinfraModelsWithMeta },
+  { desc: "Anthropic Models (Closed-source)", models: anthropicModelsWithMeta },
 ];
 
 export default function Chat() {

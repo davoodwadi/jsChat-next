@@ -24,6 +24,7 @@ const deepinfra = createDeepInfra({
 const openai = new OpenAI({
   apiKey: process.env["OPENAI_KEY"], // This is the default and can be omitted
 });
+
 const anthropic = new Anthropic();
 
 export async function POST(req) {
@@ -40,29 +41,18 @@ export async function POST(req) {
 
         let result;
         if (anthropicModels.includes(data.model)) {
-          // console.log("Anthropic Model", data.model);
+          console.log("Anthropic Model", data.model);
           const stream = await anthropic.messages.create({
-            max_tokens: 8192,
-            messages: data.messages.map((m) => ({
-              role: m.role,
-              content: m.content,
-            })),
+            max_tokens: 1024,
+            messages: [{ role: "user", content: "Hello, Claude" }],
             model: data.model,
             stream: true,
-            thinking: {
-              type: "enabled",
-              budget_tokens: 8000,
-            },
           });
           let total_tokens = 0;
-          // const all_models = await anthropic.models.list({
-          //   limit: 20,
-          // });
-          // console.log("latest anthropic models:", all_models);
           for await (const messageStreamEvent of stream) {
-            // console.log("messageStreamEvent", messageStreamEvent);
+            console.log("messageStreamEvent", messageStreamEvent);
             if (messageStreamEvent.type === "message_start") {
-              // console.log("message_start", messageStreamEvent.message.usage);
+              console.log("message_start", messageStreamEvent.message.usage);
               total_tokens += messageStreamEvent.message.usage.input_tokens; // messageStreamEvent.usage.input_tokens
               total_tokens += messageStreamEvent.message.usage.output_tokens; // messageStreamEvent.usage.output_tokens
               total_tokens +=
@@ -70,26 +60,16 @@ export async function POST(req) {
               total_tokens +=
                 messageStreamEvent.message.usage.cache_read_input_tokens; // messageStreamEvent.usage.cache_read_input_tokens
             } else if (messageStreamEvent.type === "message_delta") {
-              // console.log("message_delta", messageStreamEvent);
+              console.log("message_delta", messageStreamEvent);
               total_tokens += messageStreamEvent.usage.output_tokens;
-            } else if (messageStreamEvent?.content_block?.type === "thinking") {
-              controller.enqueue(encoder.encode("<think>\n"));
-            } else if (messageStreamEvent?.delta?.type === "signature_delta") {
-              controller.enqueue(encoder.encode("\n\n</think>\n\n"));
             } else if (messageStreamEvent.type === "content_block_delta") {
               // messageStreamEvent.delta.text
-              if (messageStreamEvent?.delta?.type === "thinking_delta") {
-                controller.enqueue(
-                  encoder.encode(messageStreamEvent?.delta?.thinking)
-                );
-              } else {
-                controller.enqueue(
-                  encoder.encode(messageStreamEvent?.delta?.text)
-                );
-              }
+              controller.enqueue(
+                encoder.encode(messageStreamEvent?.delta?.text)
+              );
             }
           }
-          // console.log("total_tokens", total_tokens);
+          console.log("total_tokens", total_tokens);
           fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
             method: "POST",
             headers: {
