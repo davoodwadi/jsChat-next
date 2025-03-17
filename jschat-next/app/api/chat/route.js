@@ -44,12 +44,20 @@ export async function POST(req) {
             ? { thinking: { type: "enabled", budget_tokens: 8000 } }
             : {};
           // console.log("thinking", thinking);
-          const stream = await anthropic.messages.create({
-            max_tokens: 8192,
-            messages: data.messages.map((m) => ({
+          const messages = data.messages
+            .filter((m) => m.role !== "system")
+            .map((m) => ({
               role: m.role,
               content: m.content,
-            })),
+            }));
+          const system = data.messages.filter((m) => m.role === "system")[0];
+
+          console.log("messages", messages);
+          console.log("system", system);
+          const stream = await anthropic.messages.create({
+            max_tokens: 8192,
+            system: system && system?.content,
+            messages: messages,
             model: data.model,
             stream: true,
             ...thinking,
