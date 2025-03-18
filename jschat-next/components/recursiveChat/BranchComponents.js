@@ -11,10 +11,21 @@ import { useSidebar } from "@/components/ui/sidebar";
 
 let baseUserClass =
   "  flex flex-col items-center p-4 m-1 rounded-xl bg-sky-50 dark:bg-sky-600 "; //border-2 border-blue-500 min-w-fit
-const textareaClass = ` min-w-40 md:min-w-64  mx-4 p-2.5 
-text-gray-900 bg-white rounded-lg border border-gray-300 
-focus:ring-blue-500 focus:border-blue-500 
-dark:bg-sky-700 dark:border-gray-400 dark:placeholder-gray-200 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`;
+let textareaClass = ` min-w-40 md:min-w-64  mx-4 p-2.5 
+text-gray-900
+border-none drop-shadow-none rounded-none divide-none outline-none shadow-none
+focus-visible:ring-0
+ dark:placeholder-gray-200 
+dark:text-white 
+`;
+// textareaClass += `
+// rounded-lg
+// focus:ring-blue-500 focus:border-blue-500
+// bg-white border border-gray-300
+// dark:focus:ring-blue-500 dark:focus:border-blue-500
+// dark:border-gray-400
+// dark:bg-sky-700
+// `;
 const submitButtonClass = `   p-4 md:p-2 
  text-blue-600 rounded-full cursor-pointer hover:bg-blue-100 
  dark:text-blue-100 dark:hover:bg-sky-700 `;
@@ -22,9 +33,13 @@ const submitButtonClass = `   p-4 md:p-2
 let baseBotClass =
   // "rounded-xl bg-yellow-600 text-black p-4 m-1 relative break-words  "; //border-yellow-500
   `     p-4 m-1 relative   
-    text-gray-900 bg-yellow-50 rounded-xl border border-gray-300 
+    text-gray-900 bg-yellow-50 rounded-xl  
     focus:ring-blue-500 focus:border-blue-500 
     dark:bg-yellow-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-black dark:focus:ring-blue-500 dark:focus:border-blue-500`;
+
+// baseBotClass += `
+// border border-gray-300
+// `;
 
 export function UserMessage(props) {
   // console.log("User props", props);

@@ -16,16 +16,6 @@ const ChatContainer = dynamic(
   }
 );
 
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Accordion,
   AccordionContent,
@@ -33,7 +23,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-import { Check, CircleCheck, CircleDot } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 
 import { useState } from "react";
@@ -48,14 +37,15 @@ import {
   groqModelsWithMeta,
   deepinfraModelsWithMeta,
   anthropicModelsWithMeta,
+  xAIModelsWithMeta,
 } from "@/app/models";
 
-const models = [
-  ...openaiModels,
-  ...groqModels,
-  ...deepinfraModels,
-  ...anthropicModels,
-];
+// const models = [
+//   ...openaiModels,
+//   ...groqModels,
+//   ...deepinfraModels,
+//   ...anthropicModels,
+// ];
 // console.log(openaiModels);
 // console.log(models);
 const modelMeta = [
@@ -63,6 +53,7 @@ const modelMeta = [
   { desc: "Groq Models (Open-source)", models: groqModelsWithMeta },
   { desc: "DeepInfra Models (Open-source)", models: deepinfraModelsWithMeta },
   { desc: "Anthropic Models (Closed-source)", models: anthropicModelsWithMeta },
+  { desc: "xAI Models (Closed-source)", models: xAIModelsWithMeta },
 ];
 
 export default function Chat() {

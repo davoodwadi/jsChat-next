@@ -127,10 +127,20 @@ export const anthropicModelsWithMeta = [
   },
 ];
 
+export const xAIModelsWithMeta = [
+  {
+    name: "Groq 2",
+    model: "grok-2-latest",
+    meta: "xAI's Flagship LLM",
+    icon: DifferentIcon,
+  },
+];
+
 export const groqModels = groqModelsWithMeta.map((m) => m.model);
 export const deepinfraModels = deepinfraModelsWithMeta.map((m) => m.model);
 export const openaiModels = openaiModelsWithMeta.map((m) => m.model);
 export const anthropicModels = anthropicModelsWithMeta.map((m) => m.model);
+export const xAIModels = xAIModelsWithMeta.map((m) => m.model);
 
 // console.log(groqModels);
 // console.log(deepinfraModels);

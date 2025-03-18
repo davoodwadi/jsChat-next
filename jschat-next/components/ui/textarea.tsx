@@ -6,7 +6,7 @@ const Textarea = React.forwardRef<
   HTMLTextAreaElement,
   React.ComponentProps<"textarea">
 >(({ className, ...props }, ref) => {
-  const baseClass = `flex min-h-[90px] w-full rounded-md border border-input 
+  const baseClass = `flex min-h-[90px] w-full rounded-md border  
   bg-transparent px-3 py-2 
   
   shadow-sm placeholder:text-muted-foreground 

@@ -10,6 +10,7 @@ import {
   openaiModels,
   deepinfraModels,
   anthropicModels,
+  xAIModels,
 } from "@/app/models";
 
 // // Allow streaming responses up to 30 seconds
@@ -24,6 +25,11 @@ const deepinfra = createDeepInfra({
 const openai = new OpenAI({
   apiKey: process.env["OPENAI_KEY"], // This is the default and can be omitted
 });
+const xAI = new OpenAI({
+  apiKey: process.env["XAI_API_KEY"],
+  baseURL: "https://api.x.ai/v1",
+});
+
 const anthropic = new Anthropic();
 
 export async function POST(req) {
@@ -189,6 +195,39 @@ export async function POST(req) {
                 encoder.encode(chunk.choices[0]?.delta?.content)
               );
             } else if (chunk?.usage?.total_tokens) {
+              fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  amount: chunk?.usage?.total_tokens,
+                  email: data.email,
+                }),
+              });
+            }
+          }
+        } else if (xAIModels.includes(data.model)) {
+          // console.log("xAI");
+          const stream = await xAI.chat.completions.create({
+            messages: data.messages.map((m) => ({
+              role: m.role,
+              content: m.content,
+            })),
+            model: data.model,
+            stream: true,
+            stream_options: { include_usage: true },
+            max_completion_tokens: 16384,
+          });
+
+          for await (const chunk of stream) {
+            // console.log("chunk", chunk);
+            if (chunk.choices[0]?.delta?.content) {
+              controller.enqueue(
+                encoder.encode(chunk.choices[0]?.delta?.content)
+              );
+            } else if (chunk?.usage?.total_tokens) {
+              // console.log("total tokens", chunk?.usage?.total_tokens);
               fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
                 method: "POST",
                 headers: {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+
 export function Generate() {
   const [message, setMessage] = useState("");
   async function getLLM(e) {
