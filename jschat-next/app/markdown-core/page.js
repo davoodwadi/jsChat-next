@@ -7,7 +7,7 @@ import remarkRehype from "remark-rehype";
 import { unified } from "unified";
 // import { codes, types } from "micromark-util-symbol";
 
-export default async function () {
+export default async function Page() {
   //   console.log("codes", codes);
   const file = await unified()
     .use(remarkParse)
