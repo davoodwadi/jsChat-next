@@ -157,7 +157,7 @@ export async function POST(req) {
           });
           const fullStream = result.fullStream;
           for await (const fullPart of fullStream) {
-            console.log("fullPart", fullPart);
+            // console.log("fullPart", fullPart);
             if (fullPart.type === "text-delta") {
               const chunk = fullPart.textDelta;
               // console.log(chunk);

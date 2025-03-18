@@ -4,8 +4,7 @@ import rehypeRaw from "rehype-raw";
 import rehypeKatex from "rehype-katex";
 import React from "react";
 
-import {test} from '@/lib/testAction'
-
+import { test } from "@/lib/testAction";
 
 const markdownSample = `The \`MLPClassifier\` from the \`scikit-learn\` library.
 \`<!DOCTYPE html>\`
@@ -293,20 +292,97 @@ Let me recall some classic jokes. The skeleton one is popular. "Why didn't the s
 
 Wait, did I use that joke before? I need to make sure it's not a repeat. If the user has heard it before, maybe they want a different one. But since I can't check past interactions, I'll go with it. It's a common joke, so even if they've heard it, it's still a good example.`;
 
-export default async function MarkdownPage() {
-  console.log('Markdown Page')
-  console.log('page runtime',process.env.NEXT_RUNTIME);
+const math = `
+### Mathematical Formula for Gradient Descent
 
-  await test()
+Gradient descent is an optimization algorithm used to minimize a function \( f(\mathbf{x}) \). The basic idea is to iteratively update the parameters in the direction of the steepest descent, which is given by the negative of the gradient.
+
+The update rule for gradient descent can be expressed mathematically as:
+
+\[
+\mathbf{x}_{k+1} = \mathbf{x}_k - \eta \nabla f(\mathbf{x}_k)
+\]
+
+Where:
+- \( \mathbf{x}_{k} \) is the current point in the parameter space.
+- \( \mathbf{x}_{k+1} \) is the next point after the update.
+- \( \eta \) is the learning rate, a positive scalar that determines the step size.
+- \( \nabla f(\mathbf{x}_k) \) is the gradient of the function \( f \) at the point \( \mathbf{x}_k \).
+
+### Proof of Convergence of Gradient Descent (Under Certain Conditions)
+
+Let's prove that under certain conditions, gradient descent converges to a local minimum of a convex function.
+
+**Assumptions:**
+1. The function \( f \) is convex.
+2. The gradient \( \nabla f(\mathbf{x}) \) is Lipschitz continuous with constant \( L > 0\):
+   \[
+   \|\nabla f(\mathbf{x}) - \nabla f(\mathbf{y})\| \leq L \|\mathbf{x} - \mathbf{y}\| \quad \forall \mathbf{x}, \mathbf{y}
+   \]
+
+**Proof Steps:**
+
+1. **Gradient Descent Update:**
+   Starting with the update rule:
+   \[
+   \mathbf{x}_{k+1} = \mathbf{x}_k - \eta \nabla f(\mathbf{x}_k)
+   \]
+
+2. **Using the Taylor Expansion:**
+   We can approximate \( f(\mathbf{x}_{k+1}) \) using the Taylor expansion about \( \mathbf{x}_k \):
+   \[
+   f(\mathbf{x}_{k+1}) = f(\mathbf{x}_k - \eta \nabla f(\mathbf{x}_k)) \approx f(\mathbf{x}_k) + \nabla f(\mathbf{x}_k)^T(-\eta \nabla f(\mathbf{x}_k)) + \frac{L}{2} \|-\eta \nabla f(\mathbf{x}_k)\|^2
+   \]
+   Simplifying this yields:
+   \[
+   f(\mathbf{x}_{k+1}) \leq f(\mathbf{x}_k) - \eta \|\nabla f(\mathbf{x}_k)\|^2 + \frac{L \eta^2}{2} \|\nabla f(\mathbf{x}_k)\|^2
+   \]
+
+3. **Rearranging the Inequality:**
+   Therefore, we have:
+   \[
+   f(\mathbf{x}_{k+1}) \leq f(\mathbf{x}_k) - \left( \eta - \frac{L \eta^2}{2} \right) \|\nabla f(\mathbf{x}_k)\|^2
+   \]
+
+4. **Choosing a Suitable \( \eta \):**
+   If we choose \( \eta \) such that:
+   \[
+   0 < \eta < \frac{2}{L}
+   \]
+   then \( \eta - \frac{L \eta^2}{2} > 0 \) and it follows that:
+   \[
+   f(\mathbf{x}_{k+1}) < f(\mathbf{x}_k)
+   \]
+   indicating that the function value is decreasing.
+
+5. **Convergence Argument:**
+   As \\( k \\) goes to infinity, the updates cause \\( \\mathbf{x}_k \\) to approach a point where the gradient \\( \\nabla f(\\mathbf{x}) \\) approaches zero. Given \\( f \\) is convex and the updates always provide a non-increasing sequence of function values, the algorithm converges to a local minimum.
+
+### Conclusion
+It is $200 that you need to pay.
+
+$E=\\alpha$
+
+$$
+L = \\frac{1}{2} \\rho v^2 S C_L
+$$
+
+The lift coefficient ($C_L$) is a dimensionless coefficient.
+
+Gradient descent is guaranteed to converge to a local minimum for a convex function under the assumptions of Lipschitz continuity of the gradient and a suitably chosen learning rate. This demonstration outlines the theoretical foundation of gradient descent. In practice, additional considerations such as learning rate schedules and second-order methods might be necessary to ensure convergence in complex scenarios.
+`;
+export default async function MarkdownPage() {
+  console.log("Markdown Page");
+  console.log("page runtime", process.env.NEXT_RUNTIME);
+
+  await test();
   return (
     <>
       {/* <div dangerouslySetInnerHTML={{ __html: result }} /> */}
       {/* <Markdown remarkPlugins={[remarkGfm]}>{markdownSample}</Markdown> */}
 
       <div className="break-words max-w-[85vw] mx-auto">
-        <MarkdownComponent model="gpt-4o-mini">
-          {deepSeekPartial}
-        </MarkdownComponent>
+        <MarkdownComponent model="gpt-4o-mini">{math}</MarkdownComponent>
       </div>
     </>
   );

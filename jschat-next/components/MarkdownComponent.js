@@ -1,8 +1,14 @@
 import Markdown from "react-markdown";
+import remarkParse from "remark-parse";
+import remarkRehype from "remark-rehype";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import rehypeKatex from "rehype-katex";
+import rehypeMathjax from "rehype-mathjax";
+import rehypeStringify from "rehype-stringify";
 import remarkMath from "remark-math";
+import { visit } from "unist-util-visit";
+
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import {
   dark,
@@ -10,6 +16,7 @@ import {
   twilight,
   a11yDark,
 } from "react-syntax-highlighter/dist/esm/styles/prism";
+import "katex/dist/katex.min.css"; // `rehype-katex` does not import the CSS for you
 // import { Inter } from "next/font/google";
 import CopyText from "@/components/CopyTextComponent";
 // import "@/node_modules/github-markdown-css/github-markdown.css";
@@ -17,10 +24,22 @@ import "@/styles/markdown.css";
 // const inter = Inter({ subsets: ["latin"] });
 const preprocessMarkdown = (text) => {
   // return text;
-  return text.replace(
+  let processedTexts = text.replace(
     /<think>([\s\S]*?)<\/think>/g,
     "\n\n<think>\n$1\n</think>\n\n"
   );
+  // Replace \[ ... \] with $$ ... $$ for block math
+  processedTexts = processedTexts.replace(
+    /\\\[(.*?)\\\]/gs,
+    (_, match) => `$$${match}$$`
+  );
+
+  // Replace \( ... \) with $ ... $ for inline math
+  processedTexts = processedTexts.replace(
+    /\\\((.*?)\\\)/gs,
+    (_, match) => `$${match}$`
+  );
+  return processedTexts;
 };
 export default function MarkdownComponent(props) {
   const processedText = preprocessMarkdown(props.children);
@@ -31,8 +50,8 @@ export default function MarkdownComponent(props) {
   return (
     <>
       <Markdown
+        remarkPlugins={[[remarkMath, { singleDollarTextMath: true }]]}
         rehypePlugins={[rehypeKatex, rehypeRaw]}
-        remarkPlugins={[remarkGfm, remarkMath]}
         // children={props.children}
         className={`markdown-body `}
         components={{
