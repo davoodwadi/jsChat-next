@@ -129,7 +129,7 @@ export const anthropicModelsWithMeta = [
 
 export const xAIModelsWithMeta = [
   {
-    name: "Groq 2",
+    name: "Grok 2",
     model: "grok-2-latest",
     meta: "xAI's Flagship LLM",
     icon: DifferentIcon,
