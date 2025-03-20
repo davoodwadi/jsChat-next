@@ -176,7 +176,12 @@ export async function POST(req) {
             }
           }
         } else if (openaiModels.includes(data.model)) {
-          // console.log("openai");
+          console.log("openai");
+          const reasoning = data.model.includes("o3-mini")
+            ? { reasoning_effort: "high" }
+            : {};
+
+          console.log("reasoning", reasoning);
           const stream = await openai.chat.completions.create({
             messages: data.messages.map((m) => ({
               role: m.role,
@@ -186,6 +191,7 @@ export async function POST(req) {
             stream: true,
             stream_options: { include_usage: true },
             max_completion_tokens: 16384,
+            ...reasoning,
           });
 
           for await (const chunk of stream) {

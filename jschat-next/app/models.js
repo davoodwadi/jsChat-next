@@ -95,7 +95,8 @@ export const openaiModelsWithMeta = [
   {
     name: "o3-mini",
     model: "o3-mini",
-    meta: "Latest Reasoning Model From OpenAI (Slow - Needs Thinking)",
+    meta: "Latest Reasoning Model From OpenAI | High Effort (Slow - Needs Thinking)",
+    reasoning: true,
     icon: BrainIcon,
   },
   {
