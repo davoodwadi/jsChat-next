@@ -68,6 +68,7 @@ export function UserMessage(props) {
     // console.log("refUser.current", refUser.current);
     if (props.userMessages.length === 1) {
       // console.log("refUser.current", refUser.current);
+      // console.log("props.userMessages", props.userMessages);
       if (refUser.current) {
         refUser.current.focus();
       }
@@ -87,7 +88,7 @@ export function UserMessage(props) {
           }}
           onKeyDown={(e) => {
             if (e.ctrlKey === true && e.code === "Enter") {
-              console.log(e.ctrlKey === true && e.code === "Enter");
+              // console.log(e.ctrlKey === true && e.code === "Enter");
               if (props.children) {
                 // set old value
                 setFinalValue((v) => props.children);

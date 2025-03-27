@@ -101,7 +101,10 @@ export function RecursiveChatContainer(props) {
         params.set("status", "new");
         // console.log("params", params);
 
-        router.push(pathname + "?" + params.toString());
+        router.push(pathname + "?" + params.toString(), { scroll: false });
+        // console.log("refElementUser", props.refElementUser);
+        // focus to the new userMessage textarea
+        // props.refElementUser?.current?.focus();
       }
     }
   }, [botMessages]);
