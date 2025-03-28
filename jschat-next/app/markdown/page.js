@@ -370,6 +370,27 @@ $$
 The lift coefficient ($C_L$) is a dimensionless coefficient.
 
 Gradient descent is guaranteed to converge to a local minimum for a convex function under the assumptions of Lipschitz continuity of the gradient and a suitably chosen learning rate. This demonstration outlines the theoretical foundation of gradient descent. In practice, additional considerations such as learning rate schedules and second-order methods might be necessary to ensure convergence in complex scenarios.
+
+
+| **Criteria**                             | **Excellent (4 points)**                                                                                               | **Good (3 points)**                                                                                   | **Fair (2 points)**                                                                                      | **Poor (1 point)**                                                                                   | **Grade Allocation (%)** |
+|------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------|--------------------------|
+| **General Report Format**                | Perfect adherence to formatting guidelines including fonts and tables.                                               | Minor formatting errors, but overall well-organized and readable.                                   | Several formatting issues that detract from clarity.                                                    | Major formatting errors that make the report difficult to read or unprofessional.                   | 10                       |
+| **Technical Content Completeness**       | Comprehensive coverage of all relevant topics.                                                                       | Good coverage of topics, missing a few minor details.                                              | Coverage is inconsistent, missing several important topics or details.                                  | Little to no coverage of important topics; fails to meet basic requirements of the assignment.      | 20                       |
+| **Comply with APA Style**                | Perfect adherence to APA style guidelines throughout.                                                                | Minor errors in APA citations or references, but generally follows guidelines.                      | Several errors in APA style that impact clarity; inconsistently applied guidelines.                       | No adherence to APA style; citations and references are completely missing or incorrect.            | 5                        |
+| **Quality of Questions**                 | Questions are insightful, relevant, and stimulate critical thinking.                                                  | Questions are mostly relevant with some thought-provoking elements.                                 | Questions are superficial, lack relevance, or fail to provoke deeper thought.                             | Questions are irrelevant, poorly formulated, or absent.                                              | 15                       |
+| **Rigor of Statistical Analysis**        | Advanced statistical analysis correctly applied and thoroughly explained.                                             | Good statistical analysis with minor errors or unclear explanations.                                | Basic statistical analysis with several errors or incomplete explanations.                               | No statistical analysis or analysis is incorrectly performed; fails to meet assignment requirements. | 20                       |
+| **Structure of the Report**              | Well-organized structure with clear sections and logical flow.                                                      | Mostly clear structure; some sections may lack coherence.                                          | Weak structure that confuses the reader; logical flow is difficult to follow.                           | Chaotic structure; no clear organization, making the report challenging to navigate.                | 10                       |
+| **Appropriate Use of Figures/Infographics** | Excellent use of figures/infographics that enhance understanding of the content.                                     | Good use of figures/infographics, but some may not be fully relevant or clear.                     | Limited use of figures/infographics; some may not contribute meaningfully to the content.               | Little to no use of figures/infographics, or those used are irrelevant and detract from the report. | 20                       |
+
+### Total Points: 100
+
+### Scoring Guide:
+- **Excellent**: 31-40 points
+- **Good**: 21-30 points
+- **Fair**: 11-20 points
+- **Poor**: 0-10 points
+
+
 `;
 export default async function MarkdownPage() {
   console.log("Markdown Page");
@@ -382,7 +403,9 @@ export default async function MarkdownPage() {
       {/* <Markdown remarkPlugins={[remarkGfm]}>{markdownSample}</Markdown> */}
 
       <div className="break-words max-w-[85vw] mx-auto">
-        <MarkdownComponent model="gpt-4o-mini">{math}</MarkdownComponent>
+        <MarkdownComponent model="gpt-4o-mini">
+          {longMarkdown}
+        </MarkdownComponent>
       </div>
     </>
   );

@@ -50,7 +50,10 @@ export default function MarkdownComponent(props) {
   return (
     <>
       <Markdown
-        remarkPlugins={[[remarkMath, { singleDollarTextMath: true }]]}
+        remarkPlugins={[
+          [remarkMath, { singleDollarTextMath: true }],
+          remarkGfm,
+        ]}
         rehypePlugins={[rehypeKatex, rehypeRaw]}
         // children={props.children}
         className={`markdown-body `}
