@@ -37,7 +37,7 @@ export function NavigationEvents() {
           setChatHistory(result);
           //   console.log("chatHistory loaded INSIDE", result);
         }
-        console.log("NavigationEvents pathname", pathname);
+        // console.log("NavigationEvents pathname", pathname);
         router.push(pathname, { scroll: false });
       }
     };

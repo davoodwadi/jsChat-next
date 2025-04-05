@@ -9,14 +9,15 @@ import { MultilineSkeleton } from "@/components/ui/skeleton";
 
 import { useSidebar } from "@/components/ui/sidebar";
 
-let baseUserClass =
-  "  flex flex-col items-center p-4 m-1 rounded-xl bg-sky-50 dark:bg-sky-600 "; //border-2 border-blue-500 min-w-fit
+let baseUserClass = "  flex flex-col items-center p-4 m-1 rounded-xl "; //border-2 border-blue-500 min-w-fit
+baseUserClass += `bg-gray-600 dark:bg-gray-200 `; // bg-sky-50 dark:bg-sky-600
 let textareaClass = ` min-w-40 md:min-w-64  mx-4 p-2.5 
-text-gray-900
+text-gray-100
+placeholder-gray-200
 border-none drop-shadow-none rounded-none divide-none outline-none shadow-none
 focus-visible:ring-0
- dark:placeholder-gray-200 
-dark:text-white 
+dark:placeholder-gray-500 
+dark:text-black 
 `;
 // textareaClass += `
 // rounded-lg
@@ -33,10 +34,12 @@ const submitButtonClass = `   p-4 md:p-2
 let baseBotClass =
   // "rounded-xl bg-yellow-600 text-black p-4 m-1 relative break-words  "; //border-yellow-500
   `     p-4 m-1 relative   
-    text-gray-900 bg-yellow-50 rounded-xl  
+    text-gray-900 rounded-xl  
     focus:ring-blue-500 focus:border-blue-500 
-    dark:bg-yellow-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-black dark:focus:ring-blue-500 dark:focus:border-blue-500`;
-
+     dark:border-gray-600 dark:placeholder-gray-400 
+     dark:text-white 
+     dark:focus:ring-blue-500 dark:focus:border-blue-500`;
+// baseBotClass += `bg-yellow-50 dark:bg-yellow-500`;
 // baseBotClass += `
 // border border-gray-300
 // `;
@@ -112,8 +115,8 @@ export function UserMessage(props) {
               refUser.current?.focus();
             }}
           >
-            <span className="inline-flex text-sm items-center">
-              <Eraser className="mx-2" /> Clear
+            <span className="inline-flex text-sm items-center text-gray-200 hover:text-gray-600 dark:text-gray-800 dark:hover:text-gray-100">
+              <Eraser className="mx-2" />
             </span>
           </Button>
           <Button
