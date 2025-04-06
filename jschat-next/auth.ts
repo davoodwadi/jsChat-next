@@ -2,7 +2,7 @@ import NextAuth, { Profile } from "next-auth";
 import { authConfig } from "./auth.config";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import { connectToDatabase } from "@/lib/db";
-
+import { addUserToMailingListIfNotExists } from "@/app/broadcast/getEmailsAction";
 console.log();
 // type Provider = "google" | "github";
 
@@ -113,6 +113,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         const info = await createOrUpdateUser({
           profile: profile,
+          provider: account.provider,
+        });
+        addUserToMailingListIfNotExists({
+          profile,
           provider: account.provider,
         });
         // console.log("toReturn info", info);

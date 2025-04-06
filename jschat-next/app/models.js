@@ -46,7 +46,7 @@ export const groqModelsWithMeta = [
   {
     name: "Qwen QWQ 32b",
     model: "qwen-qwq-32b",
-    meta: "The Reasoning Model Of The Qwen Series - Capable Of Thinking And Reasoning",
+    meta: "The Reasoning Model Of The Qwen Series By Alibaba Cloud - Capable Of Thinking And Reasoning",
     icon: BrainIcon,
   },
   {
@@ -85,13 +85,13 @@ export const deepinfraModelsWithMeta = [
   {
     name: "DeepSeek-R1-Distill-Qwen-32B",
     model: "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
-    meta: "Qwen Distilled Using DeepSeek R1 Reinforcement Learning",
+    meta: "Qwen By Alibaba Cloud Distilled Using DeepSeek R1 Reinforcement Learning",
     icon: BrainIcon,
   },
   {
     name: "Qwen2.5-72B-Instruct",
     model: "Qwen/Qwen2.5-72B-Instruct",
-    meta: "Largest Qwen Model",
+    meta: "Largest Qwen Model By Alibaba Cloud",
     icon: DifferentIcon,
   },
   {

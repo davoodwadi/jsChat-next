@@ -76,9 +76,13 @@ cikit-learn\` library.
 
 `;
 // const partialHtml = markdownSample.slice(0, 650);
-const longMarkdown = `<think>
-Sure! Let's break down each part of the code step by step, explaining what each line does.
-</think>
+const halfThink = `
+
+<think>
+Sure! Let's break down
+</think> now
+`;
+const longMarkdown = `<think>1</think>
 
 ### Step 1: Set Up Your Next.js Project
 
@@ -299,6 +303,11 @@ Gradient descent is an optimization algorithm used to minimize a function \( f(\
 
 The update rule for gradient descent can be expressed mathematically as:
 
+\\begin{equation}
+2x
+\\end{equation}
+
+
 \[
 \mathbf{x}_{k+1} = \mathbf{x}_k - \eta \nabla f(\mathbf{x}_k)
 \]
@@ -367,6 +376,18 @@ $$
 L = \\frac{1}{2} \\rho v^2 S C_L
 $$
 
+\\[
+L = \\frac{1}{2} \\rho v^2 S C_L
+\\]
+
+\`\`\`math
+2x
+\`\`\`
+
+\\[
+3x
+\\]
+
 The lift coefficient ($C_L$) is a dimensionless coefficient.
 
 Gradient descent is guaranteed to converge to a local minimum for a convex function under the assumptions of Lipschitz continuity of the gradient and a suitably chosen learning rate. This demonstration outlines the theoretical foundation of gradient descent. In practice, additional considerations such as learning rate schedules and second-order methods might be necessary to ensure convergence in complex scenarios.
@@ -392,6 +413,70 @@ Gradient descent is guaranteed to converge to a local minimum for a convex funct
 
 
 `;
+const htmlText = `
+
+Note: Be sure to replace placeholders like [First Name] and add working links where indicated (e.g., spreed.chat and llama.com URLs).
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Llama 4 + Spreed.chat</title>
+</head>
+<body style="font-family: Arial, sans-serif; color: #333333; background-color: #ffffff; margin: 0; padding: 0;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="padding: 20px 0;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="border: 1px solid #e0e0e0; border-radius: 6px; padding: 30px;">
+          <tr>
+            <td align="left" style="font-size: 24px; font-weight: bold; color: #222222; padding-bottom: 20px;">
+              Meet Llama 4 – The Most Advanced Multimodal AI Models Yet
+            </td>
+          </tr>
+          <tr>
+            <td style="font-size: 16px; line-height: 1.6;">
+              Hi <strong>[First Name]</strong>,
+              <br><br>
+              Big news! Spreed.chat now supports the latest and greatest from the world of AI: the all-new <strong>Llama 4 models</strong> — a huge leap forward in multimodal, open-source intelligence.
+              <br><br>
+              Introducing <strong>Llama 4 Scout</strong> and <strong>Llama 4 Maverick</strong> — our most efficient and intelligent models yet. Built to bring you more personalized chat and collaboration than ever before.
+              <br><br>
+              <strong>Why this matters for you:</strong>
+              <ul style="padding-left: 20px;">
+                <li><strong>🚀 Llama 4 Scout:</strong> A compact 17B parameter model with 16 experts and an unmatched 10M context window. It beats previous Llama versions and even Gemini 2.0 Flash-Lite, Mistral 3.1, and Gemma 3 — all while fitting on a single H100 GPU.</li>
+                <li><strong>🔥 Llama 4 Maverick:</strong> A high-performance 17B parameter model with 128 experts, outperforming GPT-4o and Gemini 2.0 Flash, and matching DeepSeek v3 in reasoning and code — all at half the active parameters.</li>
+                <li><strong>🧠 Distilled from Llama 4 Behemoth:</strong> Our 288B superscale model that tops GPT-4.5, Claude Sonnet 3.7, and Gemini 2.0 Pro on STEM benchmarks. It's still training — but already reshaping the future of intelligent systems.</li>
+              </ul>
+              We believe leading AI should be <strong>open, accessible, and powerful</strong>. That’s why Scout and Maverick are available for download <a href="https://llama.com" target="_blank" style="color: #007bff;">on llama.com</a> and <a href="https://huggingface.co" target="_blank" style="color: #007bff;">Hugging Face</a>, and fully integrated with Spreed.chat.
+              <br><br>
+              <strong>Start building smarter with Llama 4 today.</strong>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding: 30px 0;">
+              <a href="https://spreed.chat" target="_blank" style="background-color: #007bff; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 4px; display: inline-block; font-size: 16px;">
+                Try Llama 4 on Spreed.chat
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td style="font-size: 14px; color: #666666; text-align: center;">
+              P.S. Join us at <strong>LlamaCon on April 29</strong> to hear more about the future of AI. Don’t miss it!
+            </td>
+          </tr>
+          <tr>
+            <td style="padding-top: 30px; font-size: 12px; color: #999999; text-align: center;">
+              © 2024 Spreed.chat | All rights reserved
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+
+Let me know if you need a version styled or structured specifically for a certain email system (e.g., Mailchimp, HubSpot, custom ESP).`;
 export default async function MarkdownPage() {
   console.log("Markdown Page");
   console.log("page runtime", process.env.NEXT_RUNTIME);
@@ -403,9 +488,7 @@ export default async function MarkdownPage() {
       {/* <Markdown remarkPlugins={[remarkGfm]}>{markdownSample}</Markdown> */}
 
       <div className="break-words max-w-[85vw] mx-auto">
-        <MarkdownComponent model="gpt-4o-mini">
-          {longMarkdown}
-        </MarkdownComponent>
+        <MarkdownComponent model="gpt-4o-mini">{math}</MarkdownComponent>
       </div>
     </>
   );
