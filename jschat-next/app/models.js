@@ -31,12 +31,12 @@ const BrainIcon = () => (
 );
 
 export const groqModelsWithMeta = [
-  {
-    name: "Llama 4 Maverick 17b 128 Experts",
-    model: "meta-llama/llama-4-maverick-17b-128e-instruct",
-    meta: "Latest Model From Meta Using Mixture-of-Experts With 128 Experts",
-    icon: FastIcon,
-  },
+  // {
+  //   name: "Llama 4 Maverick 17b 128 Experts",
+  //   model: "meta-llama/llama-4-maverick-17b-128e-instruct",
+  //   meta: "Latest Model From Meta Using Mixture-of-Experts With 128 Experts",
+  //   icon: FastIcon,
+  // },
   {
     name: "Llama 4 Scout 17b - 16 Experts",
     model: "meta-llama/llama-4-scout-17b-16e-instruct",

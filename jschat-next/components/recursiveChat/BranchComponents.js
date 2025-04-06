@@ -10,14 +10,14 @@ import { MultilineSkeleton } from "@/components/ui/skeleton";
 import { useSidebar } from "@/components/ui/sidebar";
 
 let baseUserClass = "  flex flex-col items-center p-4 m-1 rounded-xl "; //border-2 border-blue-500 min-w-fit
-baseUserClass += `bg-gray-600 dark:bg-gray-200 `; // bg-sky-50 dark:bg-sky-600
+baseUserClass += `bg-gray-100 dark:bg-gray-900 `; // bg-sky-50 dark:bg-sky-600
 let textareaClass = ` min-w-40 md:min-w-64  mx-4 p-2.5 
-text-gray-100
-placeholder-gray-200
+text-gray-950
+placeholder-gray-800
 border-none drop-shadow-none rounded-none divide-none outline-none shadow-none
 focus-visible:ring-0
 dark:placeholder-gray-500 
-dark:text-black 
+dark:text-gray-100
 `;
 // textareaClass += `
 // rounded-lg
@@ -115,7 +115,7 @@ export function UserMessage(props) {
               refUser.current?.focus();
             }}
           >
-            <span className="inline-flex text-sm items-center text-gray-200 hover:text-gray-600 dark:text-gray-800 dark:hover:text-gray-100">
+            <span className="inline-flex text-sm items-center text-gray-800 hover:text-gray-600 dark:text-gray-100 dark:hover:text-gray-300">
               <Eraser className="mx-2" />
             </span>
           </Button>
