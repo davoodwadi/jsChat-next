@@ -114,6 +114,7 @@ export async function saveChatSession(
   // console.log("email", userMessages);
   // console.log("email", botMessages);
   const content = params;
+  // console.log("content to be saved", content);
   const chatId = params.chatId;
   const client = await connectToDatabase();
   const plansCollection = client.db("chat").collection("plans");

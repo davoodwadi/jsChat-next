@@ -62,6 +62,7 @@ export async function handleSubmit({
   // event.target.id
   // event.target.value
   //
+  // console.log("model handle submit", model);
   // console.log("rest", rest);
   rest.setBotMessageFinished(false);
 
@@ -146,7 +147,7 @@ export async function handleSubmit({
       },
       body: JSON.stringify({
         messages: chain,
-        model: model,
+        model: model.model,
         email: authStatus,
       }),
     });
@@ -273,7 +274,7 @@ export async function handleSubmit({
       },
       body: JSON.stringify({
         messages: chain,
-        model: model,
+        model: model.model,
         email: authStatus,
       }),
     });
@@ -381,7 +382,7 @@ function getChain({
   if (systemPrompt !== "") {
     chain.push({
       content: systemPrompt,
-      role: model.includes("gpt") ? "developer" : "system",
+      role: model.model.includes("gpt") ? "developer" : "system",
     });
   }
 

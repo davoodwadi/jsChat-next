@@ -165,7 +165,7 @@ export function BotMessage(props) {
   return (
     <div className={baseBotClass}>
       <div className="flex flex-row justify-between text-xs mb-4">
-        <p>{props.model}</p>
+        <p>{props.model.name}</p>
         <CopyText text={props.children} />
       </div>
       <div

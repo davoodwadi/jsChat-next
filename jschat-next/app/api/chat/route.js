@@ -124,7 +124,7 @@ export async function POST(req) {
             model: data.model,
             stream: true,
             stream_options: { include_usage: true },
-            max_completion_tokens: 16384,
+            max_completion_tokens: 8191,
           });
 
           for await (const chunk of stream) {

@@ -32,19 +32,37 @@ const BrainIcon = () => (
 
 export const groqModelsWithMeta = [
   {
-    name: "llama-3.3-70b-versatile",
+    name: "Llama 4 Maverick 17b 128 Experts",
+    model: "meta-llama/llama-4-maverick-17b-128e-instruct",
+    meta: "Latest Model From Meta Using Mixture-of-Experts With 128 Experts",
+    icon: FastIcon,
+  },
+  {
+    name: "Llama 4 Scout 17b - 16 Experts",
+    model: "meta-llama/llama-4-scout-17b-16e-instruct",
+    meta: "Latest Model From Meta Using Mixture-of-Experts With 16 Experts",
+    icon: FastIcon,
+  },
+  {
+    name: "Qwen QWQ 32b",
+    model: "qwen-qwq-32b",
+    meta: "The Reasoning Model Of The Qwen Series - Capable Of Thinking And Reasoning",
+    icon: BrainIcon,
+  },
+  {
+    name: "Llama-3.3-70b-versatile",
     model: "llama-3.3-70b-versatile",
-    meta: "Latest Model From Meta",
+    meta: "70-Billion Parameter Model From Meta",
     icon: FastIcon,
   },
   {
-    name: "llama-3.3-70b-specdec",
+    name: "Llama-3.3-70b-specdec",
     model: "llama-3.3-70b-specdec",
-    meta: "Latest Model From Meta With Speculative Decoding (Faster)",
+    meta: "70-Billion Parameter Model From Meta With Speculative Decoding (Faster)",
     icon: FastIcon,
   },
   {
-    name: "deepseek-r1-distill-llama-70b",
+    name: "Deepseek-r1-distill-llama-70b",
     model: "deepseek-r1-distill-llama-70b",
     meta: "Meta Llama Distilled Using DeepSeek R1 Reinforcement Learning",
     icon: BrainIcon,
@@ -78,7 +96,6 @@ export const deepinfraModelsWithMeta = [
   },
   {
     name: "DeepSeek-R1",
-
     model: "deepseek-ai/DeepSeek-R1",
     meta: "Original DeepSeek R1 Model (Slow)",
     icon: BrainIcon,

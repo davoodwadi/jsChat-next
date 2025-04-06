@@ -29,10 +29,6 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 
 import {
-  openaiModels,
-  groqModels,
-  deepinfraModels,
-  anthropicModels,
   openaiModelsWithMeta,
   groqModelsWithMeta,
   deepinfraModelsWithMeta,
@@ -58,8 +54,9 @@ const modelMeta = [
 
 export default function Chat() {
   // console.log("rendering chat [chatid]");
-
-  const [model, setModel] = useState("gpt-4o-mini");
+  const { icon, ...startingModel } = openaiModelsWithMeta[0];
+  const [model, setModel] = useState(startingModel);
+  // console.log(model);
   const [systemPrompt, setSystemPrompt] = useState("");
 
   const params = useParams<{ tag: string; item: string; chatid: string }>();
@@ -95,11 +92,13 @@ export default function Chat() {
                       return (
                         <div
                           className={
-                            model === m.model ? selectedClass : baseClass
+                            model.model === m.model ? selectedClass : baseClass
                           }
                           key={m.model}
                           onClick={() => {
-                            setModel(m.model);
+                            const { icon, ...modelNow } = m;
+                            // console.log("modelNow", modelNow);
+                            setModel(modelNow);
                           }}
                         >
                           <div className="flex items-baseline gap-2 pt-2">
