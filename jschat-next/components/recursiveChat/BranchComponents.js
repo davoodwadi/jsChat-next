@@ -1,7 +1,7 @@
 import { test } from "@/lib/test";
 import MarkdownComponent from "@/components/MarkdownComponent";
 import CopyText from "@/components/CopyTextComponent";
-import { Trash2, SendHorizontal, Eraser } from "lucide-react";
+import { Trash2, SendHorizontal, Eraser, ImagePlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useRef, useState, useEffect } from "react";
@@ -46,9 +46,21 @@ let baseBotClass =
 
 export function UserMessage(props) {
   // console.log("User props", props);
+  // console.log("User props.id", props.id);
+  // console.log("User props.children", props.children);
 
   const [finalValue, setFinalValue] = useState(
-    props.children === "" ? "" : undefined
+    props.children?.text === "" ? "" : undefined
+  );
+  // console.log("finalValue", finalValue);
+  // const [image, setImage] = useState(
+  //   props.children?.image === "" ? "" : undefined
+  // );
+  // const [previewUrl, setPreviewUrl] = useState(
+  //   props.children?.image === "" ? "" : undefined
+  // );
+  const [base64Image, setBase64Image] = useState(
+    props.children?.image === "" ? "" : undefined
   );
 
   const refThisUser = useRef(null);
@@ -56,14 +68,21 @@ export function UserMessage(props) {
 
   const refUser = isLatestUser ? props.refElementUser : refThisUser;
 
-  if (props.children && finalValue === undefined) {
+  if (props.children?.text && finalValue === undefined) {
     // set new value for new branch
-    setFinalValue((v) => props.children);
+    setFinalValue((v) => props.children?.text);
+  }
+  if (props.children?.image && base64Image === undefined) {
+    // set new value for new branch
+    setBase64Image((v) => props.children?.image);
   }
   useEffect(() => {
     // reset the textarea when the branch is deleted
-    if (props.children === "") {
+    if (props.children?.text === "") {
       setFinalValue("");
+    }
+    if (props.children?.image === "") {
+      setBase64Image("");
     }
   }, [props.children]);
 
@@ -78,6 +97,19 @@ export function UserMessage(props) {
     }
   }, [refUser.current]);
 
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith("image/")) {
+      // setImage(file);
+      // setPreviewUrl(URL.createObjectURL(file));
+      //   encode image to Base64
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBase64Image(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
   return (
     <>
       <div className={baseUserClass}>
@@ -85,7 +117,8 @@ export function UserMessage(props) {
           placeholder="Type your message..."
           className={textareaClass}
           style={{ resize: "none" }}
-          value={finalValue} // props.children
+          rows={base64Image && 4}
+          value={finalValue} // props.children.text
           onChange={(e) => {
             setFinalValue((v) => e.target.value); // enable editing of textarea's text
           }}
@@ -94,10 +127,13 @@ export function UserMessage(props) {
               // console.log(e.ctrlKey === true && e.code === "Enter");
               if (props.children) {
                 // set old value
-                setFinalValue((v) => props.children);
+                setFinalValue((v) => props.children?.text);
               }
               if (refUser.current) {
-                props.handleSubmit(props.refElementBot, props.id, finalValue);
+                props.handleSubmit(props.refElementBot, props.id, {
+                  image: base64Image,
+                  text: finalValue,
+                });
               }
             }
           }}
@@ -106,6 +142,29 @@ export function UserMessage(props) {
           maxglobaliduser={props.maxGlobalIdUser}
           ref={refUser}
         />
+
+        {base64Image && (
+          <div className="relative inline-block">
+            {/* Preview Image */}
+            <img
+              src={base64Image}
+              alt="Preview"
+              className="w-12 h-12 object-cover rounded shadow"
+            />
+
+            {/* Delete Icon */}
+            <button
+              onClick={() => {
+                setBase64Image("");
+              }} // Clear the preview
+              className="absolute top-[0px] right-[-12px]  bg-gray-700 rounded-full text-white hover:bg-red-600"
+            >
+              <X className="w-4 h-4" />
+              {/* Assuming you're using Lucide icons */}
+            </button>
+          </div>
+        )}
+
         <div className="flex gap-2 pt-2">
           <Button
             variant="ghost"
@@ -119,6 +178,15 @@ export function UserMessage(props) {
               <Eraser className="mx-2" />
             </span>
           </Button>
+          <label className=" my-auto mr-6 p-2 rounded cursor-pointer hover:bg-gray-400 dark:hover:bg-gray-800">
+            <ImagePlus className=" w-4 h-4 " />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+            />
+          </label>
           <Button
             variant="default"
             size="sm"
@@ -127,10 +195,13 @@ export function UserMessage(props) {
               // console.log("e", e);
               if (props.children) {
                 // set old value
-                setFinalValue((v) => props.children);
+                setFinalValue((v) => props.children?.text);
               }
               if (refUser.current) {
-                props.handleSubmit(props.refElementBot, props.id, finalValue);
+                props.handleSubmit(props.refElementBot, props.id, {
+                  image: base64Image,
+                  text: finalValue,
+                });
               }
             }}
           >

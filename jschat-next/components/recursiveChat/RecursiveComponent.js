@@ -61,7 +61,6 @@ export function RecursiveChatContainer(props) {
       if (!thisSession) {
         // console.log("thisSession undefined");
         setLoadingHistory(false);
-
         return;
       }
       if (thisSession?.content?.userMessages) {

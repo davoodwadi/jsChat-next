@@ -117,12 +117,13 @@ export default function RecursiveBranch(props) {
                     toMaximize={
                       props.branchKeyToMaximize === tm.key || props.toMaximize
                     }
-                    handleSubmit={(botRef, targetId, targetValue) => {
+                    handleSubmit={(botRef, targetId, multimediaMessage) => {
                       handleSubmit({
                         ...props,
                         botRef,
                         targetId,
-                        targetValue,
+                        multimediaMessage,
+                        toast,
                       });
                       // } else {
                       // console.log("resizing");

@@ -12,7 +12,7 @@ import { useState } from "react";
 
 import {
   createSaveChatSessionParams,
-  SaveChatSessionParams,
+  // SaveChatSessionParams,
   SaveItemParams,
 } from "@/app/types/types";
 

@@ -76,7 +76,17 @@ export function NavigationEvents() {
                 if (!Array.isArray(userMessageArray)) {
                   return;
                 }
-                const snippetArray = userMessageArray.map((m) => m.content);
+                // console.log("userMessageArray", userMessageArray);
+                const snippetArrayNew = userMessageArray.map(
+                  (m) => m.content?.text && m.content?.text
+                );
+                const snippetArrayLegacy = userMessageArray.map(
+                  (m) => typeof m.content === "string" && m.content
+                ); // legacy
+                const snippetArray = [
+                  ...snippetArrayNew,
+                  ...snippetArrayLegacy,
+                ]; // legacy
                 const snippet = snippetArray
                   .join("...")
                   .slice(0, snippetToShow);

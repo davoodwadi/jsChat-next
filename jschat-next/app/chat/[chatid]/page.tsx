@@ -64,7 +64,7 @@ export default function Chat() {
   // console.log("chatId", chatId);
 
   // console.log("", models.includes(model));
-  console.log("model client", model);
+  // console.log("model client", model);
   // return <div>Hello</div>;
   const baseClass =
     "flex flex-row justify-between  px-1 pb-2 items-center border-b hover:cursor-pointer rounded-lg hover:bg-sky-100 hover:dark:bg-sky-950";
@@ -105,9 +105,21 @@ export default function Chat() {
                             <span className="">{m?.icon && m.icon()}</span>
                             <div className="flex flex-col ">
                               <span className="">{m.name}</span>
-                              <span className="text-gray-500 text-xs">
-                                {m.meta}
-                              </span>
+                              <div className="flex items-center">
+                                <span className="text-gray-500 text-xs">
+                                  {m.meta}
+                                </span>
+                                {m?.new && (
+                                  <span className="bg-green-500 text-white text-xs ml-2 px-1 rounded">
+                                    New
+                                  </span>
+                                )}
+                                {m?.vision && (
+                                  <span className="bg-slate-500 text-white text-xs ml-2 px-1 rounded">
+                                    Vision
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
                           {/* {model === m.model && (

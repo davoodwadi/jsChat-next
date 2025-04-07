@@ -2,7 +2,6 @@
 
 import { auth } from "@/auth";
 import { connectToDatabase } from "@/lib/db";
-import { revalidatePath } from "next/cache";
 
 export async function clearAllChatSessions() {
   const session = await auth();
@@ -107,7 +106,7 @@ export async function saveChatSession(
   //   systemPrompt,
   // }
 ) {
-  console.log("SERVER ACTION save systemPrompt", params.systemPrompt);
+  // console.log("SERVER ACTION save systemPrompt", params.systemPrompt);
   const session = await auth();
   const email = session?.user?.email;
   // console.log("email", email);

@@ -42,7 +42,7 @@ export async function handleDummy({ setText }) {
 export async function handleSubmit({
   botRef,
   targetId,
-  targetValue,
+  multimediaMessage,
   userMessages,
   setUserMessages,
   botMessages,
@@ -62,12 +62,13 @@ export async function handleSubmit({
   // event.target.id
   // event.target.value
   //
-  // console.log("model handle submit", model);
+  // console.log("chatUtils multimediaMessage", multimediaMessage);
   // console.log("rest", rest);
   rest.setBotMessageFinished(false);
 
   // const dummy =
   //   process.env.NEXT_PUBLIC_BASE_URL === "http://localhost:3000" ? true : false;
+  const endpoint = "chat";
   const dummy = false;
   // console.log("dummy", dummy);
   let chain;
@@ -108,10 +109,11 @@ export async function handleSubmit({
       {
         key: JSON.stringify(array), // new horizontal branch key
         globalIdUser: newGlobalIdUser,
-        content: `${targetValue}`,
+        content: multimediaMessage,
         role: "user",
       },
     ]);
+
     // get chain old message
     chain = getChain({
       targetId,
@@ -121,15 +123,16 @@ export async function handleSubmit({
       model,
     });
     chain.push({
-      key: JSON.stringify(array),
-      content: targetValue,
+      content: multimediaMessage,
       role: "user",
-    });
+    }); // key: JSON.stringify(array),
 
+    // console.log("userMessages", userMessages);
+    // console.log("chain", chain);
     // streaming the LLM old user
     //
     const authStatus = await getAuth();
-    console.log("authStatus", authStatus);
+    // console.log("authStatus", authStatus);
 
     if (authStatus === 400) {
       console.log("Not Authenticated", authStatus);
@@ -140,17 +143,43 @@ export async function handleSubmit({
       setIsTopupDialogOpen(true);
       return;
     }
-    const data = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/chat`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        messages: chain,
-        model: model.model,
-        email: authStatus,
-      }),
-    });
+
+    let data;
+    try {
+      data = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/${endpoint}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            messages: chain,
+            model: model.model,
+            email: authStatus,
+          }),
+        }
+      );
+      if (!data.ok) {
+        // Handle 400/500 responses from the server BEFORE the stream
+        const errorData = await data.json();
+        console.log("Error:", errorData.error);
+        rest.toast({
+          title: "Error",
+          description: errorData.error,
+        });
+        return;
+      }
+    } catch (err) {
+      // check if server sent error
+      console.log("Fetch failed:", err);
+      rest.toast({
+        title: "Error",
+        description: "There was a problem with your request.",
+      });
+      return;
+    }
+
     // if (dummy) {
     //   streamIterator = await generateDummmy(JSON.stringify(array), model);
     // } else {
@@ -205,7 +234,7 @@ export async function handleSubmit({
       {
         key: JSON.stringify(newArray),
         globalIdUser: newNewGlobalIdUser,
-        content: "",
+        content: {},
         role: "user",
       },
     ]);
@@ -226,10 +255,10 @@ export async function handleSubmit({
       model,
     });
     chain.push({
-      key: JSON.stringify(array),
-      content: targetValue,
+      content: multimediaMessage,
       role: "user",
-    });
+    }); // key: JSON.stringify(array),
+
     // console.log("chain", chain);
     //
 
@@ -241,7 +270,7 @@ export async function handleSubmit({
       const messageToUpdate = userMessagesCopy.find(
         (msg) => msg.key === JSON.stringify(array)
       );
-      messageToUpdate.content = targetValue;
+      messageToUpdate.content = multimediaMessage;
       return userMessagesCopy;
     });
 
@@ -267,18 +296,47 @@ export async function handleSubmit({
       setIsTopupDialogOpen(true);
       return;
     }
-    const data = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/chat`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        messages: chain,
-        model: model.model,
-        email: authStatus,
-      }),
-    });
-    // console.log('data', data)
+
+    // console.log("userMessages", userMessages);
+    // console.log("chain", chain);
+    // return;
+    let data;
+    try {
+      data = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/${endpoint}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            messages: chain,
+            model: model.model,
+            email: authStatus,
+          }),
+        }
+      );
+      if (!data.ok) {
+        // Handle 400/500 responses from the server BEFORE the stream
+        const errorData = await data.json();
+        console.log("Error:", errorData.error);
+        rest.toast({
+          title: "Error",
+          description: errorData.error,
+        });
+        return;
+      }
+    } catch (err) {
+      // check if server sent error
+      console.log("Fetch failed:", err);
+      rest.toast({
+        title: "Error",
+        description: "There was a problem with your request.",
+      });
+      return;
+    }
+    // console.log("data", data);
+    // return;
     const reader = data.body.getReader();
     const decoder = new TextDecoder();
     tempChunks = "";
@@ -341,7 +399,7 @@ export async function handleSubmit({
     const newUserEntry = {
       key: JSON.stringify(newArray),
       globalIdUser: newGlobalIdUser,
-      content: "",
+      content: {},
       role: "user",
     };
     setUserMessages((v) => {
@@ -382,7 +440,12 @@ function getChain({
   if (systemPrompt !== "") {
     chain.push({
       content: systemPrompt,
-      role: model.model.includes("gpt") ? "developer" : "system",
+      role:
+        model.model.includes("gpt") ||
+        model.model.includes("o1") ||
+        model.model.includes("o3")
+          ? "developer"
+          : "system",
     });
   }
 
@@ -392,12 +455,11 @@ function getChain({
     const parentKey = JSON.stringify(parentArray);
     const parentUser = userMessages.filter((m) => m.key === parentKey)[0];
     const parentBot = botMessages.filter((m) => m.key === parentKey)[0];
-    chain.push({ key: parentKey, content: parentUser.content, role: "user" });
+    chain.push({ content: parentUser.content, role: "user" }); // key: parentKey,
     chain.push({
-      key: parentKey,
       content: parentBot.content,
       role: "assistant",
-    });
+    }); // key: parentKey,
   }
   // console.log("chain messages", chain);
 
