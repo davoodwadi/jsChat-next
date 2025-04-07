@@ -163,6 +163,7 @@ export default function Chat() {
       <ChatContainer
         chatId={chatId}
         model={model}
+        setModel={setModel}
         systemPrompt={systemPrompt}
         setSystemPrompt={setSystemPrompt}
       />

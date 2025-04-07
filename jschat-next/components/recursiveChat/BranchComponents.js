@@ -8,6 +8,23 @@ import { useRef, useState, useEffect } from "react";
 import { MultilineSkeleton } from "@/components/ui/skeleton";
 
 import { useSidebar } from "@/components/ui/sidebar";
+import {
+  openaiModelsWithMeta,
+  groqModelsWithMeta,
+  deepinfraModelsWithMeta,
+  anthropicModelsWithMeta,
+  xAIModelsWithMeta,
+} from "@/app/models";
+
+const allModels = [
+  ...openaiModelsWithMeta,
+  ...groqModelsWithMeta,
+  ...deepinfraModelsWithMeta,
+  ...anthropicModelsWithMeta,
+  ...xAIModelsWithMeta,
+];
+const allModelsWithoutIcon = allModels.map(({ icon, ...model }) => model);
+const allModelNames = allModels.map((m) => m.name);
 
 let baseUserClass = "  flex flex-col items-center p-4 m-1 rounded-xl "; //border-2 border-blue-500 min-w-fit
 baseUserClass += `bg-gray-100 dark:bg-gray-900 `; // bg-sky-50 dark:bg-sky-600
@@ -52,16 +69,11 @@ export function UserMessage(props) {
   const [finalValue, setFinalValue] = useState(
     props.children?.text === "" ? "" : undefined
   );
-  // console.log("finalValue", finalValue);
-  // const [image, setImage] = useState(
-  //   props.children?.image === "" ? "" : undefined
-  // );
-  // const [previewUrl, setPreviewUrl] = useState(
-  //   props.children?.image === "" ? "" : undefined
-  // );
   const [base64Image, setBase64Image] = useState(
     props.children?.image === "" ? "" : undefined
   );
+  const [userMessageModel, setUserMessageModel] = useState(props.model);
+  // console.log("userMessageModel", userMessageModel);
 
   const refThisUser = useRef(null);
   const isLatestUser = props.maxGlobalIdUser === props.globalIdUser;
@@ -110,6 +122,9 @@ export function UserMessage(props) {
       reader.readAsDataURL(file);
     }
   };
+  // console.log("model", props.model);
+  // console.log("setModel", props.setModel);
+
   return (
     <>
       <div className={baseUserClass}>
@@ -128,12 +143,18 @@ export function UserMessage(props) {
               if (props.children) {
                 // set old value
                 setFinalValue((v) => props.children?.text);
+                setBase64Image((v) => props.children?.image);
               }
               if (refUser.current) {
-                props.handleSubmit(props.refElementBot, props.id, {
-                  image: base64Image,
-                  text: finalValue,
-                });
+                props.handleSubmit(
+                  props.refElementBot,
+                  props.id,
+                  {
+                    image: base64Image,
+                    text: finalValue,
+                  },
+                  userMessageModel
+                );
               }
             }
           }}
@@ -166,11 +187,33 @@ export function UserMessage(props) {
         )}
 
         <div className="flex gap-2 pt-2">
+          <select
+            id="myDropdown"
+            value={userMessageModel.name}
+            onChange={(event) => {
+              const selectedModelName = event.target.value; // Get the selected model's name
+              const selectedModel = allModelsWithoutIcon.find(
+                (model) => model.name === selectedModelName
+              );
+              setUserMessageModel(selectedModel);
+              props.setModel(selectedModel);
+            }}
+            className=" rounded text-xs p-1"
+          >
+            {allModelsWithoutIcon.map((m, i) => (
+              <option key={i} value={m.name}>
+                {m.name}
+              </option>
+            ))}
+          </select>
+
           <Button
             variant="ghost"
             size="sm"
+            className="my-auto"
             onClick={() => {
               setFinalValue("");
+              setBase64Image("");
               refUser.current?.focus();
             }}
           >
@@ -196,12 +239,18 @@ export function UserMessage(props) {
               if (props.children) {
                 // set old value
                 setFinalValue((v) => props.children?.text);
+                setBase64Image((v) => props.children?.image);
               }
               if (refUser.current) {
-                props.handleSubmit(props.refElementBot, props.id, {
-                  image: base64Image,
-                  text: finalValue,
-                });
+                props.handleSubmit(
+                  props.refElementBot,
+                  props.id,
+                  {
+                    image: base64Image,
+                    text: finalValue,
+                  },
+                  userMessageModel
+                );
               }
             }}
           >

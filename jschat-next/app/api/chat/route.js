@@ -196,7 +196,7 @@ export async function POST(req) {
     });
   } else if (deepinfraModels.includes(data.model)) {
     console.log("deepinfra");
-    const { convertedMessages, hasImage } = convertToOpenAIFormat(
+    const { convertedMessages, hasImage } = convertToDeepInfraFormat(
       data.messages
     );
 
@@ -415,6 +415,29 @@ function convertToOpenAIFormat(messages) {
         userM.content.push({
           type: "image_url",
           image_url: { url: m.content.image },
+        });
+        hasImage = true;
+      }
+      return userM;
+    } else {
+      return m;
+    }
+  });
+  return { convertedMessages: converted, hasImage: hasImage };
+}
+
+function convertToDeepInfraFormat(messages) {
+  let hasImage = false;
+  const converted = messages.map((m) => {
+    if (m.role === "user") {
+      const userM = {
+        role: "user",
+        content: [{ type: "text", text: m.content.text ? m.content.text : "" }],
+      };
+      if (m.content.image) {
+        userM.content.push({
+          type: "image",
+          image: m.content.image,
         });
         hasImage = true;
       }

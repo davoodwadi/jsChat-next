@@ -86,6 +86,15 @@ export const groqModelsWithMeta = [
 
 export const deepinfraModelsWithMeta = [
   {
+    name: "Llama 4 Maverick 17b - 128 Experts",
+    model: "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8",
+    meta: "Latest Model From Meta Using Mixture-of-Experts With 128 Experts",
+    new: true,
+    vision: true,
+    reasoning: false,
+    icon: DetailedIcon,
+  },
+  {
     name: "DeepSeek-R1-Turbo",
     model: "deepseek-ai/DeepSeek-R1-Turbo",
     meta: "Turbo Version of DeepSeek R1 Model (Fast)",

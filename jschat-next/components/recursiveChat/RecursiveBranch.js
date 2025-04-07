@@ -117,12 +117,18 @@ export default function RecursiveBranch(props) {
                     toMaximize={
                       props.branchKeyToMaximize === tm.key || props.toMaximize
                     }
-                    handleSubmit={(botRef, targetId, multimediaMessage) => {
+                    handleSubmit={(
+                      botRef,
+                      targetId,
+                      multimediaMessage,
+                      model
+                    ) => {
                       handleSubmit({
                         ...props,
                         botRef,
                         targetId,
                         multimediaMessage,
+                        model,
                         toast,
                       });
                       // } else {
@@ -133,6 +139,8 @@ export default function RecursiveBranch(props) {
                     refElementUser={props.refElementUser}
                     refElementBot={props.refElementBot}
                     userMessages={props.userMessages}
+                    model={props.model}
+                    setModel={props.setModel}
                   >
                     {tm.content}
                   </UserMessage>

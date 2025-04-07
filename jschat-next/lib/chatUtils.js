@@ -62,7 +62,7 @@ export async function handleSubmit({
   // event.target.id
   // event.target.value
   //
-  // console.log("chatUtils multimediaMessage", multimediaMessage);
+  // console.log("chatUtils model", model);
   // console.log("rest", rest);
   rest.setBotMessageFinished(false);
 
