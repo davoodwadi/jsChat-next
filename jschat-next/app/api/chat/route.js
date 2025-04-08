@@ -309,20 +309,30 @@ export async function POST(req) {
       },
     });
   } else if (xAIModels.includes(data.model)) {
+    // console.log("xAI");
+    const { convertedMessages, hasImage } = convertToOpenAIFormat(
+      data.messages
+    );
+    const modelMeta = allModels.find((m) => m.model === data.model);
+    if (!modelMeta.vision && hasImage) {
+      console.log("model does not have vision capabilities", data.model);
+      return new Response(
+        JSON.stringify({
+          error: `${data.model} does not support vision`,
+        }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
     const stream = new ReadableStream({
       async start(controller) {
         try {
           const encoder = new TextEncoder();
 
-          // console.log("xAI");
-          const { convertedMessages, hasImage } = convertToOpenAIFormat(
-            data.messages
-          );
           const streamResponse = await xAI.chat.completions.create({
             messages: convertedMessages,
             model: data.model,
             stream: true,
-            stream_options: { include_usage: true },
+            // stream_options: { include_usage: true },
             max_completion_tokens: 16384,
           });
 
@@ -333,7 +343,7 @@ export async function POST(req) {
                 encoder.encode(chunk.choices[0]?.delta?.content)
               );
             } else if (chunk?.usage?.total_tokens) {
-              // console.log("total tokens", chunk?.usage?.total_tokens);
+              console.log("total tokens", chunk?.usage?.total_tokens);
               fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
                 method: "POST",
                 headers: {

@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useRef, useState, useEffect } from "react";
 import { MultilineSkeleton } from "@/components/ui/skeleton";
-
 import { useSidebar } from "@/components/ui/sidebar";
 import {
   openaiModelsWithMeta,
@@ -124,8 +123,11 @@ export function UserMessage(props) {
       reader.readAsDataURL(file);
     }
   };
-  // console.log("model", props.model);
-  // console.log("botModel", props.botModel);
+
+  // console.log("id", props.id);
+  // console.log("props.model", props.model);
+  // console.log("props.botModel", props.botModel);
+  // console.log("userMessageModel", userMessageModel?.name);
 
   return (
     <>
@@ -190,15 +192,18 @@ export function UserMessage(props) {
               className="absolute top-[0px] right-[-12px]  bg-gray-700 rounded-full text-white hover:bg-red-600"
             >
               <X className="w-4 h-4" />
-              {/* Assuming you're using Lucide icons */}
             </button>
           </div>
         )}
 
-        <div className="flex gap-2 pt-2">
+        <div className="flex flex-wrap justify-center gap-2 pt-2">
           <select
-            id="myDropdown"
-            value={userMessageModel ? userMessageModel.name : props.model.name}
+            id="modelDropdown"
+            value={
+              userMessageModel?.name ||
+              props.botModel?.name ||
+              props.model?.name
+            }
             onChange={(event) => {
               const selectedModelName = event.target.value; // Get the selected model's name
               const selectedModel = allModelsWithoutIcon.find(
@@ -207,7 +212,7 @@ export function UserMessage(props) {
               setUserMessageModel(selectedModel);
               props.setModel(selectedModel);
             }}
-            className=" rounded text-xs p-1"
+            className=" rounded text-xs p-1 w-32 sm:w-48"
           >
             {allModelsWithoutIcon.map((m, i) => (
               <option key={i} value={m.name}>
@@ -258,6 +263,7 @@ export function UserMessage(props) {
                 if (!userMessageModel) {
                   setUserMessageModel(currentModel);
                 }
+
                 props.handleSubmit(
                   props.refElementBot,
                   props.id,
@@ -271,8 +277,9 @@ export function UserMessage(props) {
             }}
           >
             <span className="inline-flex text-sm items-center">
-              <SendHorizontal className="mx-2" /> <span>Send</span>&nbsp;
-              <span className="text-gray-500"> Ctrl + ↵</span>
+              <SendHorizontal className="mx-2" />{" "}
+              <span className="hidden sm:block">Send</span>&nbsp;
+              <span className="text-gray-500 hidden md:block"> Ctrl + ↵</span>
             </span>
           </Button>
         </div>
