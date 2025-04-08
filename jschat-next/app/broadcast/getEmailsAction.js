@@ -34,19 +34,33 @@ async function getAllUsers() {
   return result;
 }
 async function getContactList() {
-  const contactList = await resend.contacts.list({
-    audienceId: audienceID,
-  });
-  if (contactList.error) {
-    console.error("error occurred fetching contacts");
-    return;
+  try {
+    const contactList = await resend.contacts.list({
+      audienceId: audienceID,
+    });
+    if (contactList.error) {
+      console.error("error occurred fetching contacts");
+      return [];
+    }
+    return contactList?.data?.data;
+  } catch (error) {
+    console.log("error fetching resend contacts", error);
+    return [];
   }
-  return contactList?.data?.data;
 }
 const findDifference = (users, contacts) => {
-  return users.filter(
-    (user) => !contacts.some((contact) => contact.email === user.email)
-  );
+  // console.log("contacts", contacts);
+  // console.log("users", users);
+  try {
+    const difference = users.filter(
+      (user) => !contacts.some((contact) => contact.email === user.email)
+    );
+    // console.log("difference", difference);
+    return difference;
+  } catch (error) {
+    console.log("Cannot find user contact difference, Error", error);
+    return;
+  }
 };
 async function createContacts(contacts) {
   let count = 0;
@@ -95,6 +109,10 @@ export async function addUserToMailingListIfNotExists({ profile, provider }) {
   const contactList = await getContactList();
   const difference = findDifference([profile], contactList);
   // console.log("difference", difference);
+  if (difference.length === 0) {
+    console.log("user already in contacts list -> return");
+    return;
+  }
   const fullName = profile?.name;
   if (!fullName) {
     return;
@@ -110,5 +128,5 @@ export async function addUserToMailingListIfNotExists({ profile, provider }) {
     unsubscribed: false,
     audienceId: audienceID,
   });
-  console.log("createResults ", createResults);
+  console.log("added new user to mailing list: createResults ", createResults);
 }
