@@ -15,10 +15,10 @@ export function SidebarInnerServer({ children }) {
       <div
         className={` flex flex-col overflow-hidden min-h-screen mx-auto w-full `} //
       >
-        <div className="flex flex-row mt-2 mb-6 justify-between">
-          <div className=" items-center place-items-center">
-            <SidebarTrigger className="my-auto content-center items-center" />
-          </div>
+        <div className="fixed top-0 z-50 items-center place-items-center ">
+          <SidebarTrigger className="content-center items-center" />
+        </div>
+        <div className="flex flex-row mt-2 mb-6 justify-end">
           <div className="flex flex-row  ">
             <Suspense
               fallback={
