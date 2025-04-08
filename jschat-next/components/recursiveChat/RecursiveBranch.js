@@ -141,6 +141,7 @@ export default function RecursiveBranch(props) {
                     userMessages={props.userMessages}
                     model={props.model}
                     setModel={props.setModel}
+                    botModel={getBotMessageForKey(tm.key)?.model}
                   >
                     {tm.content}
                   </UserMessage>

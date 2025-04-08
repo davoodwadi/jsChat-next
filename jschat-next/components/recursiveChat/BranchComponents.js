@@ -24,7 +24,6 @@ const allModels = [
   ...xAIModelsWithMeta,
 ];
 const allModelsWithoutIcon = allModels.map(({ icon, ...model }) => model);
-const allModelNames = allModels.map((m) => m.name);
 
 let baseUserClass = "  flex flex-col items-center p-4 m-1 rounded-xl "; //border-2 border-blue-500 min-w-fit
 baseUserClass += `bg-gray-100 dark:bg-gray-900 `; // bg-sky-50 dark:bg-sky-600
@@ -44,9 +43,6 @@ dark:text-gray-100
 // dark:border-gray-400
 // dark:bg-sky-700
 // `;
-const submitButtonClass = `   p-4 md:p-2 
- text-blue-600 rounded-full cursor-pointer hover:bg-blue-100 
- dark:text-blue-100 dark:hover:bg-sky-700 `;
 
 let baseBotClass =
   // "rounded-xl bg-yellow-600 text-black p-4 m-1 relative break-words  "; //border-yellow-500
@@ -72,8 +68,14 @@ export function UserMessage(props) {
   const [base64Image, setBase64Image] = useState(
     props.children?.image === "" ? "" : undefined
   );
-  const [userMessageModel, setUserMessageModel] = useState(props.model);
+
+  const [userMessageModel, setUserMessageModel] = useState(() => {
+    if (props.botModel) {
+      return props.botModel;
+    }
+  });
   // console.log("userMessageModel", userMessageModel);
+  // console.log("props.model.name", props.model.name);
 
   const refThisUser = useRef(null);
   const isLatestUser = props.maxGlobalIdUser === props.globalIdUser;
@@ -123,7 +125,7 @@ export function UserMessage(props) {
     }
   };
   // console.log("model", props.model);
-  // console.log("setModel", props.setModel);
+  // console.log("botModel", props.botModel);
 
   return (
     <>
@@ -144,8 +146,16 @@ export function UserMessage(props) {
                 // set old value
                 setFinalValue((v) => props.children?.text);
                 setBase64Image((v) => props.children?.image);
+                setUserMessageModel(props.botModel);
               }
               if (refUser.current) {
+                if (!userMessageModel) {
+                  if (props.botModel) {
+                    setUserMessageModel(props.botModel);
+                  } else {
+                    setUserMessageModel(props.model);
+                  }
+                }
                 props.handleSubmit(
                   props.refElementBot,
                   props.id,
@@ -189,7 +199,7 @@ export function UserMessage(props) {
         <div className="flex gap-2 pt-2">
           <select
             id="myDropdown"
-            value={userMessageModel.name}
+            value={userMessageModel ? userMessageModel.name : props.model.name}
             onChange={(event) => {
               const selectedModelName = event.target.value; // Get the selected model's name
               const selectedModel = allModelsWithoutIcon.find(
@@ -240,8 +250,16 @@ export function UserMessage(props) {
                 // set old value
                 setFinalValue((v) => props.children?.text);
                 setBase64Image((v) => props.children?.image);
+                setUserMessageModel(props.botModel);
               }
               if (refUser.current) {
+                if (!userMessageModel) {
+                  if (props.botModel) {
+                    setUserMessageModel(props.botModel);
+                  } else {
+                    setUserMessageModel(props.model);
+                  }
+                }
                 props.handleSubmit(
                   props.refElementBot,
                   props.id,
@@ -285,7 +303,9 @@ export function BotMessage(props) {
   return (
     <div className={baseBotClass}>
       <div className="flex flex-row justify-between text-xs mb-4">
-        <p>{props.model.name}</p>
+        <p className="text-sm antialiased italic font-bold ">
+          {props.model.name}
+        </p>
         <CopyText text={props.children} />
       </div>
       <div
