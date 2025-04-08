@@ -149,12 +149,11 @@ export function UserMessage(props) {
                 setUserMessageModel(props.botModel);
               }
               if (refUser.current) {
+                const currentModel = props.botModel
+                  ? props.botModel
+                  : props.model;
                 if (!userMessageModel) {
-                  if (props.botModel) {
-                    setUserMessageModel(props.botModel);
-                  } else {
-                    setUserMessageModel(props.model);
-                  }
+                  setUserMessageModel(currentModel);
                 }
                 props.handleSubmit(
                   props.refElementBot,
@@ -163,7 +162,7 @@ export function UserMessage(props) {
                     image: base64Image,
                     text: finalValue,
                   },
-                  userMessageModel
+                  userMessageModel ? userMessageModel : currentModel
                 );
               }
             }
@@ -253,12 +252,11 @@ export function UserMessage(props) {
                 setUserMessageModel(props.botModel);
               }
               if (refUser.current) {
+                const currentModel = props.botModel
+                  ? props.botModel
+                  : props.model;
                 if (!userMessageModel) {
-                  if (props.botModel) {
-                    setUserMessageModel(props.botModel);
-                  } else {
-                    setUserMessageModel(props.model);
-                  }
+                  setUserMessageModel(currentModel);
                 }
                 props.handleSubmit(
                   props.refElementBot,
@@ -267,7 +265,7 @@ export function UserMessage(props) {
                     image: base64Image,
                     text: finalValue,
                   },
-                  userMessageModel
+                  userMessageModel ? userMessageModel : currentModel
                 );
               }
             }}
