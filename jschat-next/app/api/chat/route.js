@@ -55,14 +55,19 @@ export async function POST(req) {
   console.log("model server", data.model);
 
   if (anthropicModels.includes(data.model)) {
+    const { convertedMessages, system } = convertToAnthropicFormat(
+      data.messages
+    );
+    // console.log("Anthropic convertedMessages", convertedMessages);
+    // console.log("Anthropic system", system);
+
+    // return;
     const stream = new ReadableStream({
       async start(controller) {
         try {
           const encoder = new TextEncoder();
           // console.log("Anthropic Model", data.model);
-          const convertedMessages = convertToAnthropicFormat(data.messages);
-          // console.log("Anthropic convertedMessages", convertedMessages);
-          // return;
+
           const thinking = data.model.includes("claude-3-7-sonnet")
             ? { thinking: { type: "enabled", budget_tokens: 8000 } }
             : {};
@@ -73,7 +78,7 @@ export async function POST(req) {
           //     role: m.role,
           //     content: m.content,
           //   }));
-          const system = data.messages.filter((m) => m.role === "system")[0];
+          // const system = data.messages.filter((m) => m.role === "system")[0];
 
           // console.log("messages", messages);
           // console.log("system", system);
@@ -460,20 +465,26 @@ function convertToDeepInfraFormat(messages) {
 }
 
 function convertToAnthropicFormat(messages) {
-  return messages.map((m) => {
-    if (m.role === "user") {
-      const userM = {
-        role: "user",
-        content: [{ type: "text", text: m.content.text ? m.content.text : "" }],
-      };
-      if (m.content.image) {
-        userM.content.push(formatBase64ImageAnthropic(m.content.image));
+  const convertedMessages = messages
+    .filter((m) => m.role !== "system")
+    .map((m) => {
+      if (m.role === "user") {
+        const userM = {
+          role: "user",
+          content: [
+            { type: "text", text: m.content.text ? m.content.text : "" },
+          ],
+        };
+        if (m.content.image) {
+          userM.content.push(formatBase64ImageAnthropic(m.content.image));
+        }
+        return userM;
+      } else if (m.role === "assistant") {
+        return m;
       }
-      return userM;
-    } else {
-      return m;
-    }
-  });
+    });
+  const system = messages.find((m) => m.role === "system");
+  return { convertedMessages, system };
 }
 
 function formatBase64ImageAnthropic(base64String) {
