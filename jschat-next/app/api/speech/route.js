@@ -1,6 +1,19 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 
 export async function GET(req) {
+  const authenticated = await auth();
+  const email = authenticated?.user?.email;
+  console.log("email", email);
+  if (!(email === "davood.wadi@hec.ca" || email === "davoodwadi@google.com")) {
+    console.log("email not authorized", email);
+
+    return new NextResponse(JSON.stringify({ error: "Not Authorized" }), {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  }
   const apiKey = process.env.OPENAI_KEY;
   try {
     const response = await fetch(
