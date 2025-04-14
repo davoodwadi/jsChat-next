@@ -143,9 +143,36 @@ export const deepinfraModelsWithMeta = [
 
 export const openaiModelsWithMeta = [
   {
+    name: "gpt-4.1-mini",
+    model: "gpt-4.1-mini",
+    meta: "Latest Mini Version of OpenAI's GPT Model Series (Fastest)",
+    new: true,
+    vision: true,
+    reasoning: false,
+    icon: FastIcon,
+  },
+  {
+    name: "gpt-4.1-nano",
+    model: "gpt-4.1-nano",
+    meta: "Latest Nano Version of OpenAI's GPT Model Series (Fastest)",
+    new: true,
+    vision: true,
+    reasoning: false,
+    icon: FastIcon,
+  },
+  {
+    name: "gpt-4.1",
+    model: "gpt-4.1",
+    meta: "Latest Version of OpenAI's GPT Model Series (Fastest)",
+    new: true,
+    vision: true,
+    reasoning: false,
+    icon: DetailedIcon,
+  },
+  {
     name: "gpt-4o-mini",
     model: "gpt-4o-mini",
-    meta: "Latest Mini Version of OpenAI's GPT Model Series (Fastest)",
+    meta: "Mini Version of OpenAI's Omni Model Series (Fastest)",
     new: false,
     vision: true,
     reasoning: false,
@@ -163,7 +190,7 @@ export const openaiModelsWithMeta = [
   {
     name: "gpt-4o",
     model: "gpt-4o",
-    meta: "Latest Flagship GPT Model From OpenAI",
+    meta: "Latest Flagship Omni Model From OpenAI",
     new: false,
     vision: true,
     reasoning: false,
@@ -172,7 +199,7 @@ export const openaiModelsWithMeta = [
   {
     name: "chatgpt-4o-latest",
     model: "chatgpt-4o-latest",
-    meta: "Flagship GPT Model Used in ChatGPT",
+    meta: "Flagship Omni Model Used in ChatGPT",
     new: false,
     vision: true,
     reasoning: false,

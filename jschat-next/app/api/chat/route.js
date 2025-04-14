@@ -264,7 +264,7 @@ export async function POST(req) {
         try {
           const encoder = new TextEncoder();
 
-          console.log("openai");
+          console.log("openai", data.model);
           const { convertedMessages, hasImage } = convertToOpenAIFormat(
             data.messages
           );
