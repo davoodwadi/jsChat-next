@@ -240,9 +240,27 @@ export const anthropicModelsWithMeta = [
 
 export const xAIModelsWithMeta = [
   {
+    name: "Grok 3",
+    model: "grok-3-latest",
+    meta: "xAI's Flagship LLM",
+    new: true,
+    vision: false,
+    reasoning: false,
+    icon: DetailedIcon,
+  },
+  {
+    name: "Grok 3 mini high",
+    model: "grok-3-mini-latest",
+    meta: "xAI's Flagship LLM With High Reasoning",
+    new: true,
+    vision: false,
+    reasoning: true,
+    icon: BrainIcon,
+  },
+  {
     name: "Grok 2",
     model: "grok-2-latest",
-    meta: "xAI's Flagship LLM",
+    meta: "xAI's LLM",
     new: false,
     vision: false,
     reasoning: false,

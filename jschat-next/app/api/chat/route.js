@@ -58,10 +58,6 @@ export async function POST(req) {
     const { convertedMessages, system } = convertToAnthropicFormat(
       data.messages
     );
-    // console.log("Anthropic convertedMessages", convertedMessages);
-    // console.log("Anthropic system", system);
-
-    // return;
     const stream = new ReadableStream({
       async start(controller) {
         try {
@@ -323,7 +319,11 @@ export async function POST(req) {
       },
     });
   } else if (xAIModels.includes(data.model)) {
-    // console.log("xAI");
+    console.log("xAI");
+    const reasoning = data.model.includes("grok-3-mini-latest")
+      ? { reasoning_effort: "high" }
+      : {};
+    const isReasoning = data.model.includes("grok-3-mini-latest");
     const { convertedMessages, hasImage } = convertToOpenAIFormat(
       data.messages
     );
@@ -348,11 +348,23 @@ export async function POST(req) {
             stream: true,
             // stream_options: { include_usage: true },
             max_completion_tokens: 16384,
+            ...reasoning,
           });
-
+          let firstDelta = true;
+          if (isReasoning) {
+            controller.enqueue(encoder.encode("<think>"));
+          }
           for await (const chunk of streamResponse) {
-            // console.log("chunk", chunk);
-            if (chunk.choices[0]?.delta?.content) {
+            console.log("chunk", chunk);
+            if (chunk.choices[0]?.delta?.reasoning_content) {
+              controller.enqueue(
+                encoder.encode(chunk.choices[0]?.delta?.reasoning_content)
+              );
+            } else if (chunk.choices[0]?.delta?.content) {
+              if (firstDelta) {
+                firstDelta = false;
+                controller.enqueue(encoder.encode("</think>"));
+              }
               controller.enqueue(
                 encoder.encode(chunk.choices[0]?.delta?.content)
               );
