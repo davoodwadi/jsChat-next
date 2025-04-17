@@ -355,13 +355,13 @@ export async function POST(req) {
             controller.enqueue(encoder.encode("<think>"));
           }
           for await (const chunk of streamResponse) {
-            console.log("chunk", chunk);
+            // console.log("chunk", chunk);
             if (chunk.choices[0]?.delta?.reasoning_content) {
               controller.enqueue(
                 encoder.encode(chunk.choices[0]?.delta?.reasoning_content)
               );
             } else if (chunk.choices[0]?.delta?.content) {
-              if (firstDelta) {
+              if (firstDelta && isReasoning) {
                 firstDelta = false;
                 controller.enqueue(encoder.encode("</think>"));
               }
