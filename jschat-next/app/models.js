@@ -143,7 +143,7 @@ export const deepinfraModelsWithMeta = [
 
 export const openaiModelsWithMeta = [
   {
-    name: "gpt-4.1-mini",
+    name: "GPT 4.1 mini",
     model: "gpt-4.1-mini",
     meta: "Latest Mini Version of OpenAI's GPT Model Series (Fastest)",
     new: true,
@@ -152,7 +152,16 @@ export const openaiModelsWithMeta = [
     icon: FastIcon,
   },
   {
-    name: "gpt-4.1-nano",
+    name: "o4 mini",
+    model: "o4-mini",
+    meta: "Latest Reasoning Model From OpenAI | High Effort (Slow - Needs Thinking)",
+    reasoning: true,
+    new: true,
+    vision: true,
+    icon: BrainIcon,
+  },
+  {
+    name: "GPT 4.1 nano",
     model: "gpt-4.1-nano",
     meta: "Latest Nano Version of OpenAI's GPT Model Series (Fastest)",
     new: true,
@@ -161,7 +170,7 @@ export const openaiModelsWithMeta = [
     icon: FastIcon,
   },
   {
-    name: "gpt-4.1",
+    name: "GPT 4.1",
     model: "gpt-4.1",
     meta: "Latest Version of OpenAI's GPT Model Series (Fastest)",
     new: true,
@@ -170,7 +179,7 @@ export const openaiModelsWithMeta = [
     icon: DetailedIcon,
   },
   {
-    name: "gpt-4o-mini",
+    name: "GPT 4o mini",
     model: "gpt-4o-mini",
     meta: "Mini Version of OpenAI's Omni Model Series (Fastest)",
     new: false,
@@ -178,17 +187,18 @@ export const openaiModelsWithMeta = [
     reasoning: false,
     icon: FastIcon,
   },
+
   {
-    name: "o3-mini",
+    name: "o3 mini",
     model: "o3-mini",
-    meta: "Latest Reasoning Model From OpenAI | High Effort (Slow - Needs Thinking)",
+    meta: "Smaller Version of o3 Reasoning Model From OpenAI | High Effort (Slow - Needs Thinking)",
     reasoning: true,
     new: false,
-    vision: true,
+    vision: false,
     icon: BrainIcon,
   },
   {
-    name: "gpt-4o",
+    name: "GPT 4o",
     model: "gpt-4o",
     meta: "Latest Flagship Omni Model From OpenAI",
     new: false,
@@ -197,7 +207,7 @@ export const openaiModelsWithMeta = [
     icon: DetailedIcon,
   },
   {
-    name: "chatgpt-4o-latest",
+    name: "ChatGPT 4o latest",
     model: "chatgpt-4o-latest",
     meta: "Flagship Omni Model Used in ChatGPT",
     new: false,

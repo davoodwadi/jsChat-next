@@ -265,30 +265,39 @@ export async function POST(req) {
           const encoder = new TextEncoder();
 
           console.log("openai", data.model);
-          const { convertedMessages, hasImage } = convertToOpenAIFormat(
-            data.messages
-          );
-          const reasoning = data.model.includes("o3-mini")
-            ? { reasoning_effort: "high" }
-            : {};
+          // console.log("key", process.env["OPENAI_KEY"]);
+          const { convertedMessages, hasImage } =
+            convertToOpenAIResponsesFormat(data.messages);
+          const legacyMessages = convertToOpenAIFormat(data.messages);
+          const reasoning =
+            data.model.includes("o3-mini") || data.model.includes("o4-mini")
+              ? { reasoning: { effort: "high" } }
+              : {};
 
           console.log("reasoning", reasoning);
-          const streamResponse = await openai.chat.completions.create({
-            messages: convertedMessages,
+          const streamResponse = await openai.responses.create({
+            input: convertedMessages,
             model: data.model,
             stream: true,
-            stream_options: { include_usage: true },
-            max_completion_tokens: 16384,
+            // stream_options: { include_usage: true },
+            max_output_tokens: 16384,
             ...reasoning,
           });
+          // const streamResponse = await openai.chat.completions.create({
+          //   messages: legacyMessages.convertedMessages,
+          //   model: data.model,
+          //   stream: true,
+          //   stream_options: { include_usage: true },
+          //   max_completion_tokens: 16384,
+          //   ...reasoning,
+          // });
 
           for await (const chunk of streamResponse) {
             // console.log("chunk", chunk);
-            if (chunk.choices[0]?.delta?.content) {
-              controller.enqueue(
-                encoder.encode(chunk.choices[0]?.delta?.content)
-              );
-            } else if (chunk?.usage?.total_tokens) {
+            if (chunk.type === "response.output_text.delta") {
+              controller.enqueue(encoder.encode(chunk?.delta));
+            } else if (chunk.type === "response.completed") {
+              // console.log("total tokens", chunk?.response?.usage?.total_tokens);
               fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
                 method: "POST",
                 headers: {
@@ -416,6 +425,31 @@ export async function GET(req) {
 }
 async function wait(duration) {
   return new Promise((resolve) => setTimeout(resolve, duration));
+}
+
+function convertToOpenAIResponsesFormat(messages) {
+  let hasImage = false;
+  const converted = messages.map((m) => {
+    if (m.role === "user") {
+      const userM = {
+        role: "user",
+        content: [
+          { type: "input_text", text: m.content.text ? m.content.text : "" },
+        ],
+      };
+      if (m.content.image) {
+        userM.content.push({
+          type: "input_image",
+          image_url: m.content.image,
+        });
+        hasImage = true;
+      }
+      return userM;
+    } else {
+      return m;
+    }
+  });
+  return { convertedMessages: converted, hasImage: hasImage };
 }
 
 function convertToOpenAIFormat(messages) {
