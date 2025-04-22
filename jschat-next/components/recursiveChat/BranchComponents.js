@@ -316,7 +316,7 @@ export function BotMessage(props) {
       <div
         contentEditable="true"
         suppressContentEditableWarning
-        className=" break-words "
+        className=" break-words  focus:outline-none focus:border-none focus:ring-0"
         id={props.id}
         globalidbot={props.globalIdBot}
         maxglobalidbot={props.maxGlobalIdBot}
