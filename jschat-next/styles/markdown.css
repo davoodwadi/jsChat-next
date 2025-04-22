@@ -96,16 +96,27 @@
   text-align: left;
   margin-bottom: 2em;
   caption-side: bottom;
+  color: inherit;
+  background-color: inherit;
 }
 
 .markdown-body table caption {
   font-size: 0.9rem;
   font-style: italic;
   margin-top: 0.5em;
+  color: #444;
+}
+
+.dark .markdown-body table caption {
+  color: #ccc;
 }
 
 .markdown-body table thead {
   border-bottom: 2px solid black;
+}
+
+.dark .markdown-body table thead {
+  border-bottom: 2px solid white;
 }
 
 .markdown-body table thead th {
@@ -114,19 +125,33 @@
 }
 
 .markdown-body table tbody tr {
-  border-bottom: 1px solid #ccc;
+  /* border-bottom: 1px solid #ccc; */
+}
+
+.dark .markdown-body table tbody tr {
+  /* border-bottom: 1px solid #666; */
 }
 
 .markdown-body table tbody tr:last-child {
   border-bottom: 2px solid black;
 }
 
+.dark .markdown-body table tbody tr:last-child {
+  border-bottom: 2px solid white;
+}
+
 .markdown-body table td {
   padding: 0.5em 0.75em;
 }
 
+/* Light mode striping */
 .markdown-body table tr:nth-child(even) {
-  background-color: #f9f9f9;
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Dark mode override for striping */
+.dark .markdown-body table tr:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.07);
 }
 
 .markdown-body .title {
