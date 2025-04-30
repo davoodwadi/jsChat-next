@@ -3,6 +3,8 @@
 import { getAuth } from "@/lib/actions";
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Loader2, Plus } from "lucide-react";
+
 import { MultilineSkeleton } from "@/components/ui/skeleton";
 import { AuthDialog, TopupDialog } from "@/components/auth/AuthDialog";
 import { useParams } from "next/navigation";
@@ -25,52 +27,19 @@ export default function EditableWithTooltip() {
   const [model, setModel] = useState(startingModel);
   const [systemPrompt, setSystemPrompt] = useState("");
   //   console.log("model", model);
-  const editableRef = useRef(null);
-  const [tooltip, setTooltip] = useState({
-    visible: false,
-    top: 0,
-    left: 0,
-    text: "",
-  });
+  const textareaRef = useRef(null);
+  const tooltipRef = useRef(null);
+  const [selectionText, setSelectionText] = useState();
+
+  // console.log("selectionRectangle", selectionRectangle);
   const [canvasText, setCanvasText] = useState();
-  const [isEmpty, setIsEmpty] = useState(true);
+  const [cursorPos, setCursorPos] = useState();
+  const [isLoadingFromLLM, setIsLoadingFromLLM] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [loadingHistory, setLoadingHistory] = useState(true);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isTopupDialogOpen, setIsTopupDialogOpen] = useState(false);
-
-  const placeholder = "Type here...";
-
-  const handleSelection = () => {
-    const selection = window.getSelection();
-    if (
-      selection.rangeCount > 0 &&
-      //   !selection.isCollapsed && // Only show tooltip if some text is selected
-      editableRef.current.contains(selection.anchorNode)
-    ) {
-      const range = selection.getRangeAt(0);
-      const rect = range.getBoundingClientRect();
-
-      // Calculate position relative to the parent container
-      const parentRect = editableRef.current.getBoundingClientRect();
-      setTooltip({
-        visible: true,
-        top: rect.top - parentRect.top + 80, // 40px above selection
-        left: rect.left - parentRect.left,
-        text: selection.toString(),
-      });
-      //   console.log(rect.top, parentRect.top);
-      //   console.log("selection", selection);
-    } else {
-      setTooltip({ visible: false, top: 0, left: 0, text: "" });
-    }
-  };
-
-  useEffect(() => {
-    const text = editableRef.current?.innerText || canvasText;
-    setIsEmpty(!text || text.trim() === "");
-  }, [editableRef.current?.innerText, canvasText]);
 
   // load canvas history on launch
   useEffect(() => {
@@ -87,37 +56,51 @@ export default function EditableWithTooltip() {
         // console.log(`CLIENT: thisSession?.content`, thisSession?.content);
 
         setCanvasText(thisSession?.content?.canvasText);
-        // console.log(
-        //   "typeof editableRef.current?.innerText",
-        //   typeof editableRef.current?.innerText
-        // );
-        if (typeof editableRef.current?.innerText === "string") {
-          editableRef.current.innerText = thisSession?.content?.canvasText;
-        }
       }
       setLoadingHistory(false);
       setIsLoading(false);
     };
-    // console.log("editableRef.current", editableRef.current);
     loadHistory();
-  }, [editableRef.current]);
+  }, []);
   // END: load canvas history on launch
 
-  const onInput = () => {
-    const text = editableRef.current.innerText;
-    setIsEmpty(!text || text.trim() === "");
-    setCanvasText(text);
+  const onInput = (e) => {
+    setCanvasText(e.target.value);
+    // console.log("canvasText", canvasText);
   };
-
-  // console.log("isEmpty", isEmpty);
-  // console.log("canvasText", canvasText);
-  // useEffect(() => setIsLoading(false), []);
-
+  // Event handlers
+  const handleTextareaClick = (e) => {
+    // console.log("e", e);
+    handleCursorPosition();
+  };
+  const handleTextareaKeyUp = (e) => {
+    // Don't trigger on modifier keys
+    if (![16, 17, 18, 91, 93].includes(e.keyCode)) {
+      handleCursorPosition();
+    }
+  };
+  const handleTextareaBlur = () => {
+    handleCursorPosition();
+  };
+  const handleSelectionChange = () => {
+    if (document.activeElement === textareaRef.current) {
+      handleCursorPosition();
+    }
+  };
+  // Listen for selection changes
   useEffect(() => {
-    document.addEventListener("selectionchange", handleSelection);
-    return () =>
-      document.removeEventListener("selectionchange", handleSelection);
+    document.addEventListener("selectionchange", handleSelectionChange);
+    return () => {
+      document.removeEventListener("selectionchange", handleSelectionChange);
+    };
   }, []);
+
+  const handleCursorPosition = () => {
+    const start = textareaRef.current.selectionStart;
+    const end = textareaRef.current.selectionEnd;
+    setCursorPos({ start: start, end: end });
+    // console.log("cursorPos", cursorPos);
+  };
 
   return (
     <>
@@ -126,74 +109,78 @@ export default function EditableWithTooltip() {
           <MultilineSkeleton lines={5} />
         </div>
       ) : (
-        <div className="relative w-vw mx-16">
+        <div className="flex-col w-vw mx-16">
+          {/* <RectangleDiv color="blue" {...selectionRectangle} /> */}
+          {/* <RectangleDiv color="green" {...parentRectangle} /> */}
           <div
-            ref={editableRef}
-            contentEditable
-            suppressContentEditableWarning
-            onInput={onInput}
-            spellCheck={true}
-            aria-label="Editable text area"
+            className="flex justify-center gap-6 text-black px-2 py-2 rounded text-xs dark:text-white"
+            ref={tooltipRef}
+          >
+            <select
+              id="modelDropdown"
+              value={model?.name}
+              onChange={(event) => {
+                const selectedModelName = event.target.value; // Get the selected model's name
+                const selectedModel = allModelsWithoutIcon.find(
+                  (model) => model.name === selectedModelName
+                );
+                setModel(selectedModel);
+                //   console.log("model", model);
+              }}
+              className="  rounded text-xs p-1 w-32 sm:w-48"
+            >
+              {allModelsWithoutIcon.map((m, i) => (
+                <option key={i} value={m.name}>
+                  {m.name}
+                </option>
+              ))}
+            </select>
+            <Button
+              size="sm"
+              disabled={isLoadingFromLLM}
+              onClick={async () => {
+                setIsLoadingFromLLM(true);
+                await handleGenerate({
+                  cursorPos,
+                  model: model,
+                  setCanvasText,
+                  setIsDialogOpen,
+                  setIsTopupDialogOpen,
+                  canvasId,
+                  allText: canvasText,
+                });
+                setIsLoadingFromLLM(false);
+              }}
+            >
+              {isLoadingFromLLM ? (
+                <>
+                  <Loader2 className="animate-spin" /> Generate
+                </>
+              ) : (
+                <>Generate</>
+              )}
+            </Button>
+          </div>
+          <textarea
+            ref={textareaRef}
+            value={canvasText}
+            onChange={onInput}
+            onClick={handleTextareaClick}
+            onKeyUp={handleTextareaKeyUp}
+            onBlur={handleTextareaBlur}
+            // spellCheck={true}
             className={`
             w-full 
             overflow-auto
             text-wrap
-            h-[calc(100vh_-_112px)]
+            h-[calc(100vh_-_250px)]
             border border-gray-300 rounded-md p-3 
             text-base 
-            focus:outline-none 
-            ${isEmpty ? "before:content-[attr(data-placeholder)] before:text-gray-400 before:absolute before:top-3 before:left-3 before:pointer-events-auto" : ""}
-            
+            focus:outline-none             
             `}
-            data-placeholder={placeholder}
-            style={{ whiteSpace: "pre-wrap" }}
+            placeholder="Type here..."
             id="textarea"
           />
-          {tooltip.visible && (
-            <div
-              className="absolute bg-gray-900 text-black  px-2 py-1 rounded text-xs select-none pointer-events-auto whitespace-nowrap dark:text-white"
-              style={{
-                top: tooltip.top,
-                left: tooltip.left,
-                transform: "translateY(-100%)",
-              }}
-            >
-              <select
-                id="modelDropdown"
-                value={model?.name}
-                onChange={(event) => {
-                  const selectedModelName = event.target.value; // Get the selected model's name
-                  const selectedModel = allModelsWithoutIcon.find(
-                    (model) => model.name === selectedModelName
-                  );
-                  setModel(selectedModel);
-                  //   console.log("model", model);
-                }}
-                className=" rounded text-xs p-1 w-32 sm:w-48"
-              >
-                {allModelsWithoutIcon.map((m, i) => (
-                  <option key={i} value={m.name}>
-                    {m.name}
-                  </option>
-                ))}
-              </select>
-              <Button
-                className=""
-                onClick={() =>
-                  handleGenerate({
-                    text: tooltip.text,
-                    model: model,
-                    setIsDialogOpen,
-                    setIsTopupDialogOpen,
-                    canvasId,
-                    allText: editableRef.current?.innerText,
-                  })
-                }
-              >
-                Generate
-              </Button>
-            </div>
-          )}
 
           <AuthDialog
             isDialogOpen={isDialogOpen}
@@ -203,12 +190,12 @@ export default function EditableWithTooltip() {
             isDialogOpen={isTopupDialogOpen}
             setIsDialogOpen={setIsTopupDialogOpen}
           />
-          <div>
+          <div className="flex justify-center">
             <SaveItemsCanvas
               canvasId={canvasId}
               setCanvasText={setCanvasText}
               canvasText={canvasText}
-              editableRef={editableRef}
+              editableRef={textareaRef}
               searchParams={searchParams}
               pathname={pathname}
               router={router}
@@ -221,20 +208,31 @@ export default function EditableWithTooltip() {
 }
 
 async function handleGenerate({
-  text,
+  cursorPos,
   model,
+  setCanvasText,
   setIsDialogOpen,
   setIsTopupDialogOpen,
   canvasId,
   allText,
 }) {
-  const selection = window.getSelection();
-  if (!selection.rangeCount) return;
-  // console.log("text", text);
-  // console.log("allText", allText);
+  let systemPrompt;
+  const systemPromptNoInstruction = `You must fill in the part in triple backticks based on the context surrounding it.`;
+  const systemPromptWithInstruction = `You must fill in the part in triple backticks based on the instructions given inside the triple backticks.
+Use the context surrounding the triple backticks for your response.`;
+  if (!cursorPos || cursorPos?.start === cursorPos?.end) {
+    systemPrompt = systemPromptNoInstruction;
+  } else {
+    systemPrompt = systemPromptWithInstruction;
+  }
+  // console.log(systemPrompt);
   // return;
-  const range = selection.getRangeAt(0);
-  //   console.log("range", range);
+  // Wrap selected text in triple backticks and get new full text
+  const wrappedText = wrapWithTripleBackticks(allText, cursorPos);
+  // console.log("positions:", positions);
+  // console.log("Original full text:", allText);
+  console.log("wrappedText", wrappedText);
+  // return;
   try {
     const authStatus = await getAuth();
     if (authStatus === 400) {
@@ -255,8 +253,8 @@ async function handleGenerate({
         },
         body: JSON.stringify({
           messages: [
-            { role: "system", content: "" },
-            { role: "user", content: { text: text } },
+            { role: "system", content: systemPrompt },
+            { role: "user", content: { text: wrappedText } },
           ],
           model: model.model,
           email: authStatus,
@@ -266,30 +264,42 @@ async function handleGenerate({
     const dataJson = await data.json();
     // console.log("dataJson", dataJson);
     const responseText = dataJson.text; //.split("").reverse().join("");
-
+    // const responseText = "YOOO";
     // Replace selected text with responseText:
-    range.deleteContents();
+    let newAllText;
+    if (allText) {
+      newAllText =
+        allText.substring(0, cursorPos.start) +
+        responseText +
+        allText.substring(cursorPos.end);
+      setCanvasText(newAllText);
+    } else {
+      newAllText = responseText;
+      setCanvasText(responseText);
+    }
 
-    // Create a text node with the new content
-    const textNode = document.createTextNode(responseText);
-
-    // Insert the new text node at the current range
-    range.insertNode(textNode);
-
-    // Move the caret just after the inserted text node
-    range.setStartAfter(textNode);
-    range.collapse(true);
-
-    // Remove all ranges and add this collapsed range to selection
-    selection.removeAllRanges();
-    selection.addRange(range);
     // save the session
     saveChatSession({
       chatId: canvasId,
-      canvasText: allText,
+      canvasText: newAllText,
     });
     // END: save the session
   } catch (error) {
     console.error("Error generating response:", error);
   }
+}
+function wrapWithTripleBackticks(allText, cursorPos) {
+  console.log("cursorPos", cursorPos);
+  if (!allText) {
+    return "``````";
+  }
+  const { start, end } = cursorPos;
+  const selectedText = allText.slice(start, end);
+
+  // Wrap selected text with triple backticks
+  const wrappedText = "```" + selectedText + "```";
+
+  // Construct new text
+  const newText = allText.slice(0, start) + wrappedText + allText.slice(end);
+  return newText;
 }
