@@ -15,7 +15,10 @@ import Link from "next/link";
 import { NavigationEvents } from "@/components/layout/NavigationEvents";
 import { Suspense } from "react";
 import { MultilineSkeleton } from "@/components/ui/skeleton";
-import { SidebarProfile } from "@/components/layout/sidebarProfile";
+import {
+  SidebarProfile,
+  SidebarCanvas,
+} from "@/components/layout/sidebarProfile";
 
 // Menu items.
 
@@ -35,6 +38,9 @@ export async function AppSidebar() {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              <Suspense fallback={<MultilineSkeleton lines={1} />}>
+                <SidebarCanvas />
+              </Suspense>
               <Suspense fallback={<MultilineSkeleton lines={1} />}>
                 <SidebarProfile />
               </Suspense>

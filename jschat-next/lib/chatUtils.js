@@ -19,7 +19,11 @@ export const generateChatId = () => {
   const timestamp = Date.now().toString(36);
   return `${randomString}-${timestamp}`;
 };
-
+export const generateCanvasId = () => {
+  const randomString = Math.random().toString(36).substring(2, 15);
+  const timestamp = Date.now().toString(36);
+  return `canvas-${randomString}-${timestamp}`;
+};
 export async function handleTestDummy(setText) {
   const streamIterator = await generateTestDummmy();
   console.log("streamIterator.output is a promise");

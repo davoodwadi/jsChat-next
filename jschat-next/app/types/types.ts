@@ -1,3 +1,5 @@
+import { NextRouter } from "next/router";
+
 export type UserMessages = {
   key: string;
   content: string;
@@ -17,6 +19,7 @@ export type BotMessages = {
 export type SetUserMessages = (userMessages: UserMessages) => void;
 export type SetBotMessages = (botMessages: BotMessages) => void;
 export type SetSystemPrompt = (systemPrompt: string) => void;
+export type SetCanvasText = (canvasText: string) => void;
 
 export type SaveItemParams = {
   chatId: string;
@@ -26,6 +29,16 @@ export type SaveItemParams = {
   setBotMessages: SetBotMessages;
   systemPrompt: string;
   setSystemPrompt: SetSystemPrompt;
+};
+
+export type SaveItemCanvasParams = {
+  canvasId: string;
+  canvasText: string;
+  setCanvasText: SetCanvasText;
+  editableRef: React.RefObject<HTMLDivElement>;
+  searchParams: { [key: string]: string | string[] | undefined };
+  pathname: string;
+  router: NextRouter;
 };
 
 export type SaveChatSessionParams = {
@@ -38,4 +51,9 @@ export type SaveChatSessionParams = {
 export function createSaveChatSessionParams(params: SaveItemParams) {
   const { chatId, userMessages, botMessages, systemPrompt } = params;
   return { chatId, userMessages, botMessages, systemPrompt };
+}
+
+export function createSaveCanvasSessionParams(params: SaveItemCanvasParams) {
+  const { canvasId, canvasText } = params;
+  return { canvasId, canvasText };
 }

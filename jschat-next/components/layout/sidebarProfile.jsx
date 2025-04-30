@@ -2,7 +2,7 @@ import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import Link from "next/link";
 
 import { auth } from "@/auth";
-import { User2 } from "lucide-react";
+import { User2, BookOpenText } from "lucide-react";
 // import { wait } from "@/lib/actions";
 export async function SidebarProfile() {
   const session = await auth();
@@ -19,4 +19,17 @@ export async function SidebarProfile() {
       </SidebarMenuItem>
     );
   }
+}
+
+export async function SidebarCanvas() {
+  return (
+    <SidebarMenuItem key="canvas">
+      <SidebarMenuButton asChild>
+        <Link href="/canvas">
+          <BookOpenText />
+          <span>New Canvas</span>
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
 }

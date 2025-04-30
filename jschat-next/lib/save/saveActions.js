@@ -97,15 +97,7 @@ export async function loadChatSession({ chatId }) {
   }
 }
 
-export async function saveChatSession(
-  params
-  //   {
-  //   chatId,
-  //   userMessages,
-  //   botMessages,
-  //   systemPrompt,
-  // }
-) {
+export async function saveChatSession(params) {
   // console.log("SERVER ACTION save systemPrompt", params.systemPrompt);
   const session = await auth();
   const email = session?.user?.email;
@@ -114,7 +106,9 @@ export async function saveChatSession(
   // console.log("email", botMessages);
   const content = params;
   // console.log("content to be saved", content);
-  const chatId = params.chatId;
+  const chatId = params.chatId || params.canvasId;
+  console.log("chatId", chatId);
+  // return;
   const client = await connectToDatabase();
   const plansCollection = client.db("chat").collection("plans");
   const results = await plansCollection.findOneAndUpdate(

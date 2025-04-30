@@ -37,6 +37,7 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const deepinfra = createDeepInfra({
   apiKey: process.env.DEEPINFRA_TOKEN,
 });
+
 const openai = new OpenAI({
   apiKey: process.env["OPENAI_KEY"], // This is the default and can be omitted
 });

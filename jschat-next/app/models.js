@@ -267,6 +267,16 @@ export const xAIModelsWithMeta = [
     icon: DifferentIcon,
   },
 ];
+const allModels = [
+  ...openaiModelsWithMeta,
+  ...groqModelsWithMeta,
+  ...deepinfraModelsWithMeta,
+  ...anthropicModelsWithMeta,
+  ...xAIModelsWithMeta,
+];
+export const allModelsWithoutIcon = allModels.map(
+  ({ icon, ...model }) => model
+);
 
 export const groqModels = groqModelsWithMeta.map((m) => m.model);
 export const deepinfraModels = deepinfraModelsWithMeta.map((m) => m.model);

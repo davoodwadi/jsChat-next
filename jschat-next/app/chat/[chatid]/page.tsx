@@ -36,14 +36,6 @@ import {
   xAIModelsWithMeta,
 } from "@/app/models";
 
-// const models = [
-//   ...openaiModels,
-//   ...groqModels,
-//   ...deepinfraModels,
-//   ...anthropicModels,
-// ];
-// console.log(openaiModels);
-// console.log(models);
 const modelMeta = [
   { desc: "OpenAI Models (Closed-source)", models: openaiModelsWithMeta },
   { desc: "Groq Models (Open-source)", models: groqModelsWithMeta },

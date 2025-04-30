@@ -48,6 +48,7 @@ export function NavigationEvents() {
   useEffect(() => {
     const getChatHistory = async () => {
       const result = await loadAllChatSessions();
+      // console.log("ChatHistory result", result);
       if (result) {
         result.reverse();
         setChatHistory(result);
@@ -73,27 +74,38 @@ export function NavigationEvents() {
             <SidebarMenu>
               {chatHistory.map((item, i) => {
                 const userMessageArray = item?.content?.userMessages;
-                if (!Array.isArray(userMessageArray)) {
-                  return;
+                const isCanvas = !Array.isArray(userMessageArray);
+
+                // console.log("isCanvas", isCanvas);
+                // return;
+                let snippet;
+
+                if (!isCanvas) {
+                  const snippetArrayNew = userMessageArray.map(
+                    (m) => m.content?.text && m.content?.text
+                  );
+                  const snippetArrayLegacy = userMessageArray.map(
+                    (m) => typeof m.content === "string" && m.content
+                  ); // legacy
+                  const snippetArray = [
+                    ...snippetArrayNew,
+                    ...snippetArrayLegacy,
+                  ]; // legacy
+                  snippet = snippetArray.join("...").slice(0, snippetToShow);
+                } else {
+                  snippet = item?.content?.canvasText.slice(0, snippetToShow);
                 }
-                // console.log("userMessageArray", userMessageArray);
-                const snippetArrayNew = userMessageArray.map(
-                  (m) => m.content?.text && m.content?.text
-                );
-                const snippetArrayLegacy = userMessageArray.map(
-                  (m) => typeof m.content === "string" && m.content
-                ); // legacy
-                const snippetArray = [
-                  ...snippetArrayNew,
-                  ...snippetArrayLegacy,
-                ]; // legacy
-                const snippet = snippetArray
-                  .join("...")
-                  .slice(0, snippetToShow);
+                // console.log("snippet", snippet);
                 return (
                   <SidebarMenuItem key={i}>
                     <SidebarMenuButton asChild>
-                      <Link href={`/chat/${item.chatid}`}>
+                      <Link
+                        href={
+                          isCanvas
+                            ? `/canvas/${item.chatid}`
+                            : `/chat/${item.chatid}`
+                        }
+                      >
                         {/* <MessageCircle /> */}
                         <span>{snippet.trim()}</span>
                       </Link>
