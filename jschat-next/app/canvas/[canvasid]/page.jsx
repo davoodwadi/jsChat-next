@@ -3,6 +3,7 @@
 import { getAuth } from "@/lib/actions";
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Plus } from "lucide-react";
 
 import { MultilineSkeleton } from "@/components/ui/skeleton";
@@ -26,10 +27,10 @@ export default function EditableWithTooltip() {
   const { icon, ...startingModel } = allModelsWithoutIcon[0];
   const [model, setModel] = useState(startingModel);
   const [systemPrompt, setSystemPrompt] = useState("");
-  //   console.log("model", model);
+  const [llmInstructions, setLLMInstructions] = useState("");
+  // console.log("llmInstructions", llmInstructions);
   const textareaRef = useRef(null);
   const tooltipRef = useRef(null);
-  const [selectionText, setSelectionText] = useState();
 
   // console.log("selectionRectangle", selectionRectangle);
   const [canvasText, setCanvasText] = useState();
@@ -113,53 +114,63 @@ export default function EditableWithTooltip() {
           {/* <RectangleDiv color="blue" {...selectionRectangle} /> */}
           {/* <RectangleDiv color="green" {...parentRectangle} /> */}
           <div
-            className="flex justify-center gap-6 text-black px-2 py-2 rounded text-xs dark:text-white"
+            className="flex justify-center justify-items-center-safe pb-2 gap-6 text-black rounded text-xs dark:text-white"
             ref={tooltipRef}
           >
-            <select
-              id="modelDropdown"
-              value={model?.name}
-              onChange={(event) => {
-                const selectedModelName = event.target.value; // Get the selected model's name
-                const selectedModel = allModelsWithoutIcon.find(
-                  (model) => model.name === selectedModelName
-                );
-                setModel(selectedModel);
-                //   console.log("model", model);
-              }}
-              className="  rounded text-xs p-1 w-32 sm:w-48"
-            >
-              {allModelsWithoutIcon.map((m, i) => (
-                <option key={i} value={m.name}>
-                  {m.name}
-                </option>
-              ))}
-            </select>
-            <Button
-              size="sm"
-              disabled={isLoadingFromLLM}
-              onClick={async () => {
-                setIsLoadingFromLLM(true);
-                await handleGenerate({
-                  cursorPos,
-                  model: model,
-                  setCanvasText,
-                  setIsDialogOpen,
-                  setIsTopupDialogOpen,
-                  canvasId,
-                  allText: canvasText,
-                });
-                setIsLoadingFromLLM(false);
-              }}
-            >
-              {isLoadingFromLLM ? (
-                <>
-                  <Loader2 className="animate-spin" /> Generate
-                </>
-              ) : (
-                <>Generate</>
-              )}
-            </Button>
+            <Textarea
+              value={llmInstructions}
+              onChange={(e) => setLLMInstructions(e.target.value)}
+              style={{ resize: "none" }}
+              placeholder="Instructions to modify the selected text..."
+            />
+            <div className="flex flex-col justify-center">
+              <select
+                id="modelDropdown"
+                value={model?.name}
+                onChange={(event) => {
+                  const selectedModelName = event.target.value; // Get the selected model's name
+                  const selectedModel = allModelsWithoutIcon.find(
+                    (model) => model.name === selectedModelName
+                  );
+                  setModel(selectedModel);
+                  //   console.log("model", model);
+                }}
+                className="  rounded text-xs p-1 w-32 sm:w-48"
+              >
+                {allModelsWithoutIcon.map((m, i) => (
+                  <option key={i} value={m.name}>
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+              <Button
+                size="sm"
+                className="my-auto"
+                disabled={isLoadingFromLLM}
+                onClick={async () => {
+                  setIsLoadingFromLLM(true);
+                  await handleGenerate({
+                    cursorPos,
+                    model: model,
+                    setCanvasText,
+                    setIsDialogOpen,
+                    setIsTopupDialogOpen,
+                    canvasId,
+                    allText: canvasText,
+                    llmInstructions,
+                  });
+                  setIsLoadingFromLLM(false);
+                }}
+              >
+                {isLoadingFromLLM ? (
+                  <>
+                    <Loader2 className="animate-spin" /> Generate
+                  </>
+                ) : (
+                  <>Generate</>
+                )}
+              </Button>
+            </div>
           </div>
           <textarea
             ref={textareaRef}
@@ -215,23 +226,35 @@ async function handleGenerate({
   setIsTopupDialogOpen,
   canvasId,
   allText,
+  llmInstructions,
 }) {
+  const { wrappedAllText, wrappedSelection } = wrapWithTripleBackticksCustom({
+    allText,
+    cursorPos,
+    backticks: true,
+  });
   let systemPrompt;
-  const systemPromptNoInstruction = `You must fill in the part in triple backticks based on the context surrounding it.`;
-  const systemPromptWithInstruction = `You must fill in the part in triple backticks based on the instructions given inside the triple backticks.
-Use the context surrounding the triple backticks for your response.`;
-  if (!cursorPos || cursorPos?.start === cursorPos?.end) {
-    systemPrompt = systemPromptNoInstruction;
-  } else {
-    systemPrompt = systemPromptWithInstruction;
-  }
-  // console.log(systemPrompt);
-  // return;
-  // Wrap selected text in triple backticks and get new full text
-  const wrappedText = wrapWithTripleBackticks(allText, cursorPos);
-  // console.log("positions:", positions);
-  // console.log("Original full text:", allText);
-  console.log("wrappedText", wrappedText);
+  const systemprompt1a = `You role is to create the information necessary to replace the text below (in triple backticks):
+${wrappedSelection}
+You should output only the text that properly replaces the text in triple backticks.
+`;
+  const systemprompt1b = `You role is to create the information necessary to replace the triple backticks
+You should output only the text that properly replaces the triple backticks.
+`;
+  systemPrompt =
+    !cursorPos || cursorPos?.start === cursorPos?.end
+      ? systemprompt1b
+      : systemprompt1a;
+
+  const systemprompt4 = `You have to keep this instruction in mind when replacing the text in triple backticks: ${llmInstructions}
+`;
+  systemPrompt += llmInstructions ? systemprompt4 : "";
+  const systemprompt5 = `You have to ensure the information you create is consistent with the surrounding context.
+The user will provide the full context for the text in triple backticks.`;
+  systemPrompt += systemprompt5;
+
+  console.log("systemPrompt", systemPrompt);
+  console.log("wrappedAllText", wrappedAllText);
   // return;
   try {
     const authStatus = await getAuth();
@@ -254,7 +277,7 @@ Use the context surrounding the triple backticks for your response.`;
         body: JSON.stringify({
           messages: [
             { role: "system", content: systemPrompt },
-            { role: "user", content: { text: wrappedText } },
+            { role: "user", content: { text: wrappedAllText } },
           ],
           model: model.model,
           email: authStatus,
@@ -268,10 +291,16 @@ Use the context surrounding the triple backticks for your response.`;
     // Replace selected text with responseText:
     let newAllText;
     if (allText) {
-      newAllText =
-        allText.substring(0, cursorPos.start) +
-        responseText +
-        allText.substring(cursorPos.end);
+      if (cursorPos) {
+        // If cursor position is defined, insert text at cursor position
+        newAllText =
+          allText.substring(0, cursorPos.start) +
+          responseText +
+          allText.substring(cursorPos.end);
+      } else {
+        // If cursorPos is undefined, append responseText at the end with a newline
+        newAllText = allText + "\n" + responseText;
+      }
       setCanvasText(newAllText);
     } else {
       newAllText = responseText;
@@ -288,18 +317,54 @@ Use the context surrounding the triple backticks for your response.`;
     console.error("Error generating response:", error);
   }
 }
-function wrapWithTripleBackticks(allText, cursorPos) {
-  console.log("cursorPos", cursorPos);
+function wrapWithTripleBackticksCustom({ allText, cursorPos, backticks }) {
+  // console.log("cursorPos", cursorPos);
+  // console.log("allText", allText);
+
   if (!allText) {
-    return "``````";
+    // empty textarea
+    const wrappedAllText = "``````";
+    const wrappedSelection = "``````";
+    return { wrappedAllText, wrappedSelection };
+  }
+  if (!cursorPos) {
+    // textarea not empty. User has not selected any text
+    const wrappedAllText = allText + "\n" + "``````";
+    const wrappedSelection = "``````";
+    return { wrappedAllText, wrappedSelection };
   }
   const { start, end } = cursorPos;
-  const selectedText = allText.slice(start, end);
-
-  // Wrap selected text with triple backticks
-  const wrappedText = "```" + selectedText + "```";
-
-  // Construct new text
-  const newText = allText.slice(0, start) + wrappedText + allText.slice(end);
-  return newText;
+  let wrappedSelection;
+  if (start === end) {
+    // only caret
+    wrappedSelection = "```" + allText.slice(start, end) + "```";
+  } else {
+    // Construct new text
+    wrappedSelection = backticks
+      ? "```" + allText.slice(start, end) + "```"
+      : allText.slice(start, end);
+  }
+  const wrappedAllText =
+    allText.slice(0, start) + wrappedSelection + allText.slice(end);
+  return { wrappedAllText, wrappedSelection };
 }
+// function wrapWithTripleBackticks(allText, cursorPos) {
+//   console.log("cursorPos", cursorPos);
+//   if (!allText) {
+//     // textarea is empty
+//     return "``````";
+//   }
+//   if (!cursorPos) {
+//     // textarea not empty -> no text selection
+//     return "``````";
+//   }
+//   const { start, end } = cursorPos;
+//   const selectedText = allText.slice(start, end);
+
+//   // Wrap selected text with triple backticks
+//   const wrappedText = "```" + selectedText + "```";
+
+//   // Construct new text
+//   const newText = allText.slice(0, start) + wrappedText + allText.slice(end);
+//   return newText;
+// }

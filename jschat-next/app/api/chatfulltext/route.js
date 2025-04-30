@@ -47,7 +47,7 @@ const anthropic = new Anthropic();
 
 export async function POST(req) {
   const data = await req.json();
-  console.log("data", data);
+  //   console.log("data", data);
   console.log("model server", data.model);
   let usageTokens;
   let responseText;
