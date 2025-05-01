@@ -20,6 +20,7 @@ export type SetUserMessages = (userMessages: UserMessages) => void;
 export type SetBotMessages = (botMessages: BotMessages) => void;
 export type SetSystemPrompt = (systemPrompt: string) => void;
 export type SetCanvasText = (canvasText: string) => void;
+export type SetReferencesText = (references: string) => void;
 
 export type SaveItemParams = {
   chatId: string;
@@ -35,10 +36,10 @@ export type SaveItemCanvasParams = {
   canvasId: string;
   canvasText: string;
   setCanvasText: SetCanvasText;
-  editableRef: React.RefObject<HTMLDivElement>;
+  references: string;
+  setReferences: SetReferencesText;
   searchParams: { [key: string]: string | string[] | undefined };
   pathname: string;
-  router: NextRouter;
 };
 
 export type SaveChatSessionParams = {
@@ -54,6 +55,6 @@ export function createSaveChatSessionParams(params: SaveItemParams) {
 }
 
 export function createSaveCanvasSessionParams(params: SaveItemCanvasParams) {
-  const { canvasId, canvasText } = params;
-  return { canvasId, canvasText };
+  const { canvasId, canvasText, references } = params;
+  return { canvasId, canvasText, references };
 }

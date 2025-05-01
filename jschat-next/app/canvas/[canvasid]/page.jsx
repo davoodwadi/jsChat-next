@@ -3,8 +3,10 @@
 import { getAuth } from "@/lib/actions";
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Toggle } from "@/components/ui/toggle";
+
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, Search } from "lucide-react";
 
 import { MultilineSkeleton } from "@/components/ui/skeleton";
 import { AuthDialog, TopupDialog } from "@/components/auth/AuthDialog";
@@ -27,6 +29,9 @@ export default function EditableWithTooltip() {
   const { icon, ...startingModel } = allModelsWithoutIcon[0];
   const [model, setModel] = useState(startingModel);
   const [systemPrompt, setSystemPrompt] = useState("");
+  const [webSearchOn, setWebSearchOn] = useState(false);
+  const [references, setReferences] = useState("References\n");
+  // console.log("webSearchOn", webSearchOn);
   const [llmInstructions, setLLMInstructions] = useState("");
   // console.log("llmInstructions", llmInstructions);
   const textareaRef = useRef(null);
@@ -123,26 +128,36 @@ export default function EditableWithTooltip() {
               style={{ resize: "none", fontSize: "16px" }}
               placeholder="Instructions to modify the selected text..."
             />
-            <div className="flex flex-col justify-center">
-              <select
-                id="modelDropdown"
-                value={model?.name}
-                onChange={(event) => {
-                  const selectedModelName = event.target.value; // Get the selected model's name
-                  const selectedModel = allModelsWithoutIcon.find(
-                    (model) => model.name === selectedModelName
-                  );
-                  setModel(selectedModel);
-                  //   console.log("model", model);
-                }}
-                className="  rounded text-xs p-1 w-32 sm:w-48"
-              >
-                {allModelsWithoutIcon.map((m, i) => (
-                  <option key={i} value={m.name}>
-                    {m.name}
-                  </option>
-                ))}
-              </select>
+            <div className="flex flex-col justify-center gap-2">
+              <div className="flex flex-row gap-2 items-center justify-center">
+                <select
+                  id="modelDropdown"
+                  value={model?.name}
+                  onChange={(event) => {
+                    const selectedModelName = event.target.value; // Get the selected model's name
+                    const selectedModel = allModelsWithoutIcon.find(
+                      (model) => model.name === selectedModelName
+                    );
+                    setModel(selectedModel);
+                    //   console.log("model", model);
+                  }}
+                  className="  rounded text-xs p-1 w-32 sm:w-48"
+                >
+                  {allModelsWithoutIcon.map((m, i) => (
+                    <option key={i} value={m.name}>
+                      {m.name}
+                    </option>
+                  ))}
+                </select>
+                <Toggle
+                  size="sm"
+                  aria-label="Web Search Toggle"
+                  variant="outline"
+                  onPressedChange={() => setWebSearchOn((v) => !v)}
+                >
+                  <Search />
+                </Toggle>
+              </div>
               <Button
                 size="sm"
                 className="my-auto"
@@ -158,6 +173,8 @@ export default function EditableWithTooltip() {
                     canvasId,
                     allText: canvasText,
                     llmInstructions,
+                    webSearchOn,
+                    setReferences,
                   });
                   setIsLoadingFromLLM(false);
                 }}
@@ -172,14 +189,14 @@ export default function EditableWithTooltip() {
               </Button>
             </div>
           </div>
-          <textarea
+          <Textarea
             ref={textareaRef}
             value={canvasText}
             onChange={onInput}
             onClick={handleTextareaClick}
             onKeyUp={handleTextareaKeyUp}
             onBlur={handleTextareaBlur}
-            // spellCheck={true}
+            spellCheck={true}
             className={`
             w-full 
             overflow-auto
@@ -202,17 +219,36 @@ export default function EditableWithTooltip() {
             isDialogOpen={isTopupDialogOpen}
             setIsDialogOpen={setIsTopupDialogOpen}
           />
-          <div className="flex justify-center">
+          <div className="flex justify-center pb-6">
             <SaveItemsCanvas
               canvasId={canvasId}
               setCanvasText={setCanvasText}
               canvasText={canvasText}
+              references={references}
+              setReferences={setReferences}
               editableRef={textareaRef}
               searchParams={searchParams}
               pathname={pathname}
               router={router}
             />
           </div>
+          <Textarea
+            value={references}
+            onChange={(e) => setReferences(e.target.value)}
+            // spellCheck={true}
+            className={`
+            w-full 
+            overflow-auto
+            text-wrap
+            border border-gray-300 rounded-md p-3 
+            text-base 
+            focus:outline-none             
+            `}
+            placeholder="Citations will populate here..."
+            style={{ fontSize: "8px" }}
+            rows={10}
+            id="citationArea"
+          />
         </div>
       )}
     </>
@@ -228,6 +264,8 @@ async function handleGenerate({
   canvasId,
   allText,
   llmInstructions,
+  webSearchOn,
+  setReferences,
 }) {
   const { wrappedAllText, wrappedSelection } = wrapWithTripleBackticksCustom({
     allText,
@@ -282,11 +320,16 @@ The user will provide the full context for the text in triple backticks.`;
           ],
           model: model.model,
           email: authStatus,
+          webSearchOn: webSearchOn,
         }),
       }
     );
     const dataJson = await data.json();
     // console.log("dataJson", dataJson);
+    if (dataJson?.citationsArray) {
+      const newCitationString = citationArraytoString(dataJson.citationsArray);
+      setReferences((v) => v + "\n" + newCitationString);
+    }
     const responseText = dataJson.text; //.split("").reverse().join("");
     // const responseText = "YOOO";
     // Replace selected text with responseText:
@@ -317,6 +360,14 @@ The user will provide the full context for the text in triple backticks.`;
   } catch (error) {
     console.error("Error generating response:", error);
   }
+}
+function citationArraytoString(citationsArray) {
+  let NewCitationsString = citationsArray
+    .map((c) => `${c.title}; ${c.url}`)
+    .join("\n");
+  NewCitationsString += "\n";
+  // console.log("NewCitationsString", NewCitationsString);
+  return NewCitationsString;
 }
 function wrapWithTripleBackticksCustom({ allText, cursorPos, backticks }) {
   // console.log("cursorPos", cursorPos);
@@ -349,23 +400,3 @@ function wrapWithTripleBackticksCustom({ allText, cursorPos, backticks }) {
     allText.slice(0, start) + wrappedSelection + allText.slice(end);
   return { wrappedAllText, wrappedSelection };
 }
-// function wrapWithTripleBackticks(allText, cursorPos) {
-//   console.log("cursorPos", cursorPos);
-//   if (!allText) {
-//     // textarea is empty
-//     return "``````";
-//   }
-//   if (!cursorPos) {
-//     // textarea not empty -> no text selection
-//     return "``````";
-//   }
-//   const { start, end } = cursorPos;
-//   const selectedText = allText.slice(start, end);
-
-//   // Wrap selected text with triple backticks
-//   const wrappedText = "```" + selectedText + "```";
-
-//   // Construct new text
-//   const newText = allText.slice(0, start) + wrappedText + allText.slice(end);
-//   return newText;
-// }

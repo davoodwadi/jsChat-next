@@ -142,12 +142,14 @@ export function SaveItemsCanvas(params: SaveItemCanvasParams) {
           return;
         } else {
           const content = thisSession.content;
-          // console.log(`CLIENT: content`, content);
+          console.log(`CLIENT: content`, content);
 
-          if (typeof params.editableRef.current?.innerText === "string") {
-            params.setCanvasText(content.canvasText);
-            params.editableRef.current.innerText = content.canvasText;
-          }
+          // if (typeof params.editableRef.current?.innerText === "string") {
+          params.setCanvasText(content.canvasText);
+          params.setReferences(content?.references ? content?.references : "");
+
+          // params.editableRef.current.innerText = content.canvasText;
+          // }
           toast({
             variant: "default",
             title: "Successful load",
@@ -175,13 +177,9 @@ export function SaveItemsCanvas(params: SaveItemCanvasParams) {
         // reflect the change in history
         const urlParams = new URLSearchParams(params.searchParams.toString());
         urlParams.set("status", "new");
-        params.router.push(
-          params.pathname + "?" + urlParams.toString(),
-          undefined,
-          {
-            scroll: false,
-          }
-        );
+        router.push(params.pathname + "?" + urlParams.toString(), {
+          scroll: false,
+        });
 
         setLoadingSave(false);
       },

@@ -47,10 +47,13 @@ const anthropic = new Anthropic();
 
 export async function POST(req) {
   const data = await req.json();
-  //   console.log("data", data);
+  console.log("data.webSearchOn", data.webSearchOn);
   console.log("model server", data.model);
+  //   return;
+
   let usageTokens;
   let responseText;
+  let citationsArray;
 
   if (anthropicModels.includes(data.model)) {
     console.log("Anthropic Model", data.model);
@@ -119,14 +122,30 @@ export async function POST(req) {
         : {};
 
     console.log("reasoning", reasoning);
-    const apiResponse = await openai.responses.create({
+    const requestPayload = {
       input: convertedMessages,
       model: data.model,
       max_output_tokens: 16384,
       ...reasoning,
-    });
+      ...(data.webSearchOn
+        ? {
+            tools: [{ type: "web_search_preview" }],
+            tool_choice: { type: "web_search_preview" },
+          }
+        : {}),
+    };
+    // console.log("requestPayload", requestPayload);
+    // return new Response(JSON.stringify(requestPayload));
+    const apiResponse = await openai.responses.create(requestPayload);
     responseText = apiResponse.output_text;
     usageTokens = apiResponse?.usage?.total_tokens;
+    if (data.webSearchOn) {
+      usageTokens += 10000;
+      const citations = getOpenAICitations(apiResponse);
+      //   console.log("citations", citations);
+      //   responseText += `\n\nReferences\n\n${citations}`;
+      citationsArray = citations.citationsArray;
+    }
     // console.log("responseText", responseText);
     // console.log("usageTokens", usageTokens);
     // console.log("email", data.email);
@@ -171,10 +190,37 @@ export async function POST(req) {
     JSON.stringify({
       model: data.model,
       text: responseText,
+      ...(citationsArray ? { citationsArray: citationsArray } : {}),
     })
   );
 }
 
+function getOpenAICitations(apiResponse) {
+  const citations = [];
+
+  if (!apiResponse || !Array.isArray(apiResponse.output)) return "";
+
+  for (const outputItem of apiResponse.output) {
+    // We are interested in items of type 'message' with 'content' array
+    if (outputItem.type === "message" && Array.isArray(outputItem.content)) {
+      for (const contentItem of outputItem.content) {
+        // Look for annotations array in contentItem
+        if (Array.isArray(contentItem.annotations)) {
+          // Filter only url_citation types and push them to citations list
+          contentItem.annotations.forEach((annotation) => {
+            if (annotation.type === "url_citation") {
+              citations.push(annotation);
+            }
+          });
+        }
+      }
+    }
+  }
+  const citationsString = citations
+    .map((c) => `${c.title}; ${c.url}`)
+    .join("\n");
+  return { citationsString, citationsArray: citations };
+}
 function convertToOpenAIResponsesFormat(messages) {
   let hasImage = false;
   const converted = messages.map((m) => {
