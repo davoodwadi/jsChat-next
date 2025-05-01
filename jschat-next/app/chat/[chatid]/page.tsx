@@ -145,6 +145,7 @@ export default function Chat() {
                   value={systemPrompt}
                   onChange={(e) => setSystemPrompt(e.target.value)}
                   rows={4}
+                  style={{ fontSize: "16px" }}
                   placeholder="Enter your system prompt here..."
                 />
               </div>

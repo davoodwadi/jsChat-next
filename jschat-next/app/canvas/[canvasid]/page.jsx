@@ -120,7 +120,7 @@ export default function EditableWithTooltip() {
             <Textarea
               value={llmInstructions}
               onChange={(e) => setLLMInstructions(e.target.value)}
-              style={{ resize: "none" }}
+              style={{ resize: "none", fontSize: "16px" }}
               placeholder="Instructions to modify the selected text..."
             />
             <div className="flex flex-col justify-center">
@@ -190,6 +190,7 @@ export default function EditableWithTooltip() {
             focus:outline-none             
             `}
             placeholder="Type here..."
+            style={{ fontSize: "16px" }}
             id="textarea"
           />
 
