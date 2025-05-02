@@ -173,9 +173,9 @@ export async function POST(req) {
         ? { reasoning: { effort: "high" } }
         : {};
 
-    console.log("reasoning", reasoning);
-    if (reasoning) {
+    if (data.model !== "gpt-4.1-mini" && data.model !== "gpt-4.1") {
       // o4-mini
+      console.log("openai model manual web search");
       if (data.webSearchOn) {
         const requestPayload = {
           input: convertedMessages,
@@ -224,7 +224,7 @@ export async function POST(req) {
             : {}),
         };
         const apiResponse2 = await openai.responses.create(requestPayload2);
-        console.log("apiResponse2", apiResponse2);
+        // console.log("apiResponse2", apiResponse2);
         responseText = apiResponse2.output_text;
         usageTokens += apiResponse2?.usage?.total_tokens;
         usageTokens += 10000;
@@ -241,6 +241,7 @@ export async function POST(req) {
         responseText = apiResponse.output_text;
       }
     } else {
+      console.log("openai no reasoning");
       const requestPayload = {
         input: convertedMessages,
         model: data.model,
