@@ -27,6 +27,7 @@ const allModels = [
 ];
 
 export const runtime = "edge";
+const searchEndpoint = "papersearch";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
@@ -51,7 +52,7 @@ export async function POST(req) {
   console.log("model server", data.model);
   //   return;
 
-  let usageTokens;
+  let usageTokens = 0;
   let responseText;
   let citationsArray;
 
@@ -63,18 +64,63 @@ export async function POST(req) {
     const { convertedMessages, system } = convertToAnthropicFormat(
       data.messages
     );
-    const apiResponse = await anthropic.messages.create({
-      max_tokens: 8192,
-      system: system && system?.content,
-      messages: convertedMessages,
+    const systemCitation =
+      system && data.webSearchOn
+        ? system?.content +
+          "Make sure you provide citations in APA style at the end of your response"
+        : system?.content;
+    const requestPayload = {
       model: data.model,
+      system: systemCitation,
+      messages: convertedMessages,
+      max_tokens: 8192,
       ...thinking,
-    });
+      ...(data.webSearchOn
+        ? {
+            tools: [search_for_academic_papers_tool],
+          }
+        : {}),
+    };
+    // console.log("requestPayload", requestPayload);
+    // return new Response(JSON.stringify({}));
+    const apiResponse = await anthropic.messages.create(requestPayload);
     // console.log("apiResponse", apiResponse);
 
-    usageTokens = apiResponse?.usage?.output_tokens;
-    const filteredText = apiResponse?.content.find((m) => m.type === "text");
-    responseText = filteredText?.text;
+    console.log("apiResponse.stop_reason", apiResponse.stop_reason);
+    if (apiResponse.stop_reason === "tool_use") {
+      usageTokens += apiResponse?.usage?.input_tokens;
+      usageTokens += apiResponse?.usage?.output_tokens;
+      const toolUse = apiResponse.content.find((r) => r.type === "tool_use");
+      convertedMessages.push({
+        role: "assistant",
+        content: apiResponse.content,
+      });
+      //   console.log("toolUse", toolUse);
+      //   console.log("toolUse.id", toolUse.id);
+      //   console.log("toolUse?.input?.query", toolUse?.input?.query);
+      if (!toolUse?.input?.query) return new Response(JSON.stringify({}));
+      const query = toolUse.input.query;
+      const search_results = await getSearchResults(query);
+      convertedMessages.push({
+        role: "user",
+        content: [
+          {
+            type: "tool_result",
+            tool_use_id: toolUse.id,
+            content: JSON.stringify(search_results),
+          },
+        ],
+      });
+      //   console.log("convertedMessages", convertedMessages);
+      //   console.log("search_results", search_results);
+      const apiResponse2 = await anthropic.messages.create(requestPayload);
+      //   console.log("apiResponse2", apiResponse2);
+      const filteredText = apiResponse2?.content.find((m) => m.type === "text");
+      responseText = filteredText?.text;
+      usageTokens += apiResponse2?.usage?.input_tokens;
+      usageTokens += apiResponse2?.usage?.output_tokens;
+    }
+
     // console.log("responseText", responseText);
     // console.log("usageTokens", usageTokens);
     // console.log("email", data.email);
@@ -95,6 +141,12 @@ export async function POST(req) {
     // console.log("usageTokens", usageTokens);
     // console.log("email", data.email);
     // console.log("apiResponse", apiResponse);
+    if (data.webSearchOn) {
+      usageTokens += 10000;
+      // const citations = getOpenAICitations(apiResponse);
+      //   console.log("citations", citations);
+      // citationsArray = citations.citationsArray;
+    }
   } else if (deepinfraModels.includes(data.model)) {
     const { convertedMessages, hasImage } = convertToDeepInfraFormat(
       data.messages
@@ -122,30 +174,99 @@ export async function POST(req) {
         : {};
 
     console.log("reasoning", reasoning);
-    const requestPayload = {
-      input: convertedMessages,
-      model: data.model,
-      max_output_tokens: 16384,
-      ...reasoning,
-      ...(data.webSearchOn
-        ? {
-            tools: [{ type: "web_search_preview" }],
-            tool_choice: { type: "web_search_preview" },
-          }
-        : {}),
-    };
-    // console.log("requestPayload", requestPayload);
-    // return new Response(JSON.stringify(requestPayload));
-    const apiResponse = await openai.responses.create(requestPayload);
-    responseText = apiResponse.output_text;
-    usageTokens = apiResponse?.usage?.total_tokens;
-    if (data.webSearchOn) {
-      usageTokens += 10000;
-      const citations = getOpenAICitations(apiResponse);
-      //   console.log("citations", citations);
-      //   responseText += `\n\nReferences\n\n${citations}`;
-      citationsArray = citations.citationsArray;
+    if (reasoning) {
+      // o4-mini
+      if (data.webSearchOn) {
+        const requestPayload = {
+          input: convertedMessages,
+          model: data.model,
+          max_output_tokens: 16384,
+          ...reasoning,
+          ...(data.webSearchOn
+            ? {
+                tools: [search_for_academic_papers_tool_openai],
+                tool_choice: {
+                  type: "function",
+                  name: "search_for_academic_papers",
+                },
+              }
+            : {}),
+        };
+        //
+        const apiResponse = await openai.responses.create(requestPayload);
+        usageTokens += apiResponse?.usage?.total_tokens;
+
+        //   console.log("apiResponse", apiResponse);
+        const toolCall = apiResponse.output.find(
+          (o) => o.type === "function_call"
+        );
+        const args = JSON.parse(toolCall.arguments);
+        const search_results = await getSearchResults(args.query);
+        //   console.log("apiResponse.output", apiResponse.output);
+        const convertedMessages2 = convertedMessages.concat(apiResponse.output); // append model's function call message
+        convertedMessages2.push({
+          // append result message
+          type: "function_call_output",
+          call_id: toolCall.call_id,
+          output: JSON.stringify(search_results),
+        });
+        //   console.log("convertedMessages2", convertedMessages2);
+
+        const requestPayload2 = {
+          input: convertedMessages2,
+          model: data.model,
+          max_output_tokens: 16384,
+          ...reasoning,
+          ...(data.webSearchOn
+            ? {
+                tools: [search_for_academic_papers_tool_openai],
+              }
+            : {}),
+        };
+        const apiResponse2 = await openai.responses.create(requestPayload2);
+        console.log("apiResponse2", apiResponse2);
+        responseText = apiResponse2.output_text;
+        usageTokens += apiResponse2?.usage?.total_tokens;
+        usageTokens += 10000;
+      } else {
+        const requestPayload = {
+          input: convertedMessages,
+          model: data.model,
+          max_output_tokens: 16384,
+          ...reasoning,
+        };
+        //
+        const apiResponse = await openai.responses.create(requestPayload);
+        usageTokens += apiResponse?.usage?.total_tokens;
+        responseText = apiResponse.output_text;
+      }
+    } else {
+      const requestPayload = {
+        input: convertedMessages,
+        model: data.model,
+        max_output_tokens: 16384,
+        ...reasoning,
+        ...(data.webSearchOn
+          ? {
+              tools: [{ type: "web_search_preview" }],
+              tool_choice: { type: "web_search_preview" },
+            }
+          : {}),
+      };
+      // console.log("requestPayload", requestPayload);
+      // return new Response(JSON.stringify(requestPayload));
+      const apiResponse = await openai.responses.create(requestPayload);
+      responseText = apiResponse.output_text;
+      usageTokens = apiResponse?.usage?.total_tokens;
+      if (data.webSearchOn) {
+        usageTokens += 10000;
+        const citations = getOpenAICitations(apiResponse);
+        //   console.log("citations", citations);
+        //   responseText += `\n\nReferences\n\n${citations}`;
+        citationsArray = citations.citationsArray;
+      }
     }
+
     // console.log("responseText", responseText);
     // console.log("usageTokens", usageTokens);
     // console.log("email", data.email);
@@ -339,4 +460,71 @@ function formatBase64ImageAnthropic(base64String) {
       data: base64Data,
     },
   };
+}
+
+const search_for_academic_papers_tool_openai = {
+  type: "function",
+  name: "search_for_academic_papers",
+  description: `Retrieves an array of academic papers for a given search query using the OpenAlex API. 
+  The query must be a search query that would retrieve the most relevant academic papers for the given topic. 
+  The tool will return an array of objects containing "doi", "publication_year", "title", "cited_by_count", "authors", and "abstract".
+  The "cited_by_count" is the number of citations the paper has received.
+  The tool should be used when the user asks you to write academic information. 
+  You should use the tool to get the top relevant academic papers to support your argument.
+  The tool is not perfect. The search results might be papers that are not relevant for the argument.`,
+  parameters: {
+    type: "object",
+    properties: {
+      query: {
+        type: "string",
+        description:
+          "The query to pass to the search engine to find the most relevant academic papers",
+      },
+    },
+    required: ["query"],
+  },
+};
+
+const search_for_academic_papers_tool = {
+  name: "search_for_academic_papers",
+  description: `Retrieves an array of academic papers for a given search query using the OpenAlex API. 
+The query must be a search query that would retrieve the most relevant academic papers for the given topic. 
+The tool will return an array of objects containing "doi", "publication_year", "title", "cited_by_count", "authors", and "abstract".
+The "cited_by_count" is the number of citations the paper has received.
+The tool should be used when the user asks you to write academic information. 
+You should use the tool to get the top relevant academic papers to support your argument.
+The tool is not perfect. The search results might be papers that are not relevant for the argument.`,
+  input_schema: {
+    type: "object",
+    properties: {
+      query: {
+        type: "string",
+        description:
+          "The query to pass to the search engine to find the most relevant academic papers",
+      },
+    },
+    required: ["query"],
+  },
+};
+
+async function getSearchResults(query) {
+  console.log("query", query);
+
+  const resp = await fetch(
+    `${process.env.NEXT_PUBLIC_BASE_URL}/api/${searchEndpoint}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json", // specify JSON content
+      },
+      body: JSON.stringify({ query: query }),
+    }
+  );
+  console.log("resp.status", resp.status);
+
+  const results = await resp.json();
+  const firstTwo = results.slice(0, 20);
+  console.log("length of search", firstTwo.length);
+  //   console.log("firstTwo", firstTwo);
+  return firstTwo;
 }

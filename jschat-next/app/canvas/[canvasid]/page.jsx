@@ -291,9 +291,13 @@ You should output only the text that properly replaces the triple backticks.
   const systemprompt5 = `You have to ensure the information you create is consistent with the surrounding context.
 The user will provide the full context for the text in triple backticks.`;
   systemPrompt += systemprompt5;
-
-  console.log("systemPrompt", systemPrompt);
-  console.log("wrappedAllText", wrappedAllText);
+  systemPrompt +=
+    model.model === "o4-mini" && webSearchOn
+      ? "When you use the search results, make sure you provide inline citations to back your argument up and provide the APA style references section at the end of your response."
+      : "";
+  // console.log("systemPrompt", systemPrompt);
+  // console.log("wrappedAllText", wrappedAllText);
+  // console.log(model);
   // return;
   try {
     const authStatus = await getAuth();
