@@ -142,11 +142,14 @@ export function SaveItemsCanvas(params: SaveItemCanvasParams) {
           return;
         } else {
           const content = thisSession.content;
-          console.log(`CLIENT: content`, content);
+          // console.log(`CLIENT: content`, content);
 
           // if (typeof params.editableRef.current?.innerText === "string") {
           params.setCanvasText(content.canvasText);
           params.setReferences(content?.references ? content?.references : "");
+          params.setLLMInstructions(
+            content?.llmInstructions ? content?.llmInstructions : ""
+          );
 
           // params.editableRef.current.innerText = content.canvasText;
           // }

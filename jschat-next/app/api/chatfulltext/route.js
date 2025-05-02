@@ -78,6 +78,7 @@ export async function POST(req) {
       ...(data.webSearchOn
         ? {
             tools: [search_for_academic_papers_tool],
+            // tool_choice: { type: "tool", name: "search_for_academic_papers" },
           }
         : {}),
     };
@@ -85,9 +86,14 @@ export async function POST(req) {
     // return new Response(JSON.stringify({}));
     const apiResponse = await anthropic.messages.create(requestPayload);
     // console.log("apiResponse", apiResponse);
-
     console.log("apiResponse.stop_reason", apiResponse.stop_reason);
-    if (apiResponse.stop_reason === "tool_use") {
+    if (!data.webSearchOn) {
+      // no web search -> just output the text
+      const filteredText = apiResponse?.content.find((m) => m.type === "text");
+      responseText = filteredText?.text;
+      usageTokens += apiResponse?.usage?.input_tokens;
+      usageTokens += apiResponse?.usage?.output_tokens;
+    } else if (apiResponse.stop_reason === "tool_use") {
       usageTokens += apiResponse?.usage?.input_tokens;
       usageTokens += apiResponse?.usage?.output_tokens;
       const toolUse = apiResponse.content.find((r) => r.type === "tool_use");
@@ -113,8 +119,22 @@ export async function POST(req) {
       });
       //   console.log("convertedMessages", convertedMessages);
       //   console.log("search_results", search_results);
-      const apiResponse2 = await anthropic.messages.create(requestPayload);
-      //   console.log("apiResponse2", apiResponse2);
+      const requestPayload2 = {
+        model: data.model,
+        system: systemCitation,
+        messages: convertedMessages,
+        max_tokens: 8192,
+        ...thinking,
+        ...(data.webSearchOn
+          ? {
+              tools: [search_for_academic_papers_tool],
+              // tool_choice: { type: "tool", name: "search_for_academic_papers" },
+            }
+          : {}),
+      };
+      // console.log("requestPayload2", requestPayload2);
+      const apiResponse2 = await anthropic.messages.create(requestPayload2);
+      // console.log("apiResponse2", apiResponse2);
       const filteredText = apiResponse2?.content.find((m) => m.type === "text");
       responseText = filteredText?.text;
       usageTokens += apiResponse2?.usage?.input_tokens;
@@ -224,7 +244,7 @@ export async function POST(req) {
             : {}),
         };
         const apiResponse2 = await openai.responses.create(requestPayload2);
-        // console.log("apiResponse2", apiResponse2);
+        console.log("apiResponse2.stop_reason", apiResponse2.stop_reason);
         responseText = apiResponse2.output_text;
         usageTokens += apiResponse2?.usage?.total_tokens;
         usageTokens += 10000;
@@ -281,16 +301,68 @@ export async function POST(req) {
     const { convertedMessages, hasImage } = convertToOpenAIFormat(
       data.messages
     );
-    console.log("convertedMessages", convertedMessages);
-
-    const apiResponse = await xAI.chat.completions.create({
+    // console.log("convertedMessages", convertedMessages);
+    const requestPayload = {
       messages: convertedMessages,
       model: data.model,
       max_completion_tokens: 16384,
       ...reasoning,
-    });
-    usageTokens = apiResponse?.usage?.total_tokens;
-    responseText = apiResponse?.choices[0]?.message?.content;
+      ...(data.webSearchOn
+        ? {
+            tools: [search_for_academic_papers_tool_grok],
+            tool_choice: {
+              type: "function",
+              function: { name: "search_for_academic_papers" },
+            },
+          }
+        : {}),
+    };
+    const apiResponse = await xAI.chat.completions.create(requestPayload);
+    // console.log("apiResponse", apiResponse);
+    if (!data.webSearchOn) {
+      usageTokens += apiResponse?.usage?.total_tokens;
+      responseText = apiResponse?.choices[0]?.message?.content;
+    } else {
+      usageTokens += apiResponse?.usage?.total_tokens;
+      const assistantResponse = apiResponse?.choices[0]?.message;
+      // console.log("assistantResponse", assistantResponse);
+      const toolCalls = assistantResponse?.tool_calls;
+      if (toolCalls) {
+        const toolCall = toolCalls[0];
+        // console.log("toolCall", toolCall);
+        const tool_call_id = toolCall?.id;
+        // console.log("tool_call_id", tool_call_id);
+        const argsString = toolCall?.function?.arguments;
+        // console.log("argsString", argsString);
+        const args = JSON.parse(argsString);
+        const query = args?.query;
+        console.log("QUERY:", query);
+        const papers_results = await getSearchResults(query);
+        const papers_results_json = JSON.stringify(papers_results);
+        convertedMessages.push(assistantResponse);
+        convertedMessages.push({
+          role: "tool",
+          content: papers_results_json,
+          tool_call_id: tool_call_id,
+        });
+        const requestPayload2 = {
+          messages: convertedMessages,
+          model: data.model,
+          max_completion_tokens: 16384,
+          ...reasoning,
+          ...(data.webSearchOn
+            ? {
+                tools: [search_for_academic_papers_tool_grok],
+              }
+            : {}),
+        };
+        // console.log("requestPayload2", requestPayload2);
+        const apiResponse2 = await xAI.chat.completions.create(requestPayload2);
+        // console.log("apiResponse2", apiResponse2);
+        usageTokens += apiResponse2?.usage?.total_tokens;
+        responseText = apiResponse2?.choices[0]?.message?.content;
+      }
+    }
     // console.log("usageTokens", usageTokens);
     // console.log("apiResponse", apiResponse?.choices[0]?.message?.content);
   } else {
@@ -507,9 +579,33 @@ The tool is not perfect. The search results might be papers that are not relevan
     required: ["query"],
   },
 };
+const search_for_academic_papers_tool_grok = {
+  type: "function",
+  function: {
+    name: "search_for_academic_papers",
+    description: `Retrieves an array of academic papers for a given search query using the OpenAlex API. 
+The query must be a search query that would retrieve the most relevant academic papers for the given topic. 
+The tool will return an array of objects containing "doi", "publication_year", "title", "cited_by_count", "authors", and "abstract".
+The "cited_by_count" is the number of citations the paper has received.
+The tool should be used when the user asks you to write academic information. 
+You should use the tool to get the top relevant academic papers to support your argument.
+The tool is not perfect. The search results might be papers that are not relevant for the argument.`,
+    parameters: {
+      type: "object",
+      properties: {
+        query: {
+          type: "string",
+          description:
+            "The query to pass to the search engine to find the most relevant academic papers",
+        },
+      },
+      required: ["query"],
+    },
+  },
+};
 
 async function getSearchResults(query) {
-  console.log("query", query);
+  // console.log("query", query);
 
   const resp = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_URL}/api/${searchEndpoint}`,
@@ -526,6 +622,9 @@ async function getSearchResults(query) {
   const results = await resp.json();
   const firstTwo = results.slice(0, 20);
   console.log("length of search", firstTwo.length);
-  //   console.log("firstTwo", firstTwo);
+  // console.log("firstTwo", firstTwo);
+  firstTwo.map((item) => {
+    console.log("paper:", item.title);
+  });
   return firstTwo;
 }

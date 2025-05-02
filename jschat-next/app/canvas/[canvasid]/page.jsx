@@ -60,8 +60,21 @@ export default function EditableWithTooltip() {
       }
       if (thisSession?.content?.canvasText) {
         // console.log(`CLIENT: thisSession?.content`, thisSession?.content);
-
-        setCanvasText(thisSession?.content?.canvasText);
+        setCanvasText(
+          thisSession?.content?.canvasText
+            ? thisSession?.content?.canvasText
+            : ""
+        );
+        setReferences(
+          thisSession?.content?.references
+            ? thisSession?.content?.references
+            : ""
+        );
+        setLLMInstructions(
+          thisSession?.content?.llmInstructions
+            ? thisSession?.content?.llmInstructions
+            : ""
+        );
       }
       setLoadingHistory(false);
       setIsLoading(false);
@@ -175,6 +188,7 @@ export default function EditableWithTooltip() {
                     llmInstructions,
                     webSearchOn,
                     setReferences,
+                    references,
                   });
                   setIsLoadingFromLLM(false);
                 }}
@@ -222,14 +236,14 @@ export default function EditableWithTooltip() {
           <div className="flex justify-center pb-6">
             <SaveItemsCanvas
               canvasId={canvasId}
-              setCanvasText={setCanvasText}
               canvasText={canvasText}
+              setCanvasText={setCanvasText}
+              llmInstructions={llmInstructions}
+              setLLMInstructions={setLLMInstructions}
               references={references}
               setReferences={setReferences}
-              editableRef={textareaRef}
               searchParams={searchParams}
               pathname={pathname}
-              router={router}
             />
           </div>
           <Textarea
@@ -266,6 +280,7 @@ async function handleGenerate({
   llmInstructions,
   webSearchOn,
   setReferences,
+  references,
 }) {
   const { wrappedAllText, wrappedSelection } = wrapWithTripleBackticksCustom({
     allText,
@@ -277,7 +292,7 @@ async function handleGenerate({
 ${wrappedSelection}
 You should output only the text that properly replaces the text in triple backticks.
 `;
-  const systemprompt1b = `You role is to create the information necessary to replace the triple backticks
+  const systemprompt1b = `You role is to create the information necessary to replace the triple backticks.
 You should output only the text that properly replaces the triple backticks.
 `;
   systemPrompt =
@@ -285,18 +300,29 @@ You should output only the text that properly replaces the triple backticks.
       ? systemprompt1b
       : systemprompt1a;
 
-  const systemprompt4 = `You have to keep this instruction in mind when replacing the text in triple backticks: ${llmInstructions}
+  const systemprompt4 = `You have to keep this instruction in mind when generating your response: ${llmInstructions}
 `;
   systemPrompt += llmInstructions ? systemprompt4 : "";
   const systemprompt5 = `You have to ensure the information you create is consistent with the surrounding context.
-The user will provide the full context for the text in triple backticks.`;
+The user will provide the full context after the ### FULL CONTEXT tag.`;
   systemPrompt += systemprompt5;
   systemPrompt +=
-    model.model === "o4-mini" && webSearchOn
-      ? "When you use the search results, make sure you provide inline citations to back your argument up and provide the APA style references section at the end of your response."
+    (model.model === "o4-mini" || model.model.includes("grok")) && webSearchOn
+      ? "\nWhen you use the search results, make sure you provide inline citations to back your argument up and provide the APA style references section at the end of your response.\n"
       : "";
+  console.log("systemPrompt", systemPrompt);
+  // return;
+  systemPrompt +=
+    !cursorPos || cursorPos?.start === cursorPos?.end
+      ? "\nRemember that you should output only the text that properly replaces the triple backticks. Do not repeat the whole context.\n"
+      : "\nRemember that you should output only the text that properly replaces the text in triple backticks. Do not repeat the whole context.\n";
+  const wrappedAllTextWithTags = `### SEGMENT TO REPLACE:
+${wrappedSelection}
+### FULL CONTEXT:
+${wrappedAllText}`;
   // console.log("systemPrompt", systemPrompt);
   // console.log("wrappedAllText", wrappedAllText);
+  // console.log("wrappedAllTextWithTags", wrappedAllTextWithTags);
   // console.log(model);
   // return;
   try {
@@ -320,7 +346,7 @@ The user will provide the full context for the text in triple backticks.`;
         body: JSON.stringify({
           messages: [
             { role: "system", content: systemPrompt },
-            { role: "user", content: { text: wrappedAllText } },
+            { role: "user", content: { text: wrappedAllTextWithTags } },
           ],
           model: model.model,
           email: authStatus,
@@ -359,6 +385,8 @@ The user will provide the full context for the text in triple backticks.`;
     saveChatSession({
       chatId: canvasId,
       canvasText: newAllText,
+      references,
+      llmInstructions,
     });
     // END: save the session
   } catch (error) {
@@ -379,21 +407,22 @@ function wrapWithTripleBackticksCustom({ allText, cursorPos, backticks }) {
 
   if (!allText) {
     // empty textarea
-    const wrappedAllText = "``````";
-    const wrappedSelection = "``````";
+    const wrappedAllText = "```";
+    const wrappedSelection = "```";
     return { wrappedAllText, wrappedSelection };
   }
   if (!cursorPos) {
     // textarea not empty. User has not selected any text
-    const wrappedAllText = allText + "\n" + "``````";
-    const wrappedSelection = "``````";
+    const wrappedAllText = allText + "\n" + "```";
+    const wrappedSelection = "```";
     return { wrappedAllText, wrappedSelection };
   }
   const { start, end } = cursorPos;
   let wrappedSelection;
   if (start === end) {
     // only caret
-    wrappedSelection = "```" + allText.slice(start, end) + "```";
+    // console.log("only caret");
+    wrappedSelection = "```";
   } else {
     // Construct new text
     wrappedSelection = backticks

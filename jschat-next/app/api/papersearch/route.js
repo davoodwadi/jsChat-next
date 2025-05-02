@@ -5,7 +5,8 @@ export async function POST(req) {
   const baseUrl = "https://api.openalex.org/works";
   const params = new URLSearchParams({
     search: query,
-    //   filter: 'has_abstract:true',
+    filter: "has_abstract:true",
+    "per-page": 200,
     select:
       "doi,title,display_name,authorships,publication_year,cited_by_count,abstract_inverted_index",
   });

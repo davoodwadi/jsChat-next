@@ -21,6 +21,7 @@ export type SetBotMessages = (botMessages: BotMessages) => void;
 export type SetSystemPrompt = (systemPrompt: string) => void;
 export type SetCanvasText = (canvasText: string) => void;
 export type SetReferencesText = (references: string) => void;
+export type SetLLMInstructions = (references: string) => void;
 
 export type SaveItemParams = {
   chatId: string;
@@ -36,6 +37,8 @@ export type SaveItemCanvasParams = {
   canvasId: string;
   canvasText: string;
   setCanvasText: SetCanvasText;
+  llmInstructions: string;
+  setLLMInstructions: SetLLMInstructions;
   references: string;
   setReferences: SetReferencesText;
   searchParams: { [key: string]: string | string[] | undefined };
@@ -55,6 +58,6 @@ export function createSaveChatSessionParams(params: SaveItemParams) {
 }
 
 export function createSaveCanvasSessionParams(params: SaveItemCanvasParams) {
-  const { canvasId, canvasText, references } = params;
-  return { canvasId, canvasText, references };
+  const { canvasId, canvasText, references, llmInstructions } = params;
+  return { canvasId, canvasText, references, llmInstructions };
 }
