@@ -31,11 +31,11 @@ export default function EditableWithTooltip() {
   const [systemPrompt, setSystemPrompt] = useState("");
   const [webSearchOn, setWebSearchOn] = useState(false);
   const [references, setReferences] = useState("References\n");
+  const [extraContext, setExtraContext] = useState("");
   // console.log("webSearchOn", webSearchOn);
   const [llmInstructions, setLLMInstructions] = useState("");
   // console.log("llmInstructions", llmInstructions);
   const textareaRef = useRef(null);
-  const tooltipRef = useRef(null);
 
   // console.log("selectionRectangle", selectionRectangle);
   const [canvasText, setCanvasText] = useState();
@@ -46,7 +46,11 @@ export default function EditableWithTooltip() {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isTopupDialogOpen, setIsTopupDialogOpen] = useState(false);
-
+  const textAreaClass = `rounded-xl bg-gray-100 dark:bg-gray-900 text-gray-950 placeholder-gray-800
+border-none drop-shadow-none divide-none outline-none shadow-none
+focus-visible:ring-0
+dark:placeholder-gray-500 
+dark:text-gray-100`;
   // load canvas history on launch
   useEffect(() => {
     const loadHistory = async () => {
@@ -73,6 +77,11 @@ export default function EditableWithTooltip() {
         setLLMInstructions(
           thisSession?.content?.llmInstructions
             ? thisSession?.content?.llmInstructions
+            : ""
+        );
+        setExtraContext(
+          thisSession?.content?.extraContext
+            ? thisSession?.content?.extraContext
             : ""
         );
       }
@@ -128,80 +137,75 @@ export default function EditableWithTooltip() {
           <MultilineSkeleton lines={5} />
         </div>
       ) : (
-        <div className="flex-col w-vw mx-16">
-          {/* <RectangleDiv color="blue" {...selectionRectangle} /> */}
-          {/* <RectangleDiv color="green" {...parentRectangle} /> */}
-          <div
-            className="flex justify-center justify-items-center-safe pb-2 gap-6 text-black rounded text-xs dark:text-white"
-            ref={tooltipRef}
-          >
-            <Textarea
-              value={llmInstructions}
-              onChange={(e) => setLLMInstructions(e.target.value)}
-              style={{ resize: "none", fontSize: "16px" }}
-              placeholder="Instructions to modify the selected text..."
-            />
-            <div className="flex flex-col justify-center gap-2">
-              <div className="flex flex-row gap-2 items-center justify-center">
-                <select
-                  id="modelDropdown"
-                  value={model?.name}
-                  onChange={(event) => {
-                    const selectedModelName = event.target.value; // Get the selected model's name
-                    const selectedModel = allModelsWithoutIcon.find(
-                      (model) => model.name === selectedModelName
-                    );
-                    setModel(selectedModel);
-                    //   console.log("model", model);
-                  }}
-                  className="  rounded text-xs p-1 w-32 sm:w-48"
-                >
-                  {allModelsWithoutIcon.map((m, i) => (
-                    <option key={i} value={m.name}>
-                      {m.name}
-                    </option>
-                  ))}
-                </select>
-                <Toggle
-                  size="sm"
-                  aria-label="Web Search Toggle"
-                  variant="outline"
-                  onPressedChange={() => setWebSearchOn((v) => !v)}
-                >
-                  <Search />
-                </Toggle>
-              </div>
-              <Button
-                size="sm"
-                className="my-auto"
-                disabled={isLoadingFromLLM}
-                onClick={async () => {
-                  setIsLoadingFromLLM(true);
-                  await handleGenerate({
-                    cursorPos,
-                    model: model,
-                    setCanvasText,
-                    setIsDialogOpen,
-                    setIsTopupDialogOpen,
-                    canvasId,
-                    allText: canvasText,
-                    llmInstructions,
-                    webSearchOn,
-                    setReferences,
-                    references,
-                  });
-                  setIsLoadingFromLLM(false);
+        <div className="grid grid-cols-3 gap-4 w-vw mx-16">
+          <Textarea
+            className={textAreaClass + ` col-span-2 `}
+            value={llmInstructions}
+            onChange={(e) => setLLMInstructions(e.target.value)}
+            style={{ resize: "none", fontSize: "16px" }}
+            placeholder="Instructions to modify the selected text..."
+          />
+          <div className="col-span-1 flex flex-col justify-center gap-2">
+            <div className="flex flex-row gap-2 items-center justify-between">
+              <select
+                id="modelDropdown"
+                value={model?.name}
+                onChange={(event) => {
+                  const selectedModelName = event.target.value; // Get the selected model's name
+                  const selectedModel = allModelsWithoutIcon.find(
+                    (model) => model.name === selectedModelName
+                  );
+                  setModel(selectedModel);
+                  //   console.log("model", model);
                 }}
+                className=" bg-gray-100 dark:bg-gray-900 rounded text-xs p-1 w-32 sm:w-48"
               >
-                {isLoadingFromLLM ? (
-                  <>
-                    <Loader2 className="animate-spin" /> Generate
-                  </>
-                ) : (
-                  <>Generate</>
-                )}
-              </Button>
+                {allModelsWithoutIcon.map((m, i) => (
+                  <option key={i} value={m.name}>
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+              <Toggle
+                size="sm"
+                aria-label="Web Search Toggle"
+                variant="outline"
+                onPressedChange={() => setWebSearchOn((v) => !v)}
+              >
+                <Search />
+              </Toggle>
             </div>
+            <Button
+              size="sm"
+              className="my-auto"
+              disabled={isLoadingFromLLM}
+              onClick={async () => {
+                setIsLoadingFromLLM(true);
+                await handleGenerate({
+                  cursorPos,
+                  model: model,
+                  setCanvasText,
+                  setIsDialogOpen,
+                  setIsTopupDialogOpen,
+                  canvasId,
+                  allText: canvasText,
+                  llmInstructions,
+                  webSearchOn,
+                  setReferences,
+                  references,
+                  extraContext,
+                });
+                setIsLoadingFromLLM(false);
+              }}
+            >
+              {isLoadingFromLLM ? (
+                <>
+                  <Loader2 className="animate-spin" /> Generate
+                </>
+              ) : (
+                <>Generate</>
+              )}
+            </Button>
           </div>
           <Textarea
             ref={textareaRef}
@@ -211,18 +215,36 @@ export default function EditableWithTooltip() {
             onKeyUp={handleTextareaKeyUp}
             onBlur={handleTextareaBlur}
             spellCheck={true}
-            className={`
-            w-full 
+            className={
+              textAreaClass +
+              `
+            col-span-2
             overflow-auto
             text-wrap
             h-[calc(100vh_-_250px)]
-            border border-gray-300 rounded-md p-3 
-            text-base 
-            focus:outline-none             
-            `}
+            p-3 
+            text-base              
+            `
+            }
             placeholder="Type here..."
-            style={{ fontSize: "16px" }}
+            style={{ resize: "none", fontSize: "16px" }}
             id="textarea"
+          />
+          <Textarea
+            value={extraContext}
+            onChange={(e) => setExtraContext(e.target.value)}
+            className={
+              textAreaClass +
+              `
+            col-span-1
+            h-[calc(100vh_-_250px)]
+            overflow-auto
+            text-wrap
+            `
+            }
+            placeholder="Add extra context here..."
+            style={{ resize: "none", fontSize: "8px" }}
+            id="contextArea"
           />
 
           <AuthDialog
@@ -233,13 +255,15 @@ export default function EditableWithTooltip() {
             isDialogOpen={isTopupDialogOpen}
             setIsDialogOpen={setIsTopupDialogOpen}
           />
-          <div className="flex justify-center pb-6">
+          <div className="col-span-3 flex justify-center pb-6">
             <SaveItemsCanvas
               canvasId={canvasId}
               canvasText={canvasText}
               setCanvasText={setCanvasText}
               llmInstructions={llmInstructions}
               setLLMInstructions={setLLMInstructions}
+              extraContext={extraContext}
+              setExtraContext={setExtraContext}
               references={references}
               setReferences={setReferences}
               searchParams={searchParams}
@@ -250,16 +274,17 @@ export default function EditableWithTooltip() {
             value={references}
             onChange={(e) => setReferences(e.target.value)}
             // spellCheck={true}
-            className={`
-            w-full 
+            className={
+              textAreaClass +
+              `
+            col-span-3 
             overflow-auto
-            text-wrap
-            border border-gray-300 rounded-md p-3 
-            text-base 
-            focus:outline-none             
-            `}
+            text-wrap 
+            p-6
+            `
+            }
             placeholder="Citations will populate here..."
-            style={{ fontSize: "8px" }}
+            style={{ resize: "none", fontSize: "8px" }}
             rows={10}
             id="citationArea"
           />
@@ -281,6 +306,7 @@ async function handleGenerate({
   webSearchOn,
   setReferences,
   references,
+  extraContext,
 }) {
   const { wrappedAllText, wrappedSelection } = wrapWithTripleBackticksCustom({
     allText,
@@ -288,11 +314,14 @@ async function handleGenerate({
     backticks: true,
   });
   let systemPrompt;
-  const systemprompt1a = `You role is to create the information necessary to replace the text below (in triple backticks):
+  const today = new Date().toDateString();
+  // console.log("today", today);
+  // return;
+  const systemprompt1a = `Today's date is ${today}. You role is to create the information necessary to replace the text below (in triple backticks):
 ${wrappedSelection}
 You should output only the text that properly replaces the text in triple backticks.
 `;
-  const systemprompt1b = `You role is to create the information necessary to replace the triple backticks.
+  const systemprompt1b = `Today's date is ${today}. You role is to create the information necessary to replace the triple backticks.
 You should output only the text that properly replaces the triple backticks.
 `;
   systemPrompt =
@@ -306,25 +335,38 @@ You should output only the text that properly replaces the triple backticks.
   const systemprompt5 = `You have to ensure the information you create is consistent with the surrounding context.
 The user will provide the full context after the ### FULL CONTEXT tag.`;
   systemPrompt += systemprompt5;
+
   systemPrompt +=
-    (model.model === "o4-mini" || model.model.includes("grok")) && webSearchOn
-      ? "\nWhen you use the search results, make sure you provide inline citations to back your argument up and provide the APA style references section at the end of your response.\n"
+    (model.model === "o4-mini" ||
+      model.model.includes("grok") ||
+      model.model.includes("claude")) &&
+    webSearchOn
+      ? `When you use the search results, make sure you provide inline citations to back your argument up. 
+Provide the APA style references section at the end of your response.`
       : "";
-  console.log("systemPrompt", systemPrompt);
+  // console.log("systemPrompt", systemPrompt);
   // return;
   systemPrompt +=
     !cursorPos || cursorPos?.start === cursorPos?.end
       ? "\nRemember that you should output only the text that properly replaces the triple backticks. Do not repeat the whole context.\n"
       : "\nRemember that you should output only the text that properly replaces the text in triple backticks. Do not repeat the whole context.\n";
+  if (extraContext) {
+    systemPrompt += `
+
+You can consult the academic papers below for your response:
+${extraContext}
+
+Make sure to include both inline citations and a references section at the end.
+`;
+  }
   const wrappedAllTextWithTags = `### SEGMENT TO REPLACE:
 ${wrappedSelection}
 ### FULL CONTEXT:
 ${wrappedAllText}`;
-  // console.log("systemPrompt", systemPrompt);
+  console.log("systemPrompt", systemPrompt);
   // console.log("wrappedAllText", wrappedAllText);
-  // console.log("wrappedAllTextWithTags", wrappedAllTextWithTags);
+  console.log("wrappedAllTextWithTags", wrappedAllTextWithTags);
   // console.log(model);
-  // return;
   try {
     const authStatus = await getAuth();
     if (authStatus === 400) {
@@ -387,6 +429,7 @@ ${wrappedAllText}`;
       canvasText: newAllText,
       references,
       llmInstructions,
+      extraContext,
     });
     // END: save the session
   } catch (error) {

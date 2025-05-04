@@ -9,6 +9,7 @@ const AuthButton = lazy(() => import("@/components/auth/AuthButtonsServer"));
 import PaymentComponent from "@/components/payment/Payment";
 import { PRICE_ID_200K } from "@/components/payment/PaymentConfig";
 export function SidebarInnerServer({ children }) {
+  const today = new Date();
   return (
     <>
       <AppSidebar />
@@ -43,7 +44,7 @@ export function SidebarInnerServer({ children }) {
         {children}
         <footer className="flex gap-2 p-6 flex-wrap items-center justify-center mt-auto text-xs md:text-sm">
           <p className="flex items-center gap-2">
-            © 2024 Spreed.chat. All rights reserved.
+            © {today.getFullYear()} Spreed.chat. All rights reserved.
           </p>
           <a
             className="flex items-center gap-2 hover:underline hover:underline-offset-4"

@@ -136,6 +136,12 @@ export async function POST(req) {
       const apiResponse2 = await anthropic.messages.create(requestPayload2);
       // console.log("apiResponse2", apiResponse2);
       const filteredText = apiResponse2?.content.find((m) => m.type === "text");
+      if (!filteredText) {
+        const response2 = apiResponse2?.content.find(
+          (m) => m.type === "tool_use"
+        );
+        console.log("response2", response2);
+      }
       responseText = filteredText?.text;
       usageTokens += apiResponse2?.usage?.input_tokens;
       usageTokens += apiResponse2?.usage?.output_tokens;
@@ -237,15 +243,12 @@ export async function POST(req) {
           model: data.model,
           max_output_tokens: 16384,
           ...reasoning,
-          ...(data.webSearchOn
-            ? {
-                tools: [search_for_academic_papers_tool_openai],
-              }
-            : {}),
         };
         const apiResponse2 = await openai.responses.create(requestPayload2);
-        console.log("apiResponse2.stop_reason", apiResponse2.stop_reason);
         responseText = apiResponse2.output_text;
+        if (!responseText) {
+          console.log("apiResponse2", apiResponse2);
+        }
         usageTokens += apiResponse2?.usage?.total_tokens;
         usageTokens += 10000;
       } else {
@@ -269,7 +272,9 @@ export async function POST(req) {
         ...reasoning,
         ...(data.webSearchOn
           ? {
-              tools: [{ type: "web_search_preview" }],
+              tools: [
+                { type: "web_search_preview", search_context_size: "high" },
+              ],
               tool_choice: { type: "web_search_preview" },
             }
           : {}),
@@ -278,13 +283,15 @@ export async function POST(req) {
       // return new Response(JSON.stringify(requestPayload));
       const apiResponse = await openai.responses.create(requestPayload);
       responseText = apiResponse.output_text;
-      usageTokens = apiResponse?.usage?.total_tokens;
+      usageTokens += apiResponse?.usage?.total_tokens;
       if (data.webSearchOn) {
         usageTokens += 10000;
         const citations = getOpenAICitations(apiResponse);
         //   console.log("citations", citations);
         //   responseText += `\n\nReferences\n\n${citations}`;
         citationsArray = citations.citationsArray;
+        console.log("citationsArray", citationsArray);
+        console.log("apiResponse", apiResponse);
       }
     }
 
@@ -369,6 +376,7 @@ export async function POST(req) {
     console.log(`Model ${data.model} not found in any list.`);
   }
   // deduct usage
+  console.log("TOTAL USAGE:", usageTokens);
   fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
     method: "POST",
     headers: {
@@ -539,12 +547,13 @@ const search_for_academic_papers_tool_openai = {
   type: "function",
   name: "search_for_academic_papers",
   description: `Retrieves an array of academic papers for a given search query using the OpenAlex API. 
-  The query must be a search query that would retrieve the most relevant academic papers for the given topic. 
-  The tool will return an array of objects containing "doi", "publication_year", "title", "cited_by_count", "authors", and "abstract".
-  The "cited_by_count" is the number of citations the paper has received.
-  The tool should be used when the user asks you to write academic information. 
-  You should use the tool to get the top relevant academic papers to support your argument.
-  The tool is not perfect. The search results might be papers that are not relevant for the argument.`,
+The query must be a search query that would retrieve the most relevant academic papers for the given topic. 
+The tool will return an array of objects containing "doi", "publication_year", "title", "cited_by_count", "authors", and "abstract".
+The "cited_by_count" is the number of citations the paper has received.
+The tool should be used when the user asks you to write academic information. 
+You should use the tool to get the top relevant academic papers to support your argument.
+The tool is not perfect. The search results might be papers that are not relevant for the argument.
+If the academic papers returned by the tool do not support your query, you MUST output "The search results were not relevant."`,
   parameters: {
     type: "object",
     properties: {
@@ -566,7 +575,8 @@ The tool will return an array of objects containing "doi", "publication_year", "
 The "cited_by_count" is the number of citations the paper has received.
 The tool should be used when the user asks you to write academic information. 
 You should use the tool to get the top relevant academic papers to support your argument.
-The tool is not perfect. The search results might be papers that are not relevant for the argument.`,
+The tool is not perfect. The search results might be papers that are not relevant for the argument.
+If the academic papers returned by the tool do not support your query, you MUST output "The search results were not relevant."`,
   input_schema: {
     type: "object",
     properties: {
@@ -589,7 +599,8 @@ The tool will return an array of objects containing "doi", "publication_year", "
 The "cited_by_count" is the number of citations the paper has received.
 The tool should be used when the user asks you to write academic information. 
 You should use the tool to get the top relevant academic papers to support your argument.
-The tool is not perfect. The search results might be papers that are not relevant for the argument.`,
+The tool is not perfect. The search results might be papers that are not relevant for the argument.
+If the academic papers returned by the tool do not support your query, you MUST output "The search results were not relevant."`,
     parameters: {
       type: "object",
       properties: {
@@ -606,7 +617,26 @@ The tool is not perfect. The search results might be papers that are not relevan
 
 async function getSearchResults(query) {
   // console.log("query", query);
+  if (process.env.NEXT_PUBLIC_BASE_URL === "http://localhost:3000") {
+    console.log("using the local flask server");
+    const resp = await fetch(`http://127.0.0.1:5000`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json", // specify JSON content
+      },
+      body: JSON.stringify({ query: query }),
+    });
+    // console.log("resp.status", resp.status);
 
+    const results = await resp.json();
+    const firstTwo = results.slice(0, 20);
+    console.log("length of search", firstTwo.length);
+    // console.log("firstTwo", firstTwo);
+    firstTwo.map((item) => {
+      console.log("paper:", item.title);
+    });
+    return firstTwo;
+  }
   const resp = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_URL}/api/${searchEndpoint}`,
     {

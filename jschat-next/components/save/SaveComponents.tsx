@@ -150,6 +150,9 @@ export function SaveItemsCanvas(params: SaveItemCanvasParams) {
           params.setLLMInstructions(
             content?.llmInstructions ? content?.llmInstructions : ""
           );
+          params.setExtraContext(
+            content?.extraContext ? content?.extraContext : ""
+          );
 
           // params.editableRef.current.innerText = content.canvasText;
           // }
