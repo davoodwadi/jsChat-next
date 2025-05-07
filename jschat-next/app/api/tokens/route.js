@@ -3,11 +3,11 @@ import { connectToDatabase } from "@/lib/db";
 
 export async function POST(req) {
   const data = await req.json();
-    const amount = data.amount
-    const email = data.email
-
+  const amount = data.amount;
+  const email = data.email;
+  console.log("tokens amount", amount);
   if (!amount) {
-    return Response.json( { tokensRemaining: null}, { status: 400} );
+    return Response.json({ tokensRemaining: null }, { status: 400 });
   }
   // console.log('email', email)
 
@@ -24,5 +24,8 @@ export async function POST(req) {
     }
   );
   // console.log('result', result)
-  return Response.json( { tokensRemaining: result.tokensRemaining}, {status: 200 })
+  return Response.json(
+    { tokensRemaining: result.tokensRemaining },
+    { status: 200 }
+  );
 }

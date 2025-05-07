@@ -37,10 +37,10 @@ def get_article():
     if not data:
         return jsonify({"error": "No input data provided"}), 400
     query = data.get('query')
-    result_openalex = get_articles_for_query_openalex(query)
+    # result_openalex = get_articles_for_query_openalex(query)
     result_crossref = get_articles_for_query_crossref(query)
-    print('openalex\n\n',result_openalex[0])
-    print('\n\n\n')
+    # print('openalex\n\n',result_openalex[0])
+    # print('\n\n\n')
     print('crossref\n\n', result_crossref[0])
     print('\n\n\n')
 
@@ -104,7 +104,7 @@ def get_articles_for_query_crossref(query):
     else:
         print(f"Request failed with status code {response.status_code}")
     all_results = data['message']['items']
-    # print(all_results[:5])
+    print(all_results[0])
 
     texts = [(r.get('title')[0] if r.get('title') else '') + ' ' + (r.get('abstract') or '') for r in all_results]
     ranks = model.rank(query, texts)

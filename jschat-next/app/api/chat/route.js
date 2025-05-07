@@ -68,14 +68,6 @@ export async function POST(req) {
           const thinking = data.model.includes("claude-3-7-sonnet")
             ? { thinking: { type: "enabled", budget_tokens: 8000 } }
             : {};
-          // console.log("thinking", thinking);
-          // const messages = data.messages
-          //   .filter((m) => m.role !== "system")
-          //   .map((m) => ({
-          //     role: m.role,
-          //     content: m.content,
-          //   }));
-          // const system = data.messages.filter((m) => m.role === "system")[0];
 
           // console.log("messages", messages);
           // console.log("system", system);
@@ -301,7 +293,7 @@ export async function POST(req) {
                   "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                  amount: chunk?.usage?.total_tokens,
+                  amount: chunk?.response?.usage?.total_tokens,
                   email: data.email,
                 }),
               });
@@ -347,7 +339,7 @@ export async function POST(req) {
             messages: convertedMessages,
             model: data.model,
             stream: true,
-            // stream_options: { include_usage: true },
+            stream_options: { include_usage: true },
             max_completion_tokens: 16384,
             ...reasoning,
           });
@@ -370,7 +362,7 @@ export async function POST(req) {
                 encoder.encode(chunk.choices[0]?.delta?.content)
               );
             } else if (chunk?.usage?.total_tokens) {
-              console.log("total tokens", chunk?.usage?.total_tokens);
+              // console.log("total tokens", chunk?.usage?.total_tokens);
               fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
                 method: "POST",
                 headers: {
