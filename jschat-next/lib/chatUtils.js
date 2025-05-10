@@ -78,6 +78,7 @@ export async function handleSubmit({
   let chain;
   let streamIterator;
   let tempChunks = "";
+  const extraContent = {};
 
   const array = JSON.parse(targetId);
 
@@ -195,7 +196,6 @@ export async function handleSubmit({
 
     const reader = data.body.getReader();
     const decoder = new TextDecoder();
-    tempChunks = "";
 
     newBotEntry = {
       key: JSON.stringify(array),
@@ -211,22 +211,40 @@ export async function handleSubmit({
       const { done, value } = await reader.read();
       if (done) break;
 
-      const chunk = decoder.decode(value, { stream: true });
-      // console.log('Received chunk:', chunk);
+      let chunk = decoder.decode(value, { stream: true });
+      // console.log("Received chunk:", chunk);
+      const jsonLines = chunk.split("\n").filter((line) => line.trim());
+      // console.log("Received jsonLines:", jsonLines);
 
-      tempChunks = chunk ? tempChunks + chunk : tempChunks;
-
-      newBotEntry = {
-        key: JSON.stringify(array),
-        globalIdBot: newGlobalIdBot,
-        content: tempChunks,
-        role: "bot",
-        status: "reading", // pending | reading | done
-        model: model,
-      };
-      setBotMessages((v) =>
-        v.map((m) => (m.key === JSON.stringify(array) ? newBotEntry : m))
-      );
+      for (const jsonStr of jsonLines) {
+        try {
+          const parsedData = JSON.parse(jsonStr);
+          // console.log("parsedData.text", parsedData.text);
+          if (parsedData?.text) {
+            tempChunks += parsedData?.text;
+          }
+          if (parsedData?.groundingChunks) {
+            extraContent.groundingChunks = parsedData.groundingChunks;
+          }
+          if (parsedData?.groundingSupports) {
+            extraContent.groundingSupports = parsedData.groundingSupports;
+          }
+          newBotEntry = {
+            key: JSON.stringify(array),
+            globalIdBot: newGlobalIdBot,
+            content: tempChunks,
+            role: "bot",
+            status: "reading", // pending | reading | done
+            model: model,
+            ...extraContent,
+          };
+          setBotMessages((v) =>
+            v.map((m) => (m.key === JSON.stringify(array) ? newBotEntry : m))
+          );
+        } catch (e) {
+          console.error("Failed to parse JSON:", e);
+        }
+      }
     }
     // END: streaming the LLM
     // // //
@@ -343,7 +361,6 @@ export async function handleSubmit({
     // return;
     const reader = data.body.getReader();
     const decoder = new TextDecoder();
-    tempChunks = "";
 
     newBotEntry = {
       key: JSON.stringify(array),
@@ -375,27 +392,54 @@ export async function handleSubmit({
       if (done) break;
 
       let chunk = decoder.decode(value, { stream: true });
-      // chunk = `{${chunk.replace('\n', ',')}}`
-      // console.log('Received chunk:', chunk);
+      // console.log("Received chunk:", chunk);
+      const jsonLines = chunk.split("\n").filter((line) => line.trim());
+      // console.log("Received jsonLines:", jsonLines);
 
-      tempChunks = chunk ? tempChunks + chunk : tempChunks;
+      for (const jsonStr of jsonLines) {
+        try {
+          // console.log("jsonStr", jsonStr);
 
-      newBotEntry = {
-        key: JSON.stringify(array),
-        globalIdBot: newGlobalIdBot,
-        content: tempChunks,
-        role: "bot",
-        status: "reading",
-        model: model,
-      };
-      setBotMessages((v) => {
-        // console.log("botMessages counter:", counter, delta, v);
+          const parsedData = JSON.parse(jsonStr);
+          // console.log("parsedData", parsedData);
+          if (parsedData?.text) {
+            // console.log("parsedData?.text", parsedData?.text);
+            tempChunks += parsedData?.text;
+          }
+          // console.log("tempChunks", tempChunks);
+          // console.log(
+          //   "Last char code",
+          //   tempChunks.charCodeAt(tempChunks.length - 1)
+          // );
 
-        return v.map((m) =>
-          m.key === JSON.stringify(array) ? newBotEntry : m
-        );
-      });
+          if (parsedData?.groundingChunks) {
+            extraContent.groundingChunks = parsedData.groundingChunks;
+          }
+          if (parsedData?.groundingSupports) {
+            extraContent.groundingSupports = parsedData.groundingSupports;
+          }
+          newBotEntry = {
+            key: JSON.stringify(array),
+            globalIdBot: newGlobalIdBot,
+            content: tempChunks,
+            role: "bot",
+            status: "reading",
+            model: model,
+            ...extraContent,
+          };
+          // console.log("newBotEntry", newBotEntry);
+          setBotMessages((v) => {
+            return v.map((m) =>
+              m.key === JSON.stringify(array) ? newBotEntry : m
+            );
+          });
+        } catch (e) {
+          console.error("Failed to parse JSON:", e);
+        }
+      }
     }
+    // console.log("botMessages", botMessages);
+
     // END: streaming the LLM
     //
     const newGlobalIdUser = globalIdUser + 1;
@@ -421,7 +465,10 @@ export async function handleSubmit({
     role: "bot",
     status: "done",
     model: model,
+    ...extraContent,
   };
+  // console.log("tempChunks", tempChunks);
+
   setBotMessages((v) => {
     const updatedBotMessages = v.map((m) =>
       m.key === JSON.stringify(array) ? newBotEntry : m

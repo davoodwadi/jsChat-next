@@ -107,7 +107,7 @@ export function RecursiveChatContainer(props) {
       }
     }
   }, [botMessages]);
-
+  // console.log("botMessages", botMessages);
   const [response, setResponse] = useState({});
   const [branchKeyToMaximize, setBranchKeyToMaximize] = useState(
     JSON.stringify([1])

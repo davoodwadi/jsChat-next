@@ -34,6 +34,7 @@ import {
   deepinfraModelsWithMeta,
   anthropicModelsWithMeta,
   xAIModelsWithMeta,
+  geminiModelsWithMeta,
 } from "@/app/models";
 
 const modelMeta = [
@@ -42,6 +43,7 @@ const modelMeta = [
   { desc: "DeepInfra Models (Open-source)", models: deepinfraModelsWithMeta },
   { desc: "Anthropic Models (Closed-source)", models: anthropicModelsWithMeta },
   { desc: "xAI Models (Closed-source)", models: xAIModelsWithMeta },
+  { desc: "Google Models (Closed-source)", models: geminiModelsWithMeta },
 ];
 
 export default function Chat() {

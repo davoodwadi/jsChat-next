@@ -267,12 +267,43 @@ export const xAIModelsWithMeta = [
     icon: DifferentIcon,
   },
 ];
+export const geminiModelsWithMeta = [
+  // {
+  //   name: "Gemini 2.0 Flash",
+  //   model: "gemini-2.0-flash",
+  //   meta: "Google's Fastest LLM",
+  //   new: true,
+  //   vision: false,
+  //   reasoning: false,
+  //   icon: FastIcon,
+  // },
+  {
+    name: "Gemini 2.5 Flash",
+    model: "gemini-2.5-flash-preview-04-17",
+    meta: "Google's Fastest LLM With Thinking Capabilities",
+    new: true,
+    vision: false,
+    reasoning: true,
+    icon: FastIcon,
+  },
+
+  {
+    name: "Gemini 2.5 Pro",
+    model: "gemini-2.5-pro-exp-03-25",
+    meta: "Google's State-of-the-art Thinking Model",
+    new: true,
+    vision: false,
+    reasoning: true,
+    icon: BrainIcon,
+  },
+];
 const allModels = [
   ...openaiModelsWithMeta,
   ...groqModelsWithMeta,
   ...deepinfraModelsWithMeta,
   ...anthropicModelsWithMeta,
   ...xAIModelsWithMeta,
+  ...geminiModelsWithMeta,
 ];
 export const allModelsWithoutIcon = allModels.map(
   ({ icon, ...model }) => model
@@ -283,6 +314,7 @@ export const deepinfraModels = deepinfraModelsWithMeta.map((m) => m.model);
 export const openaiModels = openaiModelsWithMeta.map((m) => m.model);
 export const anthropicModels = anthropicModelsWithMeta.map((m) => m.model);
 export const xAIModels = xAIModelsWithMeta.map((m) => m.model);
+export const geminiModels = geminiModelsWithMeta.map((m) => m.model);
 
 // console.log(groqModels);
 // console.log(deepinfraModels);

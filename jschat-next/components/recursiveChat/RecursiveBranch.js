@@ -159,6 +159,7 @@ export default function RecursiveBranch(props) {
                           props.toMaximize
                         }
                         refElementBot={props.refElementBot}
+                        botMessage={getBotMessageForKey(tm.key)}
                       >
                         {getBotMessageForKey(tm.key).content}
                       </BotMessage>

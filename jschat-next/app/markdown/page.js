@@ -477,6 +477,8 @@ Note: Be sure to replace placeholders like [First Name] and add working links wh
 </html>
 
 Let me know if you need a version styled or structured specifically for a certain email system (e.g., Mailchimp, HubSpot, custom ESP).`;
+const someText = `Why was the math book sad?
+Because it had too many problems.`;
 export default async function MarkdownPage() {
   console.log("Markdown Page");
   console.log("page runtime", process.env.NEXT_RUNTIME);
@@ -486,9 +488,8 @@ export default async function MarkdownPage() {
     <>
       {/* <div dangerouslySetInnerHTML={{ __html: result }} /> */}
       {/* <Markdown remarkPlugins={[remarkGfm]}>{markdownSample}</Markdown> */}
-
       <div className="break-words max-w-[85vw] mx-auto">
-        <MarkdownComponent model="gpt-4o-mini">{math}</MarkdownComponent>
+        <MarkdownComponent model="gpt-4o-mini">{someText}</MarkdownComponent>
       </div>
     </>
   );

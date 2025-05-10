@@ -15,14 +15,15 @@ import {
   xAIModelsWithMeta,
 } from "@/app/models";
 
-const allModels = [
-  ...openaiModelsWithMeta,
-  ...groqModelsWithMeta,
-  ...deepinfraModelsWithMeta,
-  ...anthropicModelsWithMeta,
-  ...xAIModelsWithMeta,
-];
-const allModelsWithoutIcon = allModels.map(({ icon, ...model }) => model);
+// const allModels = [
+//   ...openaiModelsWithMeta,
+//   ...groqModelsWithMeta,
+//   ...deepinfraModelsWithMeta,
+//   ...anthropicModelsWithMeta,
+//   ...xAIModelsWithMeta,
+// ];
+// const allModelsWithoutIcon = allModels.map(({ icon, ...model }) => model);
+import { allModelsWithoutIcon } from "@/app/models";
 
 let baseUserClass = "  flex flex-col items-center p-4 m-1 rounded-xl "; //border-2 border-blue-500 min-w-fit
 baseUserClass += `bg-gray-100 dark:bg-gray-900 `; // bg-sky-50 dark:bg-sky-600
@@ -304,7 +305,18 @@ export function BotMessage(props) {
     }
   }, [isLatestBot, props.refElementBot]); // Dependency array
   // console.log("Bot props second", props.content);
-
+  // console.log("props.children", props.children);
+  // console.log("props.botMessage", props.botMessage);
+  // if (props.botMessage?.groundingSupports) {
+  //   console.log(
+  //     "props.botMessage",
+  //     props.botMessage.content.slice(
+  //       0,
+  //       props.botMessage.groundingSupports[0].segment.endIndex
+  //     )
+  //   );
+  // }
+  // console.log("props.children.length", props.children.length);
   return (
     <div className={baseBotClass}>
       <div className="flex flex-row justify-between text-xs mb-4">
@@ -314,8 +326,8 @@ export function BotMessage(props) {
         <CopyText text={props.children} />
       </div>
       <div
-        contentEditable="true"
-        suppressContentEditableWarning
+        // contentEditable="true"
+        // suppressContentEditableWarning
         className=" break-words  focus:outline-none focus:border-none focus:ring-0"
         id={props.id}
         globalidbot={props.globalIdBot}
@@ -327,7 +339,12 @@ export function BotMessage(props) {
         {props.content === "" ? (
           <MultilineSkeleton lines={4}>{props.children}</MultilineSkeleton>
         ) : (
-          <MarkdownComponent>{props.children}</MarkdownComponent>
+          <MarkdownComponent
+            groundingChunks={props?.groundingChunks}
+            groundingSupports={props?.groundingSupports}
+          >
+            {props.children}
+          </MarkdownComponent>
         )}
       </div>
     </div>

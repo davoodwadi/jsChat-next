@@ -72,17 +72,35 @@ function extractThinKContent(text) {
   return { content, think };
 }
 export default function MarkdownComponent(props) {
-  const processedText = preprocessMarkdown(props.children);
+  // console.log("props.children.length MD", props.children.length);
+
+  let finalContent = props.children;
+  // console.log("props.children", props.children);
+  // console.log("props", props);
+  if (props?.groundingChunks && props?.groundingSupports) {
+    // console.log(props?.groundingChunks);
+    const contentWithCitations = addCitationsToContent(
+      finalContent,
+      props?.groundingChunks,
+      props?.groundingSupports
+    );
+    finalContent = contentWithCitations;
+  }
+  const processedText = preprocessMarkdown(finalContent);
   // console.log("processedText", processedText);
 
   const { think, content } = extractThinKContent(processedText);
+  finalContent = content;
+
   // console.log("think ", think);
   // console.log("content ", content);
+  // console.log("finalContent ", finalContent);
 
   const style = a11yDark;
   let language;
   // console.log("markdown props.children", props.children);
   // console.log("markdown processedText", processedText);
+
   return (
     <>
       {think && (
@@ -211,20 +229,80 @@ export default function MarkdownComponent(props) {
               );
             }
           },
-          // think: CustomThink, // Handle <think> tags separately
-          // think({ node, children }) {
-          //   // console.log("node", node);
-          //   // console.log("children", children);
-          //   return <CustomThink>{children}</CustomThink>;
-          // },
         }}
       >
-        {content}
+        {finalContent}
       </Markdown>
     </>
   );
 }
+function findTextPositions(bigText, searchText) {
+  const startIndex = bigText.indexOf(searchText);
+  if (startIndex === -1) {
+    return null; // text not found
+  }
+  const endIndex = startIndex + searchText.length - 1;
+  return { startIndex, endIndex };
+}
+const addCitationsToContent = (content, groundingChunks, groundingSupports) => {
+  let result = content;
+  const references = new Map(); // Maps chunk indices to their URLs and titles
 
-const CustomThink = ({ children }) => {
-  return <span className="text-gray-500 italic">{children}</span>;
+  // Sort supports by endIndex in descending order to avoid changing indices
+  // when we insert content
+  const sortedSupports = [...groundingSupports].sort(
+    (a, b) => b.segment.endIndex - a.segment.endIndex
+  );
+  // console.log("sortedSupports", sortedSupports);
+  // Process each support
+  sortedSupports.forEach((support) => {
+    const { segment, groundingChunkIndices } = support;
+
+    // Generate citation markers for this segment
+    const citationText = groundingChunkIndices
+      .map((chunkIndex) => {
+        const chunk = groundingChunks[chunkIndex];
+
+        // Add to references if not already added
+        if (!references.has(chunkIndex)) {
+          references.set(chunkIndex, {
+            url: chunk.web.uri,
+            title: chunk.web.title,
+          });
+        }
+        return `${chunkIndex + 1}`;
+      })
+      .join(", ");
+
+    const citationTextBrackets = ` [${citationText}]`;
+    console.log("citationTextBrackets", citationTextBrackets);
+
+    // Insert citations at the end of the segment
+    const { text } = segment;
+    const { startIndex, endIndex } = findTextPositions(result, text);
+    // console.log("result", result);
+    // console.log(startIndex, endIndex);
+    // console.log(segment?.startIndex, segment?.endIndex);
+    // console.log(result.slice(startIndex, endIndex));
+    result =
+      result.slice(0, endIndex) + citationTextBrackets + result.slice(endIndex);
+    // console.log("result", result);
+  });
+
+  // Add references section at the end
+  if (references.size > 0) {
+    // console.log("references", references);
+    result += "\n\n## References\n\n";
+    const sortedReferences = Array.from(references.entries()).sort(
+      ([chunkIndexA], [chunkIndexB]) => chunkIndexA - chunkIndexB
+    );
+    // Add each reference using Markdown reference-style links
+    for (let [chunkIndex, ref] of sortedReferences) {
+      // console.log("chunkIndex, ref", chunkIndex, ref);
+      // console.log(`[^${chunkIndex + 1}]: ${ref.url} "${ref.title}"\n`);
+      // result += `[^${chunkIndex + 1}]: "${ref.title}" ${ref.url}\n`;
+      result += `[${chunkIndex + 1}] [${ref.title}](${ref.url})\n\n`;
+    }
+  }
+  return result;
 };
