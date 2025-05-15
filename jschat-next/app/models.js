@@ -1,4 +1,11 @@
-import { Atom, Rabbit, Zap, TextSearch, OctagonAlert } from "lucide-react";
+import {
+  Atom,
+  Rabbit,
+  Zap,
+  TextSearch,
+  OctagonAlert,
+  Search,
+} from "lucide-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBrain,
@@ -19,6 +26,8 @@ const DetailedIcon = () => (
   <TextSearch size={16} className="relative top-[4px]" />
 );
 
+const SearchIcon = () => <Search size={16} className="relative top-[4px]" />;
+
 // const DetailedIcon = () => (
 //   <FontAwesomeIcon
 //     icon={faMagnifyingGlassChart}
@@ -31,12 +40,12 @@ const BrainIcon = () => (
 );
 
 export const groqModelsWithMeta = [
-  // {
-  //   name: "Llama 4 Maverick 17b 128 Experts",
-  //   model: "meta-llama/llama-4-maverick-17b-128e-instruct",
-  //   meta: "Latest Model From Meta Using Mixture-of-Experts With 128 Experts",
-  //   icon: FastIcon,
-  // },
+  {
+    name: "Groq's Compound AI System",
+    model: "compound-beta",
+    meta: "Compound-beta is a compound AI system powered by multiple LLMs to intelligently and selectively use tools to answer user queries, starting first with web search and code execution.",
+    icon: SearchIcon,
+  },
   {
     name: "Llama 4 Scout 17b - 16 Experts",
     model: "meta-llama/llama-4-scout-17b-16e-instruct",
@@ -93,6 +102,34 @@ export const deepinfraModelsWithMeta = [
     vision: true,
     reasoning: false,
     icon: DetailedIcon,
+  },
+  {
+    name: "Qwen3 235B A22B",
+    model: "Qwen/Qwen3-235B-A22B",
+    meta: `Latest LLM in the Qwen Series, Using Mixture-of-Experts (MoE).
+Significant enhancement in its reasoning capabilities, surpassing previous QwQ (in thinking mode) and Qwen2.5 instruct models (in non-thinking mode) on mathematics, code generation, and commonsense logical reasoning.
+Superior human preference alignment, excelling in creative writing, role-playing, multi-turn dialogues, and instruction following, to deliver a more natural, engaging, and immersive conversational experience.
+Expertise in agent capabilities, enabling precise integration with external tools in both thinking and unthinking modes and achieving leading performance among open-source models in complex agent-based tasks.
+Support of 100+ languages and dialects with strong capabilities for multilingual instruction following and translation.`,
+    new: true,
+    vision: false,
+    reasoning: true,
+    icon: BrainIcon,
+  },
+  {
+    name: "DeepSeek Prover V2 671B",
+    model: "deepseek-ai/DeepSeek-Prover-V2-671B",
+    meta: `An LLM Designed for Formal Theorem Proving. 
+It decompose complex problems into a series of subgoals. 
+The proofs of resolved subgoals are synthesized into a chain-of-thought process, 
+combined with DeepSeek-V3's step-by-step reasoning, 
+to create an initial cold start for reinforcement learning. 
+This process enables the LLM to integrate both informal and formal mathematical reasoning 
+into a unified model.`,
+    new: true,
+    vision: false,
+    reasoning: true,
+    icon: BrainIcon,
   },
   {
     name: "DeepSeek-R1-Turbo",
@@ -284,7 +321,7 @@ export const geminiModelsWithMeta = [
     new: true,
     vision: false,
     reasoning: true,
-    icon: FastIcon,
+    icon: SearchIcon,
   },
 
   {

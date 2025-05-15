@@ -181,6 +181,8 @@ export async function POST(req) {
           });
 
           for await (const chunk of streamResponse) {
+            // console.log("chunk", chunk);
+
             if (chunk.choices[0]?.delta?.content) {
               // controller.enqueue(
               //   encoder.encode(chunk.choices[0]?.delta?.content)
@@ -192,6 +194,28 @@ export async function POST(req) {
                   }) + "\n"
                 )
               );
+            } else if (chunk.choices[0]?.delta?.reasoning) {
+              controller.enqueue(
+                encoder.encode(
+                  JSON.stringify({
+                    text: chunk.choices[0]?.delta?.reasoning,
+                  }) + "\n"
+                )
+              );
+              // } else if (chunk.choices[0]?.delta?.executed_tools) {
+              //   // console.log(
+              //   //   "typeof chunk.choices[0]?.delta?.executed_tools",
+              //   //   typeof chunk.choices[0]?.delta?.executed_tools
+              //   // );
+              //   controller.enqueue(
+              //     encoder.encode(
+              //       JSON.stringify({
+              //         text: JSON.stringify(
+              //           chunk.choices[0]?.delta?.executed_tools
+              //         ),
+              //       }) + "\n"
+              //     )
+              //   );
             } else if (typeof chunk?.choices[0]?.finish_reason === "string") {
               // console.log("chunk", chunk);
 

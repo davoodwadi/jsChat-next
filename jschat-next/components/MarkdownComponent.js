@@ -44,169 +44,108 @@ export default function MarkdownComponent(props) {
 
   const { think, content } = extractThinKContent(processedText);
   finalContent = content;
-
+  // finalContent = processedText;
   // console.log("think ", think);
   // console.log("content ", content);
   // console.log("finalContent ", finalContent);
 
-  const style = a11yDark;
-  let language;
   // console.log("markdown props.children", props.children);
   // console.log("markdown processedText", processedText);
 
   return (
     <>
-      {think && (
-        <Markdown
-          remarkPlugins={[
-            [remarkMath, { singleDollarTextMath: true }],
-            remarkGfm,
-          ]}
-          rehypePlugins={[
-            rehypeKatex,
-            // rehypeRaw
-          ]}
-          // children={props.children}
-          className={`markdown-body text-gray-500 italic`}
-          // skipHtml={true}
-          components={{
-            code(props) {
-              const { children, className, node, ...rest } = props;
-              const text = children;
-              // console.log("code children", children);
-              // console.log("code className", className);
-              // console.log("node", node)
-              // console.log("...rest", rest)
-              const match = /language-(\w+)/.exec(className || "");
-              if (match) {
-                // set language
-                language = match[1];
-                // known code block
-                function CustomPreTag({ children, ...rest }) {
-                  // console.log("children", children)
-                  // console.log("rest", rest)
-                  return (
-                    <div {...rest} className="flex flex-col ">
-                      <div className="flex flex-row justify-between text-xs mb-4">
-                        <div>{language}</div>
-                        <CopyText text={text} />
-                      </div>
-                      {children}
-                    </div>
-                  );
-                }
-                // console.log("children", typeof children);
-                return (
-                  <>
-                    <SyntaxHighlighter
-                      {...rest}
-                      PreTag={CustomPreTag} //"div"
-                      children={String(children).replace(/\n$/, "")}
-                      language={match[1]}
-                      style={style}
-                      // showLineNumbers
-                    />
-                  </>
-                );
-              } else {
-                return (
-                  <code {...rest} className={className}>
-                    {children}
-                  </code>
-                );
-              }
-            },
-          }}
-        >
-          {think}
-        </Markdown>
-      )}
-      <Markdown
-        remarkPlugins={[
-          [remarkMath, { singleDollarTextMath: true }],
-          remarkGfm,
-        ]}
-        rehypePlugins={[
-          rehypeKatex,
-          // rehypeFormat,
-          // rehypeStringify,
-          // rehypeRaw
-        ]}
-        // children={props.children}
-        className={`markdown-body`}
-        // skipHtml={true}
-        components={{
-          sup(props) {
-            const { children, className, node, ...rest } = props;
-            // console.log("children", children);
-            return <sup style={{ marginLeft: "0.3em" }}>{children}</sup>;
-          },
-          a(props) {
-            const { children, className, node, ...rest } = props;
-            if (!(className === "data-footnote-backref")) {
-              if (!rest.href.includes("http")) {
-                return <a href={rest.href}>{children}</a>;
-              } else {
-                return (
-                  <a
-                    href={rest.href}
-                    target={"_blank"}
-                    rel={"noopener noreferrer"}
-                  >
-                    {children}
-                  </a>
-                );
-              }
-            }
-          },
-          code(props) {
-            const { children, className, node, ...rest } = props;
-            const text = children;
-
-            const match = /language-(\w+)/.exec(className || "");
-            if (match) {
-              // set language
-              language = match[1];
-              // known code block
-              function CustomPreTag({ children, ...rest }) {
-                // console.log("children", children)
-                // console.log("rest", rest)
-                return (
-                  <div {...rest} className="flex flex-col ">
-                    <div className="flex flex-row justify-between text-xs mb-4">
-                      <div>{language}</div>
-                      <CopyText text={text} />
-                    </div>
-                    {children}
-                  </div>
-                );
-              }
-              // console.log("children", typeof children);
-              return (
-                <>
-                  <SyntaxHighlighter
-                    {...rest}
-                    PreTag={CustomPreTag} //"div"
-                    children={String(children).replace(/\n$/, "")}
-                    language={match[1]}
-                    style={style}
-                    // showLineNumbers
-                  />
-                </>
-              );
+      {think && <CustomMarkdown mode="think">{think}</CustomMarkdown>}
+      <CustomMarkdown mode="regular">{finalContent}</CustomMarkdown>
+    </>
+  );
+}
+function CustomMarkdown({ children, mode }) {
+  const markdownChildren = children;
+  const style = a11yDark;
+  const customStyle = mode === "think" ? " text-gray-600 italic " : "";
+  return (
+    <Markdown
+      remarkPlugins={[[remarkMath, { singleDollarTextMath: true }], remarkGfm]}
+      rehypePlugins={[
+        rehypeKatex,
+        // rehypeFormat,
+        // rehypeStringify,
+        // rehypeRaw
+      ]}
+      // children={props.children}
+      className={`markdown-body ${customStyle} pb-4`}
+      // skipHtml={true}
+      components={{
+        sup(props) {
+          const { children, className, node, ...rest } = props;
+          // console.log("children", children);
+          return <sup style={{ marginLeft: "0.3em" }}>{children}</sup>;
+        },
+        a(props) {
+          const { children, className, node, ...rest } = props;
+          if (!(className === "data-footnote-backref")) {
+            if (!rest.href.includes("http")) {
+              return <a href={rest.href}>{children}</a>;
             } else {
               return (
-                <code {...rest} className={className}>
+                <a
+                  href={rest.href}
+                  target={"_blank"}
+                  rel={"noopener noreferrer"}
+                >
                   {children}
-                </code>
+                </a>
               );
             }
-          },
-        }}
-      >
-        {finalContent}
-      </Markdown>
-    </>
+          }
+        },
+        code(props) {
+          const { children, className, node, ...rest } = props;
+          const text = children;
+
+          const match = /language-(\w+)/.exec(className || "");
+          if (match) {
+            // set language
+            const language = match[1];
+            // known code block
+            function CustomPreTag({ children, ...rest }) {
+              // console.log("children", children)
+              // console.log("rest", rest)
+              return (
+                <div {...rest} className="flex flex-col ">
+                  <div className="flex flex-row justify-between text-xs mb-4">
+                    <div>{language}</div>
+                    <CopyText text={text} />
+                  </div>
+                  {children}
+                </div>
+              );
+            }
+            // console.log("children", typeof children);
+            return (
+              <>
+                <SyntaxHighlighter
+                  {...rest}
+                  PreTag={CustomPreTag} //"div"
+                  children={String(children).replace(/\n$/, "")}
+                  language={match[1]}
+                  style={style}
+                  // showLineNumbers
+                />
+              </>
+            );
+          } else {
+            return (
+              <code {...rest} className={className}>
+                {children}
+              </code>
+            );
+          }
+        },
+      }}
+    >
+      {markdownChildren}
+    </Markdown>
   );
 }
 function findTextPositions(bigText, searchText) {
@@ -283,17 +222,18 @@ const addCitationsToContent = (content, groundingChunks, groundingSupports) => {
 
 const preprocessMarkdown = (text) => {
   // return text;
-  let processedTexts = text.replace(
+  let processedTexts = text;
+  processedTexts = processedTexts.replace(
     /<think>([\s\S]*?)<\/think>/g,
     "\n\n<think>\n$1\n</think>\n\n"
   );
   // Replace \[ ... \] with $$ ... $$ for block math
-  // processedTexts = processedTexts.replace(
-  //   /\\\[(.*?)\\\]/gs,
-  //   (_, match) => `$$${match}$$`
-  // );
-  processedTexts = processedTexts.replace(/\\\[/g, "```math ");
-  processedTexts = processedTexts.replace(/\\\]/g, "```");
+  processedTexts = processedTexts.replace(
+    /\\\[(.*?)\\\]/gs,
+    (_, match) => `\n$$${match}$$\n`
+  );
+  // processedTexts = processedTexts.replace(/\\\[/g, "```math ");
+  // processedTexts = processedTexts.replace(/\\\]/g, "```");
   // Replace \( ... \) with $ ... $ for inline math
   processedTexts = processedTexts.replace(
     /\\\((.*?)\\\)/gs,
