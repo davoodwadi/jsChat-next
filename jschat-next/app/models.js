@@ -44,6 +44,9 @@ export const groqModelsWithMeta = [
     name: "Groq's Compound AI System",
     model: "compound-beta",
     meta: "Compound-beta is a compound AI system powered by multiple LLMs to intelligently and selectively use tools to answer user queries, starting first with web search and code execution.",
+    new: true,
+    vision: false,
+    reasoning: true,
     icon: SearchIcon,
   },
   {
