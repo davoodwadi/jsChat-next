@@ -329,7 +329,7 @@ export const geminiModelsWithMeta = [
 
   {
     name: "Gemini 2.5 Pro",
-    model: "gemini-2.5-pro-exp-03-25",
+    model: "gemini-2.5-pro-preview-05-06",
     meta: "Google's State-of-the-art Thinking Model",
     new: true,
     vision: false,

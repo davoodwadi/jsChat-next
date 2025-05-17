@@ -503,6 +503,9 @@ export async function POST(req) {
     });
   } else if (geminiModels.includes(data.model)) {
     console.log("Gemini model", data.model);
+    // const modelList = await googleAI.models.list();
+    // console.log("Gemini modelList", modelList);
+    // return;
     const { history, newUserMessage, system } = convertToGoogleFormat(
       data.messages
     );
