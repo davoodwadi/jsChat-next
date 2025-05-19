@@ -30,15 +30,7 @@ import {
   xAIModels,
   geminiModels,
 } from "@/app/models";
-import {
-  groqModelsWithMeta,
-  openaiModelsWithMeta,
-  deepinfraModelsWithMeta,
-  anthropicModelsWithMeta,
-  xAIModelsWithMeta,
-  geminiModelsWithMeta,
-} from "@/app/models";
-
+import { updateGroundingChunksWithActualLinksAndTitles } from "@/components/searchGroundingUtils";
 import { allModelsWithoutIcon } from "@/app/models";
 
 // // Allow streaming responses up to 30 seconds
@@ -545,18 +537,26 @@ export async function POST(req) {
                   chunk?.candidates[0]?.groundingMetadata;
                 const groundingChunks = groundingMetadata?.groundingChunks;
                 if (groundingChunks) {
-                  console.log("groundingChunks", groundingChunks);
+                  // console.log("groundingChunks", groundingChunks);
+                  const groundingChunksRedirect =
+                    await updateGroundingChunksWithActualLinksAndTitles(
+                      groundingChunks
+                    );
+                  // console.log(
+                  //   "groundingChunksRedirect",
+                  //   groundingChunksRedirect
+                  // );
+                  controller.enqueue(
+                    encoder.encode(
+                      JSON.stringify({
+                        groundingChunks: groundingChunksRedirect,
+                      }) + "\n"
+                    )
+                  );
                 }
-                controller.enqueue(
-                  encoder.encode(
-                    JSON.stringify({
-                      groundingChunks: groundingChunks,
-                    }) + "\n"
-                  )
-                );
                 const groundingSupports = groundingMetadata?.groundingSupports;
                 if (groundingSupports) {
-                  console.log("groundingSupports", groundingSupports);
+                  // console.log("groundingSupports", groundingSupports);
                   controller.enqueue(
                     encoder.encode(
                       JSON.stringify({

@@ -414,9 +414,13 @@ Gradient descent is guaranteed to converge to a local minimum for a convex funct
 
 `;
 const htmlText = `
+Here is some text with a reference. ([1](https://www.example.com))
+Here is some text with a reference.<sup>[
+$$1$$
+](https://www.example.com)</sup>
 
 Note: Be sure to replace placeholders like [First Name] and add working links where indicated (e.g., spreed.chat and llama.com URLs).
-
+\`\`\`html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -475,9 +479,14 @@ Note: Be sure to replace placeholders like [First Name] and add working links wh
   </table>
 </body>
 </html>
-
+\`\`\`
 Let me know if you need a version styled or structured specifically for a certain email system (e.g., Mailchimp, HubSpot, custom ESP).`;
 const someText = `Why was the math book sad?
+Here is some text with a reference. ([1](https://www.example.com))
+Here is some text with a reference.<sup>[
+Example article
+](https://www.example.com)</sup>
+
 Because it had too many problems.`;
 export default async function MarkdownPage() {
   console.log("Markdown Page");

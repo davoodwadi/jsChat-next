@@ -1,15 +1,20 @@
+"use client";
+
 import Markdown from "react-markdown";
 // import remarkParse from "remark-parse";
 // import remarkRehype from "remark-rehype";
 import remarkGfm from "remark-gfm";
-// import rehypeRaw from "rehype-raw";
+import rehypeRaw from "rehype-raw";
 import rehypeKatex from "rehype-katex";
 // import rehypeMathjax from "rehype-mathjax";
 // import rehypeStringify from "rehype-stringify";
 import remarkMath from "remark-math";
 import rehypeFormat from "rehype-format";
 // import { visit } from "unist-util-visit";
-
+import {
+  addCitationsToContent,
+  addCitationsToContentInline,
+} from "@/components/searchGroundingUtils";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import {
   dark,
@@ -22,6 +27,17 @@ import "katex/dist/katex.min.css"; // `rehype-katex` does not import the CSS for
 import CopyText from "@/components/CopyTextComponent";
 // import "@/node_modules/github-markdown-css/github-markdown.css";
 import "@/styles/markdown.css";
+import { useState } from "react";
+
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Tooltip as ReactToolTip } from "react-tooltip";
+import Link from "next/link";
+
 // const inter = Inter({ subsets: ["latin"] });
 
 export default function MarkdownComponent(props) {
@@ -32,7 +48,8 @@ export default function MarkdownComponent(props) {
   // console.log("props", props);
   if (props?.groundingChunks && props?.groundingSupports) {
     // console.log(props?.groundingChunks);
-    const contentWithCitations = addCitationsToContent(
+
+    const contentWithCitations = addCitationsToContentInline(
       finalContent,
       props?.groundingChunks,
       props?.groundingSupports
@@ -59,6 +76,7 @@ export default function MarkdownComponent(props) {
     </>
   );
 }
+
 function CustomMarkdown({ children, mode }) {
   const markdownChildren = children;
   const style = a11yDark;
@@ -70,12 +88,17 @@ function CustomMarkdown({ children, mode }) {
         rehypeKatex,
         // rehypeFormat,
         // rehypeStringify,
-        // rehypeRaw
+        rehypeRaw,
       ]}
       // children={props.children}
       className={`markdown-body ${customStyle} pb-4`}
       // skipHtml={true}
       components={{
+        p(props) {
+          const { children, className, node, ...rest } = props;
+          // console.log("children", children);
+          return <span className={className}>{children}</span>;
+        },
         sup(props) {
           const { children, className, node, ...rest } = props;
           // console.log("children", children);
@@ -83,18 +106,14 @@ function CustomMarkdown({ children, mode }) {
         },
         a(props) {
           const { children, className, node, ...rest } = props;
+          const [trim, setTrim] = useState(true);
           if (!(className === "data-footnote-backref")) {
             if (!rest.href.includes("http")) {
               return <a href={rest.href}>{children}</a>;
             } else {
               return (
-                <a
-                  href={rest.href}
-                  target={"_blank"}
-                  rel={"noopener noreferrer"}
-                >
-                  {children}
-                </a>
+                // <LinkReactTooltip rest={rest}>{children}</LinkReactTooltip>
+                <LinkShadcnTooltip rest={rest}>{children}</LinkShadcnTooltip>
               );
             }
           }
@@ -148,77 +167,91 @@ function CustomMarkdown({ children, mode }) {
     </Markdown>
   );
 }
-function findTextPositions(bigText, searchText) {
-  const startIndex = bigText.indexOf(searchText);
-  if (startIndex === -1) {
-    return null; // text not found
-  }
-  const endIndex = startIndex + searchText.length - 1;
-  return { startIndex, endIndex };
-}
-const addCitationsToContent = (content, groundingChunks, groundingSupports) => {
-  let result = content;
-  const references = new Map(); // Maps chunk indices to their URLs and titles
 
-  // Sort supports by endIndex in descending order to avoid changing indices
-  // when we insert content
-  const sortedSupports = [...groundingSupports].sort(
-    (a, b) => b.segment.endIndex - a.segment.endIndex
+function LinkShadcnTooltip({ children, rest }) {
+  return (
+    <TooltipProvider delayDuration={150}>
+      <Tooltip>
+        <TooltipTrigger className="text-blue-500">
+          {getFirstWord(children)}
+        </TooltipTrigger>
+        <TooltipContent>
+          <Link
+            className="text-blue-500"
+            href={rest.href}
+            target={"_blank"}
+            rel={"noopener noreferrer"}
+          >
+            {children}
+          </Link>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
-  // console.log("sortedSupports", sortedSupports);
-  // Process each support
-  sortedSupports.forEach((support) => {
-    const { segment, groundingChunkIndices } = support;
+}
+function LinkReactTooltip({ children, rest }) {
+  return (
+    <>
+      <style>
+        {`.custom-tooltip {
+  padding: 16px 32px;
+  border-radius: 3px;
+  font-size: 90%;
+  width: max-content;
+}
+        
+        `}
+      </style>
+      <ReactToolTip
+        id="my-tooltip"
+        clickable
+        className="cursor-pointer custom-tooltip"
+        place="top-start"
+      >
+        <Link
+          className="text-blue-500"
+          href={rest.href}
+          target={"_blank"}
+          rel={"noopener noreferrer"}
+        >
+          {children}
+        </Link>
+      </ReactToolTip>
+      <a
+        className="text-blue-500"
+        data-tooltip-id="my-tooltip"
+        href={rest.href}
+        target={"_blank"}
+        rel={"noopener noreferrer"}
+      >
+        {getFirstWord(children)}
+      </a>
+    </>
+  );
+}
+function getFirstWord(str) {
+  try {
+    if (typeof str !== "string") return "";
 
-    // Generate citation markers for this segment
-    const citationText = groundingChunkIndices
-      .map((chunkIndex) => {
-        const chunk = groundingChunks[chunkIndex];
+    // Remove non-alphanumeric characters except whitespace
+    const cleaned = str.replace(/[^\w\s]/g, "");
 
-        // Add to references if not already added
-        if (!references.has(chunkIndex)) {
-          references.set(chunkIndex, {
-            url: chunk.web.uri,
-            title: chunk.web.title,
-          });
-        }
-        return `[^${chunkIndex + 1}]`;
-      })
-      .join("");
+    // Trim and split by one or more whitespace characters
+    const words = cleaned.trim().split(/\s+/);
 
-    // const citationTextBrackets = ` [${citationText}]`;
-    const citationTextBrackets = `${citationText}`;
-    // console.log("citationTextBrackets", citationTextBrackets);
-
-    // Insert citations at the end of the segment
-    const { text } = segment;
-    const { startIndex, endIndex } = findTextPositions(result, text);
-    // console.log("result", result);
-    // console.log(startIndex, endIndex);
-    // console.log(segment?.startIndex, segment?.endIndex);
-    // console.log(result.slice(startIndex, endIndex));
-    result =
-      result.slice(0, endIndex) + citationTextBrackets + result.slice(endIndex);
-    // console.log("result", result);
-  });
-
-  // Add references section at the end
-  if (references.size > 0) {
-    // console.log("references", references);
-    result += "\n\n## References\n\n";
-    const sortedReferences = Array.from(references.entries()).sort(
-      ([chunkIndexA], [chunkIndexB]) => chunkIndexA - chunkIndexB
-    );
-    // Add each reference using Markdown reference-style links
-    for (let [chunkIndex, ref] of sortedReferences) {
-      // console.log("chunkIndex, ref", chunkIndex, ref);
-      // console.log(`[^${chunkIndex + 1}]: ${ref.url} "${ref.title}"\n`);
-      // result += `[^${chunkIndex + 1}]: "${ref.title}" ${ref.url}\n`;
-      result += `[^${chunkIndex + 1}]: [${ref.title}](${ref.url})\n\n`;
-    }
+    // Return first word or empty string if none exists
+    return words[0] || "";
+  } catch (error) {
+    // console.error("Error in getFirstWord:", error.message);
+    return "";
   }
-  return result;
-};
+}
+
+// Example usage:
+console.log(getFirstWord("  Hello, world! How are you?")); // "Hello"
+console.log(getFirstWord("*** $$$ 123abc")); // "123abc"
+console.log(getFirstWord("   !!!  ")); // ""
+console.log(getFirstWord(123)); // "" and logs error
 
 const preprocessMarkdown = (text) => {
   // return text;
