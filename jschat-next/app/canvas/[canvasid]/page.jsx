@@ -321,9 +321,8 @@ async function handleGenerate({
 ${wrappedSelection}
 You should output only the text that properly replaces the text in triple backticks.
 `;
-  const systemprompt1b = `Today's date is ${today}. You role is to create the information necessary to replace the triple backticks.
-You should output only the text that properly replaces the triple backticks.
-`;
+  const systemprompt1b = `Today's date is ${today}. You role is to create the information necessary to continue the user message.
+  `;
   systemPrompt =
     !cursorPos || cursorPos?.start === cursorPos?.end
       ? systemprompt1b
@@ -334,7 +333,8 @@ You should output only the text that properly replaces the triple backticks.
   systemPrompt += llmInstructions ? systemprompt4 : "";
   const systemprompt5 = `You have to ensure the information you create is consistent with the surrounding context.
 The user will provide the full context after the ### FULL CONTEXT tag.`;
-  systemPrompt += systemprompt5;
+  systemPrompt +=
+    !cursorPos || cursorPos?.start === cursorPos?.end ? "" : systemprompt5;
 
   systemPrompt +=
     (model.model === "o4-mini" ||
@@ -348,18 +348,21 @@ Provide the APA style references section at the end of your response.`
   // return;
   systemPrompt +=
     !cursorPos || cursorPos?.start === cursorPos?.end
-      ? "\nRemember that you should output only the text that properly replaces the triple backticks. Do not repeat the whole context.\n"
-      : "\nRemember that you should output only the text that properly replaces the text in triple backticks. Do not repeat the whole context.\n";
+      ? "\nRemember that you should output only the text that properly continues the user message. Do not repeat the whole text.\n"
+      : "\nRemember that you should output only the text that properly replaces the text in triple backticks. Do not repeat the whole user message.\n";
   if (extraContext) {
     systemPrompt += `
 
 You can consult the academic papers below for your response:
 ${extraContext}
 
-Make sure to include both inline citations and a references section at the end.
+If you use the academic papers for your response, make sure to include both inline citations and a references section at the end.
 `;
   }
-  const wrappedAllTextWithTags = `### SEGMENT TO REPLACE:
+  const wrappedAllTextWithTags =
+    !cursorPos || cursorPos?.start === cursorPos?.end
+      ? `${allText}`
+      : `### SEGMENT TO REPLACE:
 ${wrappedSelection}
 ### FULL CONTEXT:
 ${wrappedAllText}`;
@@ -367,6 +370,7 @@ ${wrappedAllText}`;
   // console.log("wrappedAllText", wrappedAllText);
   console.log("wrappedAllTextWithTags", wrappedAllTextWithTags);
   // console.log(model);
+  // return;
   try {
     const authStatus = await getAuth();
     if (authStatus === 400) {
