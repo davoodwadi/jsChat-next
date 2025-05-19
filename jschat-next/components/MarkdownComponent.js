@@ -27,7 +27,6 @@ import "katex/dist/katex.min.css"; // `rehype-katex` does not import the CSS for
 import CopyText from "@/components/CopyTextComponent";
 // import "@/node_modules/github-markdown-css/github-markdown.css";
 import "@/styles/markdown.css";
-import { useState } from "react";
 
 import {
   Tooltip,
@@ -106,7 +105,6 @@ function CustomMarkdown({ children, mode }) {
         },
         a(props) {
           const { children, className, node, ...rest } = props;
-          const [trim, setTrim] = useState(true);
           if (!(className === "data-footnote-backref")) {
             if (!rest.href.includes("http")) {
               return <a href={rest.href}>{children}</a>;
@@ -173,7 +171,14 @@ function LinkShadcnTooltip({ children, rest }) {
     <TooltipProvider delayDuration={150}>
       <Tooltip>
         <TooltipTrigger className="text-blue-500">
-          {getFirstWord(children)}
+          <Link
+            className="text-blue-500"
+            href={rest.href}
+            target={"_blank"}
+            rel={"noopener noreferrer"}
+          >
+            {getFirstWord(children)}
+          </Link>
         </TooltipTrigger>
         <TooltipContent>
           <Link
