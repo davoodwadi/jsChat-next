@@ -111,7 +111,15 @@ function CustomMarkdown({ children, mode }) {
             } else {
               return (
                 // <LinkReactTooltip rest={rest}>{children}</LinkReactTooltip>
-                <LinkShadcnTooltip rest={rest}>{children}</LinkShadcnTooltip>
+                // <LinkShadcnTooltip rest={rest}>{children}</LinkShadcnTooltip>
+                <Link
+                  className="text-blue-500"
+                  href={rest.href}
+                  target={"_blank"}
+                  rel={"noopener noreferrer"}
+                >
+                  {children}
+                </Link>
               );
             }
           }
@@ -166,74 +174,74 @@ function CustomMarkdown({ children, mode }) {
   );
 }
 
-function LinkShadcnTooltip({ children, rest }) {
-  return (
-    <TooltipProvider delayDuration={150}>
-      <Tooltip>
-        <TooltipTrigger className="text-blue-500">
-          <Link
-            className="text-blue-500"
-            href={rest.href}
-            target={"_blank"}
-            rel={"noopener noreferrer"}
-          >
-            {getFirstWord(children)}
-          </Link>
-        </TooltipTrigger>
-        <TooltipContent>
-          <Link
-            className="text-blue-500"
-            href={rest.href}
-            target={"_blank"}
-            rel={"noopener noreferrer"}
-          >
-            {children}
-          </Link>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
-}
-function LinkReactTooltip({ children, rest }) {
-  return (
-    <>
-      <style>
-        {`.custom-tooltip {
-  padding: 16px 32px;
-  border-radius: 3px;
-  font-size: 90%;
-  width: max-content;
-}
-        
-        `}
-      </style>
-      <ReactToolTip
-        id="my-tooltip"
-        clickable
-        className="cursor-pointer custom-tooltip"
-        place="top-start"
-      >
-        <Link
-          className="text-blue-500"
-          href={rest.href}
-          target={"_blank"}
-          rel={"noopener noreferrer"}
-        >
-          {children}
-        </Link>
-      </ReactToolTip>
-      <a
-        className="text-blue-500"
-        data-tooltip-id="my-tooltip"
-        href={rest.href}
-        target={"_blank"}
-        rel={"noopener noreferrer"}
-      >
-        {getFirstWord(children)}
-      </a>
-    </>
-  );
-}
+// function LinkShadcnTooltip({ children, rest }) {
+//   return (
+//     <TooltipProvider delayDuration={150}>
+//       <Tooltip>
+//         <TooltipTrigger className="text-blue-500">
+//           <Link
+//             className="text-blue-500"
+//             href={rest.href}
+//             target={"_blank"}
+//             rel={"noopener noreferrer"}
+//           >
+//             {getFirstWord(children)}
+//           </Link>
+//         </TooltipTrigger>
+//         <TooltipContent>
+//           <Link
+//             className="text-blue-500"
+//             href={rest.href}
+//             target={"_blank"}
+//             rel={"noopener noreferrer"}
+//           >
+//             {children}
+//           </Link>
+//         </TooltipContent>
+//       </Tooltip>
+//     </TooltipProvider>
+//   );
+// }
+// function LinkReactTooltip({ children, rest }) {
+//   return (
+//     <>
+//       <style>
+//         {`.custom-tooltip {
+//   padding: 16px 32px;
+//   border-radius: 3px;
+//   font-size: 90%;
+//   width: max-content;
+// }
+
+//         `}
+//       </style>
+//       <ReactToolTip
+//         id="my-tooltip"
+//         clickable
+//         className="cursor-pointer custom-tooltip"
+//         place="top-start"
+//       >
+//         <Link
+//           className="text-blue-500"
+//           href={rest.href}
+//           target={"_blank"}
+//           rel={"noopener noreferrer"}
+//         >
+//           {children}
+//         </Link>
+//       </ReactToolTip>
+//       <a
+//         className="text-blue-500"
+//         data-tooltip-id="my-tooltip"
+//         href={rest.href}
+//         target={"_blank"}
+//         rel={"noopener noreferrer"}
+//       >
+//         {getFirstWord(children)}
+//       </a>
+//     </>
+//   );
+// }
 function getFirstWord(str) {
   try {
     if (typeof str !== "string") return "";
@@ -251,12 +259,6 @@ function getFirstWord(str) {
     return "";
   }
 }
-
-// Example usage:
-console.log(getFirstWord("  Hello, world! How are you?")); // "Hello"
-console.log(getFirstWord("*** $$$ 123abc")); // "123abc"
-console.log(getFirstWord("   !!!  ")); // ""
-console.log(getFirstWord(123)); // "" and logs error
 
 const preprocessMarkdown = (text) => {
   // return text;

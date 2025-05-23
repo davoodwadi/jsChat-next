@@ -268,8 +268,8 @@ export const anthropicModelsWithMeta = [
     icon: FastIcon,
   },
   {
-    name: "Claude 3.7 Sonnet",
-    model: "claude-3-7-sonnet-latest",
+    name: "Claude Sonnet 4",
+    model: "claude-sonnet-4-20250514",
     meta: "Anthropic's Most Intelligent Model Capable of Reasoning",
     new: false,
     vision: true,

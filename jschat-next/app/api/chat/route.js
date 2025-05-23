@@ -55,7 +55,7 @@ export async function POST(req) {
           const encoder = new TextEncoder();
           // console.log("Anthropic Model", data.model);
 
-          const thinking = data.model.includes("claude-3-7-sonnet")
+          const thinking = data.model.includes("claude-sonnet-4")
             ? { thinking: { type: "enabled", budget_tokens: 8000 } }
             : {};
 

@@ -10,6 +10,43 @@ export const addCitationsToContentInline = (
   const sortedSupports = [...groundingSupports].sort(
     (a, b) => b.segment.endIndex - a.segment.endIndex
   );
+  // Process each support
+  sortedSupports.forEach((support) => {
+    const { segment, groundingChunkIndices } = support;
+
+    // Generate citation markers for this segment
+    const citationText = groundingChunkIndices
+      .map((chunkIndex) => {
+        const chunk = groundingChunks[chunkIndex];
+        return `[${chunk.web.title}](${chunk.web.uri})`;
+      })
+      .join(", ");
+
+    const citationTextBrackets = `[ ${citationText} ]`;
+    console.log("citationTextBrackets", citationTextBrackets);
+
+    // Insert citations at the end of the segment
+    const { text } = segment;
+    const { startIndex, endIndex } = findTextPositions(result, text);
+    result =
+      result.slice(0, endIndex) + citationTextBrackets + result.slice(endIndex);
+    // console.log("result", result);
+  });
+  return result;
+};
+
+export const addCitationsToContentInlineSuper = (
+  content,
+  groundingChunks,
+  groundingSupports
+) => {
+  let result = content;
+
+  // Sort supports by endIndex in descending order to avoid changing indices
+  // when we insert content
+  const sortedSupports = [...groundingSupports].sort(
+    (a, b) => b.segment.endIndex - a.segment.endIndex
+  );
   // console.log("sortedSupports", sortedSupports);
   // Process each support
   sortedSupports.forEach((support) => {
