@@ -27,6 +27,7 @@ import "katex/dist/katex.min.css"; // `rehype-katex` does not import the CSS for
 import CopyText from "@/components/CopyTextComponent";
 // import "@/node_modules/github-markdown-css/github-markdown.css";
 import "@/styles/markdown.css";
+import React, { useRef } from "react";
 
 import {
   Tooltip,
@@ -44,7 +45,7 @@ export default function MarkdownComponent(props) {
 
   let finalContent = props.children;
   // console.log("props.children", props.children);
-  // console.log("props", props);
+  // console.log("MarkdownComponent props", props);
   if (props?.groundingChunks && props?.groundingSupports) {
     // console.log(props?.groundingChunks);
 
@@ -70,16 +71,28 @@ export default function MarkdownComponent(props) {
 
   return (
     <>
-      {think && <CustomMarkdown mode="think">{think}</CustomMarkdown>}
-      <CustomMarkdown mode="regular">{finalContent}</CustomMarkdown>
+      {think && (
+        <CustomMarkdown mode="think" props={props}>
+          {think}
+        </CustomMarkdown>
+      )}
+      <CustomMarkdown mode="regular" props={props}>
+        {finalContent}
+      </CustomMarkdown>
     </>
   );
 }
 
-function CustomMarkdown({ children, mode }) {
+function CustomMarkdown({ children, mode, props }) {
   const markdownChildren = children;
   const style = a11yDark;
   const customStyle = mode === "think" ? " text-gray-600 italic " : "";
+  // console.log(
+  //         "CustomMarkdown props?.botMessage?.status",
+  //         props?.botMessage?.status
+  //       );
+  const status = props?.botMessage?.status;
+  // console.log("status", status);
   return (
     <Markdown
       remarkPlugins={[[remarkMath, { singleDollarTextMath: true }], remarkGfm]}
@@ -105,23 +118,10 @@ function CustomMarkdown({ children, mode }) {
         },
         a(props) {
           const { children, className, node, ...rest } = props;
-          if (!(className === "data-footnote-backref")) {
-            if (!rest.href.includes("http")) {
-              return <a href={rest.href}>{children}</a>;
-            } else {
-              return (
-                // <LinkReactTooltip rest={rest}>{children}</LinkReactTooltip>
-                // <LinkShadcnTooltip rest={rest}>{children}</LinkShadcnTooltip>
-                <Link
-                  className="text-blue-500"
-                  href={rest.href}
-                  target={"_blank"}
-                  rel={"noopener noreferrer"}
-                >
-                  {children}
-                </Link>
-              );
-            }
+          if (!rest.href.includes("http")) {
+            return <a href={rest.href}>{children}</a>;
+          } else {
+            return <LinkTooltip rest={rest}>{children}</LinkTooltip>;
           }
         },
         code(props) {
@@ -174,74 +174,6 @@ function CustomMarkdown({ children, mode }) {
   );
 }
 
-// function LinkShadcnTooltip({ children, rest }) {
-//   return (
-//     <TooltipProvider delayDuration={150}>
-//       <Tooltip>
-//         <TooltipTrigger className="text-blue-500">
-//           <Link
-//             className="text-blue-500"
-//             href={rest.href}
-//             target={"_blank"}
-//             rel={"noopener noreferrer"}
-//           >
-//             {getFirstWord(children)}
-//           </Link>
-//         </TooltipTrigger>
-//         <TooltipContent>
-//           <Link
-//             className="text-blue-500"
-//             href={rest.href}
-//             target={"_blank"}
-//             rel={"noopener noreferrer"}
-//           >
-//             {children}
-//           </Link>
-//         </TooltipContent>
-//       </Tooltip>
-//     </TooltipProvider>
-//   );
-// }
-// function LinkReactTooltip({ children, rest }) {
-//   return (
-//     <>
-//       <style>
-//         {`.custom-tooltip {
-//   padding: 16px 32px;
-//   border-radius: 3px;
-//   font-size: 90%;
-//   width: max-content;
-// }
-
-//         `}
-//       </style>
-//       <ReactToolTip
-//         id="my-tooltip"
-//         clickable
-//         className="cursor-pointer custom-tooltip"
-//         place="top-start"
-//       >
-//         <Link
-//           className="text-blue-500"
-//           href={rest.href}
-//           target={"_blank"}
-//           rel={"noopener noreferrer"}
-//         >
-//           {children}
-//         </Link>
-//       </ReactToolTip>
-//       <a
-//         className="text-blue-500"
-//         data-tooltip-id="my-tooltip"
-//         href={rest.href}
-//         target={"_blank"}
-//         rel={"noopener noreferrer"}
-//       >
-//         {getFirstWord(children)}
-//       </a>
-//     </>
-//   );
-// }
 function getFirstWord(str) {
   try {
     if (typeof str !== "string") return "";
@@ -258,6 +190,17 @@ function getFirstWord(str) {
     // console.error("Error in getFirstWord:", error.message);
     return "";
   }
+}
+
+function getTextFromChildren(children) {
+  if (typeof children === "string") return children;
+  if (Array.isArray(children)) {
+    return children.map(getTextFromChildren).join(" ");
+  }
+  if (typeof children === "object" && children?.props?.children) {
+    return getTextFromChildren(children.props.children);
+  }
+  return "";
 }
 
 const preprocessMarkdown = (text) => {
@@ -308,4 +251,54 @@ function extractThinKContent(text) {
   }
 
   return { content, think };
+}
+
+export function CustomTooltip({ children, tooltip }) {
+  const tooltipRef = useRef(null);
+
+  const showTooltip = () => {
+    if (tooltipRef.current) {
+      tooltipRef.current.style.opacity = "1";
+      tooltipRef.current.style.visibility = "visible";
+    }
+  };
+
+  const hideTooltip = () => {
+    if (tooltipRef.current) {
+      tooltipRef.current.style.opacity = "0";
+      tooltipRef.current.style.visibility = "hidden";
+    }
+  };
+
+  return (
+    <span
+      onMouseEnter={showTooltip}
+      onMouseLeave={hideTooltip}
+      className="relative inline-block cursor-pointer text-blue-500 underline"
+    >
+      {children}
+      <a
+        ref={tooltipRef}
+        href={tooltip}
+        className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-150 z-50 overflow-hidden max-w-xs text-ellipsis"
+        role="tooltip"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {tooltip}
+      </a>
+    </span>
+  );
+}
+
+function LinkTooltip({ children, rest }) {
+  const linkText = getFirstWord(getTextFromChildren(children)) + "...";
+
+  return (
+    <CustomTooltip tooltip={rest.href}>
+      <a href={rest.href} target="_blank" rel="noopener noreferrer">
+        {linkText}
+      </a>
+    </CustomTooltip>
+  );
 }

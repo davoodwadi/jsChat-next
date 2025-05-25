@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
+import { test } from "@/lib/test";
 
 import dynamic from "next/dynamic";
 import { MultilineSkeleton } from "@/components/ui/skeleton";
@@ -35,6 +36,7 @@ import {
   anthropicModelsWithMeta,
   xAIModelsWithMeta,
   geminiModelsWithMeta,
+  testModels,
 } from "@/app/models";
 
 const modelMeta = [
@@ -45,10 +47,14 @@ const modelMeta = [
   { desc: "xAI Models (Closed-source)", models: xAIModelsWithMeta },
   { desc: "Google Models (Closed-source)", models: geminiModelsWithMeta },
 ];
-
+if (test) {
+  modelMeta.unshift({ desc: "Test LLMs", models: testModels });
+}
 export default function Chat() {
   // console.log("rendering chat [chatid]");
-  const { icon, ...startingModel } = openaiModelsWithMeta[0];
+  const { icon, ...startingModel } = test
+    ? testModels[0]
+    : openaiModelsWithMeta[0];
   const [model, setModel] = useState(startingModel);
   // console.log(model);
   const [systemPrompt, setSystemPrompt] = useState("");

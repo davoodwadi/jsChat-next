@@ -342,6 +342,7 @@ export function BotMessage(props) {
           <MarkdownComponent
             groundingChunks={props?.groundingChunks}
             groundingSupports={props?.groundingSupports}
+            botMessage={props?.botMessage}
           >
             {props.children}
           </MarkdownComponent>

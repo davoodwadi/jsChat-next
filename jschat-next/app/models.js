@@ -1,3 +1,4 @@
+import { test } from "@/lib/test";
 import {
   Atom,
   Rabbit,
@@ -308,15 +309,6 @@ export const xAIModelsWithMeta = [
   },
 ];
 export const geminiModelsWithMeta = [
-  // {
-  //   name: "Gemini 2.0 Flash",
-  //   model: "gemini-2.0-flash",
-  //   meta: "Google's Fastest LLM",
-  //   new: true,
-  //   vision: false,
-  //   reasoning: false,
-  //   icon: FastIcon,
-  // },
   {
     name: "Gemini 2.5 Flash",
     model: "gemini-2.5-flash-preview-04-17",
@@ -326,7 +318,6 @@ export const geminiModelsWithMeta = [
     reasoning: true,
     icon: SearchIcon,
   },
-
   {
     name: "Gemini 2.5 Pro",
     model: "gemini-2.5-pro-preview-05-06",
@@ -337,6 +328,17 @@ export const geminiModelsWithMeta = [
     icon: BrainIcon,
   },
 ];
+export const testModels = [
+  {
+    name: "test llm",
+    model: "test-llm",
+    meta: "LLM for testing",
+    new: true,
+    vision: false,
+    reasoning: true,
+    icon: SearchIcon,
+  },
+];
 const allModels = [
   ...openaiModelsWithMeta,
   ...groqModelsWithMeta,
@@ -345,6 +347,10 @@ const allModels = [
   ...xAIModelsWithMeta,
   ...geminiModelsWithMeta,
 ];
+if (test) {
+  allModels.unshift(...testModels);
+}
+
 export const allModelsWithoutIcon = allModels.map(
   ({ icon, ...model }) => model
 );
