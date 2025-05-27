@@ -14,6 +14,7 @@ import rehypeFormat from "rehype-format";
 import {
   addCitationsToContent,
   addCitationsToContentInline,
+  addCitationsToContentInlineSuper,
 } from "@/components/searchGroundingUtils";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import {
@@ -49,7 +50,7 @@ export default function MarkdownComponent(props) {
   if (props?.groundingChunks && props?.groundingSupports) {
     // console.log(props?.groundingChunks);
 
-    const contentWithCitations = addCitationsToContentInline(
+    const contentWithCitations = addCitationsToContentInlineSuper(
       finalContent,
       props?.groundingChunks,
       props?.groundingSupports
@@ -106,11 +107,10 @@ function CustomMarkdown({ children, mode, props }) {
       className={`markdown-body ${customStyle} pb-4`}
       // skipHtml={true}
       components={{
-        p(props) {
-          const { children, className, node, ...rest } = props;
-          // console.log("children", children);
-          return <span className={className}>{children}</span>;
-        },
+        // p(props) {
+        //   const { children, className, node, ...rest } = props;
+        //   return <span className={className}>{children}</span>;
+        // },
         sup(props) {
           const { children, className, node, ...rest } = props;
           // console.log("children", children);
@@ -253,7 +253,7 @@ function extractThinKContent(text) {
   return { content, think };
 }
 
-export function CustomTooltip({ children, tooltip }) {
+export function CustomTooltip({ fullText, firstWord, link }) {
   const tooltipRef = useRef(null);
 
   const showTooltip = () => {
@@ -269,36 +269,48 @@ export function CustomTooltip({ children, tooltip }) {
       tooltipRef.current.style.visibility = "hidden";
     }
   };
-
+  // console.log(fullText);
   return (
     <span
       onMouseEnter={showTooltip}
       onMouseLeave={hideTooltip}
       className="relative inline-block cursor-pointer text-blue-500 underline"
     >
-      {children}
-      <a
+      <span className="flex flex-col max-w-[80px]">
+        <a
+          href={link}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs truncate"
+        >
+          {fullText}
+        </a>
+      </span>
+      <span
         ref={tooltipRef}
-        href={tooltip}
-        className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-150 z-50 overflow-hidden max-w-xs text-ellipsis"
+        // className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-150 z-50"
+        // className="absolute bottom-full left-0 mb-2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-150 z-50 max-w-[300px]"
+        className="absolute bottom-full left-0 mb-2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-150 z-50 max-w-[calc(100vw-20px)] overflow-auto"
         role="tooltip"
-        target="_blank"
-        rel="noopener noreferrer"
       >
-        {tooltip}
-      </a>
+        <span className="flex flex-col max-w-xs">
+          <span className="truncate">{fullText}</span>
+          <span className="truncate">{link}</span>
+        </span>
+      </span>
     </span>
   );
 }
 
 function LinkTooltip({ children, rest }) {
-  const linkText = getFirstWord(getTextFromChildren(children)) + "...";
+  const fullText = getTextFromChildren(children);
+  const firstWord = getFirstWord(fullText);
 
   return (
-    <CustomTooltip tooltip={rest.href}>
-      <a href={rest.href} target="_blank" rel="noopener noreferrer">
-        {linkText}
-      </a>
-    </CustomTooltip>
+    <CustomTooltip
+      fullText={fullText.trim()}
+      firstWord={firstWord}
+      link={rest.href}
+    />
   );
 }

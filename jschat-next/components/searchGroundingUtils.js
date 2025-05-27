@@ -56,9 +56,11 @@ export const addCitationsToContentInlineSuper = (
     const citationText = groundingChunkIndices
       .map((chunkIndex) => {
         const chunk = groundingChunks[chunkIndex];
+        // return `[${chunk.web.title}](${chunk.web.uri})`;
         return `[${chunk.web.title}](${chunk.web.uri})`;
       })
       .join(", ");
+    // console.log("citationText", citationText);
 
     const citationTextBrackets = `<sup> ${citationText} </sup>`;
     // console.log("citationTextBrackets", citationTextBrackets);
@@ -153,7 +155,7 @@ export async function updateGroundingChunksWithActualLinksAndTitles(
   // Helper to extract <title> from HTML string
   function extractTitle(html) {
     const match = html.match(/<title>(.*?)<\/title>/i);
-    return match ? match[1] : "No title found";
+    return match ? match[1] : "Untitled";
   }
 
   // Process each chunk sequentially or in parallel — here parallel with Promise.all
@@ -189,6 +191,3 @@ export async function updateGroundingChunksWithActualLinksAndTitles(
 
   return updatedChunks;
 }
-
-// Example usage:
-// updateGroundingChunksWithActualLinksAndTitles(groundingChunks).then(console.log);
