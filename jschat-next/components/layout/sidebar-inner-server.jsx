@@ -6,8 +6,9 @@ import { Suspense } from "react";
 
 import { lazy } from "react";
 const AuthButton = lazy(() => import("@/components/auth/AuthButtonsServer"));
-import PaymentComponent from "@/components/payment/Payment";
-import { PRICE_ID_200K } from "@/components/payment/PaymentConfig";
+import TopupButton from "@/components/layout/TopupButton";
+// import PaymentComponent from "@/components/payment/Payment";
+// import { PRICE_ID_200K } from "@/components/payment/PaymentConfig";
 export function SidebarInnerServer({ children }) {
   const today = new Date();
   return (
@@ -31,12 +32,13 @@ export function SidebarInnerServer({ children }) {
               <AuthButton className="mx-1" />
             </Suspense>
 
-            <PaymentComponent
+            {/* <PaymentComponent
               priceId={PRICE_ID_200K}
               price=""
               description="Top up"
               className="mx-1"
-            />
+            /> */}
+            <TopupButton />
             <ThemeToggle className="mx-1" />
           </div>
         </div>

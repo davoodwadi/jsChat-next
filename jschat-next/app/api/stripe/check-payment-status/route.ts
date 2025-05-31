@@ -6,6 +6,7 @@ import { sendPaymentEmail } from "@/components/email/emailAction";
 import {
   PRICE_ID_100K,
   PRICE_ID_200K,
+  creditPacks,
 } from "@/components/payment/PaymentConfig";
 export async function GET(request: NextRequest) {
   const session = await auth();
@@ -54,7 +55,8 @@ export async function GET(request: NextRequest) {
       if (priceId === PRICE_ID_200K) {
         TOKEN_TO_BE_CREDITED = 200000;
       } else {
-        TOKEN_TO_BE_CREDITED = 100000;
+        const priceInfo = creditPacks.find((v) => v.id === priceId);
+        TOKEN_TO_BE_CREDITED = priceInfo ? priceInfo?.credits * 1000 : 100000;
       }
       console.log("TOKEN_TO_BE_CREDITED", TOKEN_TO_BE_CREDITED);
       if (!resp.addedToAccount) {

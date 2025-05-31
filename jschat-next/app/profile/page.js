@@ -48,18 +48,19 @@ export default async function Page() {
       {session && (
         <CardContent className="text-center">
           <>
-            <p>Tokens remaining</p>
+            <p>Credits remaining</p>
             <CardDescription className="">
               <Suspense fallback={<Skeleton className="h-4 w-1/2 mx-auto" />}>
-                <p>{getTokensOnly()}</p>
+                <p>{getCreditsOnly()}</p>
               </Suspense>
             </CardDescription>
           </>
         </CardContent>
       )}
+
       <CardContent className="text-center">
         <CardDescription className="m-2 mt-6 mx-auto">
-          <Link href="/">
+          <Link href="/chat">
             <FontAwesomeIcon icon={faLeftLong} className="mx-2" /> Go Back To
             Chat
           </Link>
@@ -77,4 +78,9 @@ async function getEmail() {
 async function getTokensOnly() {
   const { tokensRemaining } = await getSessionTokensLeft();
   return tokensRemaining;
+}
+
+async function getCreditsOnly() {
+  const { tokensRemaining } = await getSessionTokensLeft();
+  return tokensRemaining / 1000;
 }

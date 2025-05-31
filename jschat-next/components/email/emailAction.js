@@ -19,10 +19,6 @@ export async function sendPaymentEmail({
   amount,
 }) {
   // console.log("status", status);
-  // console.log("sessionId", sessionId);
-  // console.log("tokensRemaining", tokensRemaining);
-  // console.log("email", email);
-  // console.log("date", date);
   const emailFinal = dummy ? "delivered@resend.dev" : email;
   const text = await render(
     <SpreedVerifyIdentityEmail
