@@ -91,7 +91,7 @@ export const TopupDialog: React.FC<AuthDialogProps> = (props) => {
         <DialogContent className="sm:w-1/2 rounded-xl">
           <DialogHeader>
             <DialogTitle className="mx-auto mb-4">
-              Not Enough Tokens
+              Not Enough Credits
             </DialogTitle>
             <DialogDescription className="flex flex-col gap-y-2">
               <InlineTopupButton />

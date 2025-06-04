@@ -8,24 +8,13 @@ from flask import Flask, request, jsonify
 os.environ["TRANSFORMERS_CACHE"] = r"D:\HF_CACHE"
 os.environ["HF_HOME"] = r"D:\HF_CACHE"
 
+semantic_scholar_key = os.environ.get('semantic_scholar_key')
+print('semantic_scholar_key',semantic_scholar_key)
+
 model = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-12-v2", model_kwargs={"torch_dtype": "float16"})
 # model = CrossEncoder('Snowflake/snowflake-arctic-embed-l-v2.0')
 # model = CrossEncoder('Snowflake/snowflake-arctic-embed-l-v2.0')
 # model = SentenceTransformer('Snowflake/snowflake-arctic-embed-l-v2.0')
-
-
-def authorshipsToAuthors(authorship):
-    return [a['raw_author_name'] for a in authorship]
-
-def aiiToString(aii):
-  tuples = []
-  for word, index in aii.items():
-    for i in index:
-      tuples.append((word, i))
-  sorted_tuples = sorted(tuples, key=lambda x: x[1])
-  return ' '.join([item[0] for item in sorted_tuples])
-
-
 
 app = Flask(__name__)
 
@@ -111,3 +100,15 @@ def get_articles_for_query_crossref(query):
     sorted_data = [all_results[r['corpus_id']] for r in ranks]
     # print(sorted_data[:5])
     return sorted_data
+
+
+def authorshipsToAuthors(authorship):
+    return [a['raw_author_name'] for a in authorship]
+
+def aiiToString(aii):
+  tuples = []
+  for word, index in aii.items():
+    for i in index:
+      tuples.append((word, i))
+  sorted_tuples = sorted(tuples, key=lambda x: x[1])
+  return ' '.join([item[0] for item in sorted_tuples])

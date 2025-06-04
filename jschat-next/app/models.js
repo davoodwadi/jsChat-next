@@ -78,15 +78,6 @@ export const groqModelsWithMeta = [
     icon: FastIcon,
   },
   {
-    name: "Llama-3.3-70b-specdec",
-    model: "llama-3.3-70b-specdec",
-    meta: "70-Billion Parameter Model From Meta With Speculative Decoding (Faster)",
-    new: false,
-    vision: false,
-    reasoning: false,
-    icon: FastIcon,
-  },
-  {
     name: "Deepseek-r1-distill-llama-70b",
     model: "deepseek-r1-distill-llama-70b",
     meta: "Meta Llama Distilled Using DeepSeek R1 Reinforcement Learning",
