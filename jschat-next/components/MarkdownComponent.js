@@ -28,8 +28,7 @@ import "katex/dist/katex.min.css"; // `rehype-katex` does not import the CSS for
 import CopyText from "@/components/CopyTextComponent";
 // import "@/node_modules/github-markdown-css/github-markdown.css";
 import "@/styles/markdown.css";
-import React, { useRef } from "react";
-
+import React, { useRef, forwardRef } from "react";
 import {
   Tooltip,
   TooltipContent,
@@ -41,15 +40,10 @@ import Link from "next/link";
 
 // const inter = Inter({ subsets: ["latin"] });
 
-export default function MarkdownComponent(props) {
-  // console.log("props.children.length MD", props.children.length);
-
+const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
   let finalContent = props.children;
-  // console.log("props.children", props.children);
-  // console.log("MarkdownComponent props", props);
-  if (props?.groundingChunks && props?.groundingSupports) {
-    // console.log(props?.groundingChunks);
 
+  if (props?.groundingChunks && props?.groundingSupports) {
     const contentWithCitations = addCitationsToContentInlineSuper(
       finalContent,
       props?.groundingChunks,
@@ -57,21 +51,13 @@ export default function MarkdownComponent(props) {
     );
     finalContent = contentWithCitations;
   }
-  const processedText = preprocessMarkdown(finalContent);
-  // console.log("processedText", processedText);
 
+  const processedText = preprocessMarkdown(finalContent);
   const { think, content } = extractThinKContent(processedText);
   finalContent = content;
-  // finalContent = processedText;
-  // console.log("think ", think);
-  // console.log("content ", content);
-  // console.log("finalContent ", finalContent);
-
-  // console.log("markdown props.children", props.children);
-  // console.log("markdown processedText", processedText);
 
   return (
-    <>
+    <div ref={ref}>
       {think && (
         <CustomMarkdown mode="think" props={props}>
           {think}
@@ -80,9 +66,11 @@ export default function MarkdownComponent(props) {
       <CustomMarkdown mode="regular" props={props}>
         {finalContent}
       </CustomMarkdown>
-    </>
+    </div>
   );
-}
+});
+
+export default MarkdownComponent;
 
 function CustomMarkdown({ children, mode, props }) {
   const markdownChildren = children;

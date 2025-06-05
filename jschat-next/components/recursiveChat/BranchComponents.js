@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useRef, useState, useEffect } from "react";
 import { MultilineSkeleton } from "@/components/ui/skeleton";
 import { useSidebar } from "@/components/ui/sidebar";
+import { TTS } from "@/app/tts/page";
 import {
   openaiModelsWithMeta,
   groqModelsWithMeta,
@@ -291,43 +292,41 @@ export function UserMessage(props) {
 
 export function BotMessage(props) {
   const isLatestBot = props.maxGlobalIdBot === props.globalIdBot;
-  // console.log("Bot props first", props);
+  const refRenderedText = useRef(null);
+  console.log("refRenderedText.current", refRenderedText.current);
 
+  const [textToSpeak, setTextToSpeak] = useState();
+  useEffect(() => {
+    if (refRenderedText.current) {
+      console.log("refRenderedText.current", refRenderedText.current);
+      console.log(
+        "refRenderedText.current.textContent",
+        refRenderedText.current.textContent
+      );
+      setTextToSpeak(refRenderedText.current.textContent);
+    }
+  }, [refRenderedText.current]);
   useEffect(() => {
     if (isLatestBot && props?.refElementBot.current) {
-      // console.log("useeffect running", props.refElementBot.current);
-      // console.log("useeffect running content", props.content);
-
       props.refElementBot.current.scrollIntoView({
         block: "center",
         inline: "center",
       });
     }
   }, [isLatestBot, props.refElementBot]); // Dependency array
-  // console.log("Bot props second", props.content);
-  // console.log("props.children", props.children);
-  // console.log("props.botMessage", props.botMessage);
-  // if (props.botMessage?.groundingSupports) {
-  //   console.log(
-  //     "props.botMessage",
-  //     props.botMessage.content.slice(
-  //       0,
-  //       props.botMessage.groundingSupports[0].segment.endIndex
-  //     )
-  //   );
-  // }
-  // console.log("props.children.length", props.children.length);
+
   return (
     <div className={baseBotClass}>
       <div className="flex flex-row justify-between text-xs mb-4">
         <p className="text-sm antialiased italic font-bold ">
           {props.model.name}
         </p>
-        <CopyText text={props.children} />
+        <div className="flex flex-row gap-4">
+          <TTS text={textToSpeak} />
+          <CopyText text={props.children} />
+        </div>
       </div>
       <div
-        // contentEditable="true"
-        // suppressContentEditableWarning
         className=" break-words  focus:outline-none focus:border-none focus:ring-0"
         id={props.id}
         globalidbot={props.globalIdBot}
@@ -340,6 +339,7 @@ export function BotMessage(props) {
           <MultilineSkeleton lines={4}>{props.children}</MultilineSkeleton>
         ) : (
           <MarkdownComponent
+            ref={refRenderedText}
             groundingChunks={props?.groundingChunks}
             groundingSupports={props?.groundingSupports}
             botMessage={props?.botMessage}
