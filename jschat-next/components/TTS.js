@@ -32,7 +32,9 @@ export function TTS({ text }) {
 
   const handleSpeakToggle = (text) => {
     const synth = window.speechSynthesis;
-    // console.log("refRenderedText.current", refRenderedText.current);
+    const voicesList = synth.getVoices();
+    const availableVoices = (voicesList?.length ? voicesList : voices) || [];
+    // console.log("availableVoices", availableVoices);
 
     if (speakStatus === "speaking") {
       synth.pause();
@@ -43,12 +45,12 @@ export function TTS({ text }) {
     } else if (speakStatus === "not started") {
       const u = new SpeechSynthesisUtterance(text);
       u.onend = () => setSpeakStatus("not started");
-      const preferredVoice = voices.find(
+      const preferredVoice = availableVoices.find(
         (v) => v.name.includes("Natural") && v.lang.startsWith("en")
       );
       if (preferredVoice) {
         u.voice = preferredVoice;
-        // console.log("preferredVoice", preferredVoice);
+        console.log("preferredVoice", preferredVoice);
       }
       synth.cancel();
       synth.speak(u);

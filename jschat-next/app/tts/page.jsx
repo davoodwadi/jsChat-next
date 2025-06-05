@@ -16,11 +16,6 @@ so we can grab them easily later on, and then append the options as children of 
 
   useEffect(() => {
     if (refRenderedText.current) {
-      //   console.log("refRenderedText.current", refRenderedText.current);
-      //   console.log(
-      //     "refRenderedText.current.textContent",
-      //     refRenderedText.current.textContent
-      //   );
       setTextToSpeak(refRenderedText.current.textContent);
     }
   }, [refRenderedText.current]);
