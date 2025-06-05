@@ -7,7 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useRef, useState, useEffect } from "react";
 import { MultilineSkeleton } from "@/components/ui/skeleton";
 import { useSidebar } from "@/components/ui/sidebar";
-import { TTS } from "@/app/tts/page";
+import { TTS } from "@/components/TTS";
+
 import {
   openaiModelsWithMeta,
   groqModelsWithMeta,
@@ -293,16 +294,16 @@ export function UserMessage(props) {
 export function BotMessage(props) {
   const isLatestBot = props.maxGlobalIdBot === props.globalIdBot;
   const refRenderedText = useRef(null);
-  console.log("refRenderedText.current", refRenderedText.current);
+  // console.log("refRenderedText.current", refRenderedText.current);
 
   const [textToSpeak, setTextToSpeak] = useState();
   useEffect(() => {
     if (refRenderedText.current) {
-      console.log("refRenderedText.current", refRenderedText.current);
-      console.log(
-        "refRenderedText.current.textContent",
-        refRenderedText.current.textContent
-      );
+      // console.log("refRenderedText.current", refRenderedText.current);
+      // console.log(
+      //   "refRenderedText.current.textContent",
+      //   refRenderedText.current.textContent
+      // );
       setTextToSpeak(refRenderedText.current.textContent);
     }
   }, [refRenderedText.current]);
