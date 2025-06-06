@@ -8,7 +8,7 @@ import { useRef, useState, useEffect } from "react";
 import { MultilineSkeleton } from "@/components/ui/skeleton";
 import { useSidebar } from "@/components/ui/sidebar";
 import { TTS } from "@/components/TTS";
-
+import { Maximize } from "lucide-react";
 import {
   openaiModelsWithMeta,
   groqModelsWithMeta,
@@ -46,18 +46,12 @@ dark:text-gray-100
 // dark:bg-sky-700
 // `;
 
-let baseBotClass =
-  // "rounded-xl bg-yellow-600 text-black p-4 m-1 relative break-words  "; //border-yellow-500
-  `     p-4 m-1 relative   
+let baseBotClass = ` p-4 m-1 relative   
     text-gray-900 rounded-xl  
     focus:ring-blue-500 focus:border-blue-500 
      dark:border-gray-600 dark:placeholder-gray-400 
      dark:text-white 
-     dark:focus:ring-blue-500 dark:focus:border-blue-500`;
-// baseBotClass += `bg-yellow-50 dark:bg-yellow-500`;
-// baseBotClass += `
-// border border-gray-300
-// `;
+     dark:focus:ring-blue-500 dark:focus:border-blue-500 `;
 
 export function UserMessage(props) {
   // console.log("User props", props);
@@ -296,6 +290,7 @@ export function BotMessage(props) {
   const refRenderedText = useRef(null);
   // console.log("refRenderedText.current", refRenderedText.current);
 
+  const [botClass, setBotClass] = useState(baseBotClass);
   const [textToSpeak, setTextToSpeak] = useState();
   useEffect(() => {
     if (refRenderedText.current) {
@@ -317,12 +312,15 @@ export function BotMessage(props) {
   }, [isLatestBot, props.refElementBot]); // Dependency array
 
   return (
-    <div className={baseBotClass}>
+    <div className={botClass}>
       <div className="flex flex-row justify-between text-xs mb-4">
         <p className="text-sm antialiased italic font-bold ">
           {props.model.name}
         </p>
         <div className="flex flex-row gap-4">
+          <button onClick={(e) => maximizeBotMessage(e, botClass, setBotClass)}>
+            <Maximize size={16} />
+          </button>
           <TTS text={textToSpeak} />
           <CopyText text={props.children} />
         </div>
@@ -351,6 +349,14 @@ export function BotMessage(props) {
       </div>
     </div>
   );
+}
+const fullscreenBotMessage =
+  "fixed inset-0 z-50 bg-white flex flex-col p-8 overflow-auto";
+export function maximizeBotMessage(e, botClass, setBotClass) {
+  console.log("e", e);
+  botClass === baseBotClass
+    ? setBotClass(fullscreenBotMessage)
+    : setBotClass(baseBotClass);
 }
 
 export function Branch(props) {
