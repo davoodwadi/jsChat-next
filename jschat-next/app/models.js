@@ -192,6 +192,15 @@ export const openaiModelsWithMeta = [
     vision: true,
     icon: BrainIcon,
   },
+  // {
+  //   name: "o3",
+  //   model: "o3",
+  //   meta: "Recommended Reasoning Model by OpenAI | High Effort (Slow - Needs Thinking)",
+  //   reasoning: true,
+  //   new: true,
+  //   vision: true,
+  //   icon: BrainIcon,
+  // },
   {
     name: "GPT 4.1 nano",
     model: "gpt-4.1-nano",
@@ -218,16 +227,6 @@ export const openaiModelsWithMeta = [
     vision: true,
     reasoning: false,
     icon: FastIcon,
-  },
-
-  {
-    name: "o3 mini",
-    model: "o3-mini",
-    meta: "Smaller Version of o3 Reasoning Model From OpenAI | High Effort (Slow - Needs Thinking)",
-    reasoning: true,
-    new: false,
-    vision: false,
-    icon: BrainIcon,
   },
   {
     name: "GPT 4o",
