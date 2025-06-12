@@ -29,7 +29,7 @@ export default function FullscreenMessageManager() {
   );
 }
 
-export function useBodyAriaHidden(isHidden) {
+function useBodyAriaHidden(isHidden) {
   useEffect(() => {
     if (typeof document === "undefined") return;
 
