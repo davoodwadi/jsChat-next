@@ -422,7 +422,8 @@ export async function POST(req) {
             ...reasoning,
           });
           let firstDelta = true;
-          if (isReasoning) {
+          if (isReasoning || data.model.includes("grok-4")) {
+            console.log("reasoning xai -> added think token");
             // controller.enqueue(encoder.encode("<think>"));
             controller.enqueue(
               encoder.encode(
@@ -433,7 +434,7 @@ export async function POST(req) {
             );
           }
           for await (const chunk of streamResponse) {
-            // console.log("chunk", chunk);
+            console.log("chunk", chunk);
             if (chunk.choices[0]?.delta?.reasoning_content) {
               // controller.enqueue(
               //   encoder.encode(chunk.choices[0]?.delta?.reasoning_content)
@@ -446,7 +447,10 @@ export async function POST(req) {
                 )
               );
             } else if (chunk.choices[0]?.delta?.content) {
-              if (firstDelta && isReasoning) {
+              if (
+                firstDelta &&
+                (isReasoning || data.model.includes("grok-4"))
+              ) {
                 firstDelta = false;
                 // controller.enqueue(encoder.encode("</think>"));
                 controller.enqueue(
