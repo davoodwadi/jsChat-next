@@ -301,8 +301,8 @@ export const xAIModelsWithMeta = [
 export const geminiModelsWithMeta = [
   {
     name: "Gemini 2.5 Flash",
-    model: "gemini-2.5-flash-preview-04-17",
-    meta: "Google's Fastest LLM With Thinking Capabilities",
+    model: "models/gemini-2.5-flash",
+    meta: "Google's Fastest LLM With Web Search and Thinking Capabilities",
     new: true,
     vision: false,
     reasoning: true,
@@ -310,8 +310,8 @@ export const geminiModelsWithMeta = [
   },
   {
     name: "Gemini 2.5 Pro",
-    model: "gemini-2.5-pro-preview-05-06",
-    meta: "Google's State-of-the-art Thinking Model",
+    model: "gemini-2.5-pro",
+    meta: "Google's State-of-the-art Thinking Model With Web Search",
     new: true,
     vision: false,
     reasoning: true,
