@@ -86,8 +86,12 @@ export function SuccessCardClient() {
             {tokens ? email : <Skeleton className="h-4 w-5/6 mx-auto" />}
           </CardDescription>
           <CardDescription className="m-2 mx-auto">
-            <p>Tokens remaining</p>
-            {tokens ? tokens : <Skeleton className="h-4 w-2/3 mx-auto" />}
+            <p>Credits remaining</p>
+            {tokens ? (
+              tokens / 1000
+            ) : (
+              <Skeleton className="h-4 w-2/3 mx-auto" />
+            )}
           </CardDescription>
           <CardDescription className="m-2 mt-6 mx-auto">
             <Link href="/">

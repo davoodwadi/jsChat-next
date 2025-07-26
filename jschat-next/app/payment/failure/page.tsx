@@ -70,9 +70,9 @@ export default async function Page({
           {/* <Suspense fallback={<Skeleton className="h-4 w-3/4 mx-auto" />}>
             <UserCurrentTokens />
           </Suspense> */}
-          <p>Tokens remaining</p>
+          <p>Credits remaining</p>
           <Suspense fallback={<Skeleton className="h-4 w-1/2 mx-auto" />}>
-            <p>{getTokensOnly(session_id)}</p>
+            <p>{getCreditsOnly(session_id)}</p>
           </Suspense>
         </CardDescription>
         <CardDescription className="m-2 mt-6 mx-auto">
@@ -89,4 +89,8 @@ export default async function Page({
 async function getTokensOnly(session_id: any) {
   const info = await getTokens(session_id);
   return info?.tokens;
+}
+async function getCreditsOnly(session_id: any) {
+  const tokens = await getTokensOnly(session_id);
+  return tokens ? tokens / 1000 : null;
 }

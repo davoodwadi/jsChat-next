@@ -186,8 +186,8 @@ export const SpreedVerifyIdentityEmail = ({
         </table>
 
         <Section style={codeContainer}>
-          <Heading style={heading2}>Current tokens:</Heading>
-          <Text style={code}>{tokensRemaining}</Text>
+          <Heading style={heading2}>Credits remaining:</Heading>
+          <Text style={code}>{tokensRemaining && tokensRemaining / 1000}</Text>
         </Section>
         {/* </Container> */}
         <Link style={{ ...button }} href="https://spreed.chat/profile">
