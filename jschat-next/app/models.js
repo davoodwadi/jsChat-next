@@ -42,6 +42,15 @@ const BrainIcon = () => (
 
 export const groqModelsWithMeta = [
   {
+    name: "Kimi K2 Instruct",
+    model: "moonshotai/kimi-k2-instruct",
+    meta: "State-of-the-art Mixture-of-Experts (MoE) language model with 1 trillion total parameters and 32 billion activated parameters. Designed for agentic intelligence, it excels at tool use, coding, and autonomous problem-solving across diverse domains.",
+    new: true,
+    vision: false,
+    reasoning: false,
+    icon: DetailedIcon,
+  },
+  {
     name: "Groq's Compound AI System",
     model: "compound-beta",
     meta: "Compound-beta is a compound AI system powered by multiple LLMs to intelligently and selectively use tools to answer user queries, starting first with web search and code execution.",
@@ -58,15 +67,6 @@ export const groqModelsWithMeta = [
     vision: true,
     reasoning: false,
     icon: FastIcon,
-  },
-  {
-    name: "Qwen QWQ 32b",
-    model: "qwen-qwq-32b",
-    meta: "The Reasoning Model Of The Qwen Series By Alibaba Cloud - Capable Of Thinking And Reasoning",
-    new: false,
-    vision: false,
-    reasoning: true,
-    icon: BrainIcon,
   },
   {
     name: "Llama-3.3-70b-versatile",
