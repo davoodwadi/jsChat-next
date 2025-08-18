@@ -6,7 +6,8 @@ declare module "next-auth" {
    */
   interface Session {
     user: {
-      tokensRemaining: number;
+      tokensRemaining: number | null;
+      chatSessionUserId?: string | null;
     } & DefaultSession["user"];
   }
 }

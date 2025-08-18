@@ -3,7 +3,8 @@ import { authConfig } from "./auth.config";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import { connectToDatabase } from "@/lib/db";
 import { addUserToMailingListIfNotExists } from "@/app/broadcast/getEmailsAction";
-console.log();
+import { test } from "@/lib/test";
+
 // type Provider = "google" | "github";
 
 type Doc = {
@@ -65,20 +66,26 @@ export async function createOrUpdateUser({
   );
   // check if exists in plans collection
   let doc = null;
+  let userId = null; // Store the ObjectId
   if (!plansUser) {
     // user not found in plans collection -> create it
     doc = getDoc({ profile: profile, provider: provider });
     const res = await plansCollection.insertOne(doc);
     console.log("user added", res);
+
+    userId = res.insertedId; // Get ObjectId from insert result
+    doc._id = userId; // Add _id to doc object
   } else {
     // user exists
     console.log("user found in plans collection");
     doc = plansUser;
+    userId = plansUser._id; // Get ObjectId from existing user
   }
   let userInfo;
   let toReturn;
   userInfo = doc;
   toReturn = {
+    chatSessionUserId: userId.toString(), // Add ObjectId as string
     username: userInfo.email,
     email: userInfo.email,
     photo: userInfo.photo,
@@ -103,11 +110,11 @@ if (client) {
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
   adapter: adapter,
+  // debug: test ? true : false,
 
   session: { strategy: "jwt" }, // force JWT session with a database
   callbacks: {
-    async signIn({ account, profile }) {
-      // console.log("account signIn callback", account);
+    async signIn({ user, account, profile, email, credentials }) {
       if (account && profile) {
         console.log("signed in with provoider: ", account.provider);
 
@@ -120,24 +127,34 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           provider: account.provider,
         });
         // console.log("toReturn info", info);
-        // profile.tokensRemaining = info.tokensRemaining;
+        profile.chatSessionUserId = info?.chatSessionUserId;
+        profile.tokensRemaining = info?.tokensRemaining;
         // console.log("profile signIn callback", profile);
-
+        // console.log("user signIn callback", user);
+        // console.log("account signIn callback", account);
+        // console.log("profile signIn callback", profile);
+        // console.log("email signIn callback", email);
+        // console.log("credentials signIn callback", credentials);
         return true;
       } else {
         return false;
       }
     },
-    async jwt({ token, account, profile }) {
+    async jwt({ token, user, account, profile, isNewUser }) {
+      // console.log("user jwt auth.ts", user);
+      // console.log("isNewUser jwt auth.ts", isNewUser);
       // console.log("account jwt auth.ts", account);
-      // console.log("token jwt auth.ts", token);
+      // // console.log("token jwt auth.ts", token);
       // console.log("profile jwt auth.ts", profile);
       // Persist the OAuth access_token to the token right after signin
       if (account) {
         token.accessToken = account.access_token;
         token.picture = profile?.picture;
         token.name = profile?.name;
-        // token.tokensRemaining = profile?.tokensRemaining;
+        token.chatSessionUserId = profile?.chatSessionUserId;
+        // console.log("token jwt auth.ts", token);
+
+        token.tokensRemaining = profile?.tokensRemaining;
       }
       // console.log("new token jwt auth.ts", token);
 
@@ -151,6 +168,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // session.accessToken = token.accessToken;
       session.user.image = token.picture;
       session.user.name = token.name;
+      if (typeof token.chatSessionUserId === "string") {
+        session.user.chatSessionUserId = token.chatSessionUserId;
+      }
+      if (typeof token.tokensRemaining === "number") {
+        session.user.tokensRemaining = token.tokensRemaining;
+      }
       // if (
       //   typeof token.tokensRemaining === "number" &&
       //   Number.isFinite(token.tokensRemaining)

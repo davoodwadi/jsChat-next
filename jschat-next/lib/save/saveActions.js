@@ -2,6 +2,7 @@
 
 import { auth } from "@/auth";
 import { connectToDatabase } from "@/lib/db";
+import { ObjectId } from "mongodb";
 
 export async function clearAllChatSessions() {
   const session = await auth();
@@ -26,81 +27,75 @@ export async function clearAllChatSessions() {
 export async function loadAllChatSessions() {
   const session = await auth();
   const email = session?.user?.email;
+  const chatSessionUserId = session?.user?.chatSessionUserId;
+  // console.log("loadAllChatSessions chatSessionUserId", chatSessionUserId);
   // console.log("loadAllChatSessions email", email);
   if (!email) {
     return null;
   }
   const client = await connectToDatabase();
-  const plansCollection = client.db("chat").collection("plans");
-  const results = await plansCollection.findOne(
-    { username: email }, // Ensure we are looking for the correct username
-    {
-      projection: {
-        username: 1,
-        tokensRemaining: 1,
-        sessions: {
-          $filter: {
-            input: "$sessions",
-            as: "session",
-            cond: { $ne: ["$$session.hidden", true] }, // Filter out sessions where hidden is true
-          },
-        },
-      },
-    }
+  // const sessionsCollection = client.db("chat").collection("sessions");
+  // Start aggregation from PLANS collection, not sessions
+  const sessionsCollection = client.db("chat").collection("sessions");
+  const sessions = await sessionsCollection
+    .find({
+      userId: new ObjectId(chatSessionUserId),
+      hidden: { $ne: true },
+    })
+    .sort({ sortOrder: 1 })
+    .toArray();
+  // console.log("sessions", sessions);
+  const serializedSessions = sessions.map((session) =>
+    serializeSession(session)
   );
 
-  // console.log("results.sessions loadallchatsessions", results.sessions);
-
-  if (!results.sessions) {
-    // console.log("results.sessions null", results.sessions);
-    return;
-  } else if (!results.sessions[0]) {
-    // console.log("results.sessions[0] null", results.sessions[0]);
-    return;
-  } else {
-    return results.sessions;
+  if (serializedSessions.length === 0) {
+    console.log("No sessions found for the user");
+    return null;
   }
+
+  return serializedSessions || [];
 }
 
 export async function loadChatSession({ chatId }) {
   // console.log("SERVER ACTION load", chatId);
   const session = await auth();
   const email = session?.user?.email;
+  const chatSessionUserId = session?.user?.chatSessionUserId;
   // console.log("email", email);
   const client = await connectToDatabase();
-  const plansCollection = client.db("chat").collection("plans");
-  const results = await plansCollection.findOne(
-    { username: email }, // Ensure we are looking for the correct chatId in the sessions array
+  const sessionsCollection = client.db("chat").collection("sessions");
+  const results = await sessionsCollection.findOne(
+    { userId: new ObjectId(chatSessionUserId), chatid: chatId }, // Ensure we are looking for the correct chatId in the sessions array
     {
-      projection: {
-        username: 1,
-        tokensRemaining: 1,
-        sessions: {
-          $filter: {
-            input: "$sessions",
-            as: "session",
-            cond: { $eq: ["$$session.chatid", chatId] }, // Filter sessions to find the one with the matching chatId
-          },
-        },
-      },
+      // projection: {
+      //   username: 1,
+      //   tokensRemaining: 1,
+      //   sessions: {
+      //     $filter: {
+      //       input: "$sessions",
+      //       as: "session",
+      //       cond: { $eq: ["$$session.chatid", chatId] }, // Filter sessions to find the one with the matching chatId
+      //     },
+      //   },
+      // },
     }
   );
   // console.log("results", results);
-  if (!results?.sessions) {
+  if (!results) {
     // console.log("results.sessions null");
     return;
-  } else if (!results.sessions[0]) {
-    // console.log("results.sessions[0] null");
-    return;
   } else {
-    return results.sessions[0];
+    const serializedSession = serializeSession(results);
+    return serializedSession;
   }
 }
 
 export async function saveChatSession(params) {
-  // console.log("SERVER ACTION save systemPrompt", params.systemPrompt);
+  console.log("SERVER ACTION save systemPrompt", params.systemPrompt);
   const session = await auth();
   const email = session?.user?.email;
+  const chatSessionUserId = session?.user?.chatSessionUserId;
   // console.log("email", email);
   // console.log("email", userMessages);
   // console.log("email", botMessages);
@@ -110,62 +105,84 @@ export async function saveChatSession(params) {
   console.log("chatId", chatId);
   // return;
   const client = await connectToDatabase();
-  const plansCollection = client.db("chat").collection("plans");
-  const results = await plansCollection.findOneAndUpdate(
-    { username: email },
-    [
+  const sessionsCollection = client.db("chat").collection("sessions");
+  // Check if session already exists (update) or is new (create)
+  const existingSession = await sessionsCollection.findOne({ chatid: chatId });
+
+  if (existingSession) {
+    // Update existing session
+    const updateResult = await sessionsCollection.findOneAndUpdate(
+      { chatid: chatId },
       {
         $set: {
-          sessions: {
-            $cond: {
-              if: {
-                $and: [
-                  { $eq: [{ $type: "$sessions" }, "array"] }, // Check if it's an array
-                  { $gt: [{ $size: "$sessions" }, 0] }, // Ensure there are existing sessions
-                  { $in: [chatId, "$sessions.chatid"] },
-                ],
-              },
-              then: {
-                $map: {
-                  input: "$sessions",
-                  as: "session",
-                  in: {
-                    $cond: {
-                      if: { $eq: ["$$session.chatid", chatId] },
-                      then: {
-                        chatid: chatId,
-                        content: content,
-                      },
-                      else: "$$session",
-                    },
-                  },
-                },
-              },
-              else: {
-                $concatArrays: [
-                  { $ifNull: ["$sessions", []] }, // Initialize as an empty array if null
-                  [
-                    {
-                      chatid: chatId,
-                      content: content,
-                    },
-                  ],
-                ],
-              },
-            },
-          },
+          content: content,
+          updatedAt: new Date(),
+          // Ensure user ownership
+          userId: new ObjectId(chatSessionUserId),
+          userEmail: email,
         },
       },
-    ],
-    {
-      returnDocument: "after", // Return the document after the update
-      projection: {
-        username: 1,
-        tokensRemaining: 1,
-        // sessions: { $slice: -1 },
-      },
-    }
-  );
+      {
+        returnDocument: "after",
+        upsert: false,
+      }
+    );
+
+    // console.log("Session updated:", updateResult.chatid);
+    // console.log("Session updated:", updateResult);
+    return {
+      success: true,
+      chatId: chatId,
+      action: "updated",
+      // session: serializeSession(updateResult.value),
+    };
+  } else {
+    // Create new session - need to determine sortOrder
+    const userSessionCount = await sessionsCollection.countDocuments({
+      userId: new ObjectId(chatSessionUserId),
+    });
+
+    const newSession = {
+      _id: chatId,
+      userId: new ObjectId(chatSessionUserId),
+      userEmail: email,
+      chatid: chatId,
+      content: content,
+      hidden: false,
+      sortOrder: userSessionCount, // Next position in the sequence
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      migratedAt: null, // This is a new session, not migrated
+      originalArrayPosition: null,
+    };
+
+    const insertResult = await sessionsCollection.insertOne(newSession);
+
+    // console.log("New session created:", insertResult.insertedId);
+    return {
+      success: true,
+      chatId: chatId,
+      action: "created",
+      // session: serializeSession(newSession),
+    };
+  }
 
   // console.log("results", results);
+}
+
+function serializeSession(session) {
+  // Convert MongoDB objects to plain objects
+  return {
+    _id: session._id.toString(), // Convert ObjectId to string
+    userId: session.userId.toString(), // Convert ObjectId to string
+    userEmail: session.userEmail,
+    chatid: session.chatid,
+    content: session.content,
+    hidden: session.hidden,
+    sortOrder: session.sortOrder,
+    createdAt: session.createdAt?.toISOString(), // Convert Date to ISO string
+    updatedAt: session.updatedAt?.toISOString(), // Convert Date to ISO string
+    migratedAt: session.migratedAt?.toISOString(), // Convert Date to ISO string
+    originalArrayPosition: session.originalArrayPosition,
+  };
 }

@@ -47,6 +47,7 @@ export function NavigationEvents() {
   // to show history on page load
   useEffect(() => {
     const getChatHistory = async () => {
+      console.log("ChatHistory loading");
       const result = await loadAllChatSessions();
       // console.log("ChatHistory result", result);
       if (result) {
@@ -81,16 +82,13 @@ export function NavigationEvents() {
                 let snippet;
 
                 if (!isCanvas) {
-                  const snippetArrayNew = userMessageArray.map(
-                    (m) => m.content?.text && m.content?.text
+                  const snippetArray = userMessageArray.map((m) =>
+                    typeof m.content === "string"
+                      ? m.content
+                      : m.content?.text
+                        ? m.content?.text
+                        : null
                   );
-                  const snippetArrayLegacy = userMessageArray.map(
-                    (m) => typeof m.content === "string" && m.content
-                  ); // legacy
-                  const snippetArray = [
-                    ...snippetArrayNew,
-                    ...snippetArrayLegacy,
-                  ]; // legacy
                   snippet = snippetArray.join("...").slice(0, snippetToShow);
                 } else {
                   snippet = item?.content?.canvasText.slice(0, snippetToShow);
