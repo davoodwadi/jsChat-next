@@ -7,17 +7,19 @@ import { ObjectId } from "mongodb";
 export async function clearAllChatSessions() {
   const session = await auth();
   const email = session?.user?.email;
+  const chatSessionUserId = session?.user?.chatSessionUserId;
   // console.log("clearAllChatSessions email", email);
-  if (!email) {
+  if (!chatSessionUserId) {
     return null;
   }
   const client = await connectToDatabase();
-  const plansCollection = client.db("chat").collection("plans");
-  const result = await plansCollection.updateOne(
-    { username: email }, // Ensure we are looking for the correct username
+  const sessionsCollection = client.db("chat").collection("sessions");
+
+  const result = await sessionsCollection.updateMany(
+    { userId: new ObjectId(chatSessionUserId) }, // Ensure we are looking for the correct username
     {
       $set: {
-        "sessions.$[].hidden": true, // Set hidden attribute to true for each session
+        hidden: true, // Set hidden to true for all matching sessions
       },
     }
   );
@@ -66,20 +68,7 @@ export async function loadChatSession({ chatId }) {
   const client = await connectToDatabase();
   const sessionsCollection = client.db("chat").collection("sessions");
   const results = await sessionsCollection.findOne(
-    { userId: new ObjectId(chatSessionUserId), chatid: chatId }, // Ensure we are looking for the correct chatId in the sessions array
-    {
-      // projection: {
-      //   username: 1,
-      //   tokensRemaining: 1,
-      //   sessions: {
-      //     $filter: {
-      //       input: "$sessions",
-      //       as: "session",
-      //       cond: { $eq: ["$$session.chatid", chatId] }, // Filter sessions to find the one with the matching chatId
-      //     },
-      //   },
-      // },
-    }
+    { userId: new ObjectId(chatSessionUserId), chatid: chatId } // Ensure we are looking for the correct chatId in the sessions array
   );
   // console.log("results", results);
   if (!results) {
