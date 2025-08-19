@@ -28,7 +28,7 @@ export function NavigationEvents() {
   useEffect(() => {
     const getChatHistory = async () => {
       const status = searchParams.get("status");
-      //   console.log("status", status);
+      // console.log("STATUS:::::::", status);
       const isStatusNew = status === "new";
       if (isStatusNew) {
         const result = await loadAllChatSessions();
@@ -36,6 +36,8 @@ export function NavigationEvents() {
           result.reverse();
           setChatHistory(result);
           //   console.log("chatHistory loaded INSIDE", result);
+        } else {
+          setChatHistory([]);
         }
         // console.log("NavigationEvents pathname", pathname);
         router.push(pathname, { scroll: false });

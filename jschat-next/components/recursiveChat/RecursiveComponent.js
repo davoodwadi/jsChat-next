@@ -99,7 +99,6 @@ export function RecursiveChatContainer(props) {
         const params = new URLSearchParams(searchParams.toString());
         params.set("status", "new");
         // console.log("params", params);
-
         router.push(pathname + "?" + params.toString(), { scroll: false });
         // console.log("refElementUser", props.refElementUser);
         // focus to the new userMessage textarea

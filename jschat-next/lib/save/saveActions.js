@@ -3,8 +3,12 @@
 import { auth } from "@/auth";
 import { connectToDatabase } from "@/lib/db";
 import { ObjectId } from "mongodb";
+import { revalidatePath } from "next/cache";
 
 export async function clearAllChatSessions() {
+  revalidatePath("/chat"); // revalidate the chat page path
+  revalidatePath("/"); // revalidate layout or home path, if relevant
+
   const session = await auth();
   const email = session?.user?.email;
   const chatSessionUserId = session?.user?.chatSessionUserId;
