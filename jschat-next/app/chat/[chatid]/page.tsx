@@ -54,7 +54,8 @@ export default function Chat() {
   // console.log("rendering chat [chatid]");
   const { icon, ...startingModel } = test
     ? testModels[0]
-    : openaiModelsWithMeta[0];
+    : openaiModelsWithMeta.find((m) => m.model.includes("chatgpt")) ||
+      openaiModelsWithMeta[0];
   const [model, setModel] = useState(startingModel);
   // console.log(model);
   const [systemPrompt, setSystemPrompt] = useState("");
