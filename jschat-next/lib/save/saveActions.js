@@ -85,7 +85,8 @@ export async function loadChatSession({ chatId }) {
 }
 
 export async function saveChatSession(params) {
-  console.log("SERVER ACTION save systemPrompt", params.systemPrompt);
+  // console.log("SERVER ACTION save params", params);
+  // console.log("SERVER ACTION save systemPrompt", params.systemPrompt);
   const session = await auth();
   const email = session?.user?.email;
   const chatSessionUserId = session?.user?.chatSessionUserId;

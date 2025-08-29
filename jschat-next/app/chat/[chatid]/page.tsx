@@ -30,6 +30,7 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 
 import {
+  perplexityModelsWithMeta,
   openaiModelsWithMeta,
   groqModelsWithMeta,
   deepinfraModelsWithMeta,
@@ -40,6 +41,10 @@ import {
 } from "@/app/models";
 
 const modelMeta = [
+  {
+    desc: "Perplexity Models (Closed-source)",
+    models: perplexityModelsWithMeta,
+  },
   { desc: "OpenAI Models (Closed-source)", models: openaiModelsWithMeta },
   { desc: "Groq Models (Open-source)", models: groqModelsWithMeta },
   { desc: "DeepInfra Models (Open-source)", models: deepinfraModelsWithMeta },

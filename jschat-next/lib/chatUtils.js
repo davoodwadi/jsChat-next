@@ -119,6 +119,16 @@ export async function handleSubmit({
       },
     ]);
 
+    newBotEntry = {
+      key: JSON.stringify(array),
+      globalIdBot: newGlobalIdBot,
+      content: tempChunks,
+      role: "bot",
+      status: "pending", // pending | reading | done
+      model: model,
+    };
+    setBotMessages((v) => [...v, newBotEntry]);
+
     // get chain old message
     chain = getChain({
       targetId,
@@ -197,16 +207,6 @@ export async function handleSubmit({
     const reader = data.body.getReader();
     const decoder = new TextDecoder();
 
-    newBotEntry = {
-      key: JSON.stringify(array),
-      globalIdBot: newGlobalIdBot,
-      content: tempChunks,
-      role: "bot",
-      status: "pending", // pending | reading | done
-      model: model,
-    };
-    setBotMessages((v) => [...v, newBotEntry]);
-
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
@@ -268,6 +268,18 @@ export async function handleSubmit({
     const newArray = array.slice();
     newArray.push(1);
 
+    newBotEntry = {
+      key: JSON.stringify(array),
+      globalIdBot: newGlobalIdBot,
+      content: tempChunks,
+      role: "bot",
+      status: "pending", // pending | reading | done
+      model: model,
+    };
+
+    setBotMessages((v) => {
+      return [...v, newBotEntry];
+    });
     // get chain new message
     chain = getChain({
       targetId,
@@ -318,7 +330,6 @@ export async function handleSubmit({
       setIsTopupDialogOpen(true);
       return;
     }
-
     // console.log("userMessages", userMessages);
     // console.log("chain", chain);
     // return;
@@ -367,18 +378,6 @@ export async function handleSubmit({
       globalIdBot: newGlobalIdBot,
       content: tempChunks,
       role: "bot",
-      status: "pending", // pending | reading | done
-      model: model,
-    };
-
-    setBotMessages((v) => {
-      return [...v, newBotEntry];
-    });
-    newBotEntry = {
-      key: JSON.stringify(array),
-      globalIdBot: newGlobalIdBot,
-      content: tempChunks,
-      role: "bot",
       status: "pending reading", // pending | reading | done
       model: model,
     };
@@ -417,6 +416,9 @@ export async function handleSubmit({
           }
           if (parsedData?.groundingSupports) {
             extraContent.groundingSupports = parsedData.groundingSupports;
+          }
+          if (parsedData?.search_results) {
+            extraContent.search_results = parsedData.search_results;
           }
           newBotEntry = {
             key: JSON.stringify(array),

@@ -286,6 +286,8 @@ export function UserMessage(props) {
 }
 
 export function BotMessage(props) {
+  // console.log("props", props);
+  // console.log("props?.botMessage?.status", props?.botMessage?.status);
   const isLatestBot = props.maxGlobalIdBot === props.globalIdBot;
   const refRenderedText = useRef(null);
   // console.log("refRenderedText.current", refRenderedText.current);
@@ -334,7 +336,7 @@ export function BotMessage(props) {
         latest={isLatestBot ? "true" : "false"}
         ref={isLatestBot ? props.refElementBot : null}
       >
-        {props.content === "" ? (
+        {props.content === "" || props?.botMessage?.status === "pending" ? (
           <MultilineSkeleton lines={4}>{props.children}</MultilineSkeleton>
         ) : (
           <MarkdownComponent
@@ -342,6 +344,7 @@ export function BotMessage(props) {
             groundingChunks={props?.groundingChunks}
             groundingSupports={props?.groundingSupports}
             botMessage={props?.botMessage}
+            {...props}
           >
             {props.children}
           </MarkdownComponent>

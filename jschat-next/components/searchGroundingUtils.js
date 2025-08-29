@@ -1,3 +1,88 @@
+export function addCitationsToContentInlineSuperPerplexity(
+  content,
+  search_results
+) {
+  // console.log("=== Starting citation processing ===");
+  // console.log("Original content:", content);
+  // console.log("Raw search_results:", search_results);
+
+  // Step 1: Basic validation
+  if (!content || !search_results) {
+    console.log(
+      "Missing content or search_results, returning original content"
+    );
+    return content;
+  }
+
+  // Step 2: Parse the JSON string
+  let searchArray;
+  try {
+    searchArray = JSON.parse(search_results);
+    // console.log("Parsed searchArray:", searchArray);
+  } catch (error) {
+    console.warn("Error parsing search results", error);
+    return content;
+  }
+
+  // Step 3: Validate parsed array
+  if (!searchArray || searchArray.length === 0) {
+    console.log("Empty or invalid searchArray, returning original content");
+    return content;
+  }
+
+  // Step 4: Create and test the regex
+  const citationRegex = /\[(\d+)\]/g;
+
+  // console.log("Using regex:", citationRegex);
+
+  // Step 5: Test if regex finds any matches
+  // const matches = content.match(citationRegex);
+  // console.log("Regex matches found:", matches);
+
+  // Step 6: Process replacements with debugging
+  const result = content.replace(citationRegex, (match, citationNumber) => {
+    // console.log("Processing match:", match, "Citation number:", citationNumber);
+
+    const index = parseInt(citationNumber, 10) - 1;
+    // console.log("Array index:", index, "Array length:", searchArray.length);
+
+    if (index >= 0 && index < searchArray.length) {
+      const result = searchArray[index];
+      // console.log("Found search result.snippet:", result.snippet);
+
+      const escapedTitle = result.title
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#x27;");
+      const escapedSnippet = result.snippet
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#x27;");
+      const replacement =
+        '<sup><a href="' +
+        result.url +
+        '" target="_blank" rel="noopener noreferrer" title="' +
+        escapedTitle +
+        '" class="citation-link"' +
+        ' snippet="' +
+        escapedSnippet +
+        '"' +
+        ">" +
+        citationNumber +
+        "</a></sup>";
+
+      // console.log("Replacement HTML:", replacement);
+      return replacement;
+    }
+
+    console.log("No matching search result, keeping original:", match);
+    return match;
+  });
+
+  // console.log("Final result:", result);
+  // console.log("=== Citation processing complete ===");
+
+  return result;
+}
+
 export const addCitationsToContentInline = (
   content,
   groundingChunks,

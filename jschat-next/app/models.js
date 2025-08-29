@@ -39,7 +39,17 @@ const SearchIcon = () => <Search size={16} className="relative top-[4px]" />;
 const BrainIcon = () => (
   <FontAwesomeIcon icon={faBrain} className="relative top-[1px]" />
 );
-
+export const perplexityModelsWithMeta = [
+  {
+    name: "sonar",
+    model: "sonar",
+    meta: "sonar",
+    new: true,
+    vision: false,
+    reasoning: false,
+    icon: SearchIcon,
+  },
+];
 export const groqModelsWithMeta = [
   {
     name: "Kimi K2 Instruct",
@@ -348,6 +358,7 @@ export const testModels = [
   },
 ];
 const allModels = [
+  ...perplexityModelsWithMeta,
   ...openaiModelsWithMeta,
   ...groqModelsWithMeta,
   ...deepinfraModelsWithMeta,
@@ -363,6 +374,7 @@ export const allModelsWithoutIcon = allModels.map(
   ({ icon, ...model }) => model
 );
 
+export const perplexityModels = perplexityModelsWithMeta.map((m) => m.model);
 export const groqModels = groqModelsWithMeta.map((m) => m.model);
 export const deepinfraModels = deepinfraModelsWithMeta.map((m) => m.model);
 export const openaiModels = openaiModelsWithMeta.map((m) => m.model);

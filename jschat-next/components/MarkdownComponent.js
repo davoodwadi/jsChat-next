@@ -12,9 +12,10 @@ import remarkMath from "remark-math";
 import rehypeFormat from "rehype-format";
 // import { visit } from "unist-util-visit";
 import {
-  addCitationsToContent,
-  addCitationsToContentInline,
+  // addCitationsToContent,
+  // addCitationsToContentInline,
   addCitationsToContentInlineSuper,
+  addCitationsToContentInlineSuperPerplexity,
 } from "@/components/searchGroundingUtils";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import {
@@ -28,7 +29,14 @@ import "katex/dist/katex.min.css"; // `rehype-katex` does not import the CSS for
 import CopyText from "@/components/CopyTextComponent";
 // import "@/node_modules/github-markdown-css/github-markdown.css";
 import "@/styles/markdown.css";
-import React, { useRef, forwardRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  forwardRef,
+} from "react";
+import { createPortal } from "react-dom";
 import {
   Tooltip,
   TooltipContent,
@@ -41,6 +49,7 @@ import Link from "next/link";
 // const inter = Inter({ subsets: ["latin"] });
 
 const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
+  // console.log("props", props);
   let finalContent = props.children;
 
   if (props?.groundingChunks && props?.groundingSupports) {
@@ -50,6 +59,16 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
       props?.groundingSupports
     );
     finalContent = contentWithCitations;
+  }
+
+  if (props?.search_results) {
+    // console.log("getting search results in markdown");
+    const contentWithCitations = addCitationsToContentInlineSuperPerplexity(
+      finalContent,
+      props.search_results
+    );
+    finalContent = contentWithCitations;
+    // console.log("finalContent", finalContent);
   }
 
   const processedText = preprocessMarkdown(finalContent);
@@ -241,64 +260,342 @@ function extractThinKContent(text) {
   return { content, think };
 }
 
-export function CustomTooltip({ fullText, firstWord, link }) {
+// export function CustomTooltip({ fullText, link, ...rest }) {
+//   const tooltipRef = useRef(null);
+//   // console.log("rest", rest);
+
+//   const showTooltip = () => {
+//     if (tooltipRef.current) {
+//       tooltipRef.current.style.opacity = "1";
+//       tooltipRef.current.style.visibility = "visible";
+//     }
+//   };
+
+//   const hideTooltip = () => {
+//     if (tooltipRef.current) {
+//       tooltipRef.current.style.opacity = "0";
+//       tooltipRef.current.style.visibility = "hidden";
+//     }
+//   };
+//   // console.log(fullText);
+//   return (
+//     <span
+//       onMouseEnter={showTooltip}
+//       onMouseLeave={hideTooltip}
+//       className="relative inline-block cursor-pointer text-blue-500 underline"
+//     >
+//       <span className="flex flex-col max-w-[80px]">
+//         <a
+//           href={link}
+//           target="_blank"
+//           rel="noopener noreferrer"
+//           className="text-xs truncate"
+//         >
+//           {fullText}
+//         </a>
+//       </span>
+//       <span
+//         ref={tooltipRef}
+//         // className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-150 z-50"
+//         // className="absolute bottom-full left-0 mb-2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-150 z-50 max-w-[300px]"
+//         className="absolute bottom-full left-0 mb-2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-150 z-50 max-w-[calc(100vw-20px)] overflow-auto"
+//         role="tooltip"
+//       >
+//         <span className="flex flex-col max-w-xs">
+//           <span className="truncate">{fullText}</span>
+//           <span className="truncate">{link}</span>
+//           {rest?.snippet && <span>{rest?.snippet}</span>}
+//         </span>
+//       </span>
+//     </span>
+//   );
+// }
+
+// function LinkTooltip({ children, rest }) {
+//   const fullText = getTextFromChildren(children);
+
+//   return (
+//     <CustomTooltip fullText={fullText.trim()} link={rest.href} {...rest} />
+//   );
+// }
+
+export function CustomTooltip({ fullText, link, snippet, title, ...rest }) {
+  const [isVisible, setIsVisible] = useState(false);
+  const [isPositioned, setIsPositioned] = useState(false);
+  const [position, setPosition] = useState({
+    top: 0,
+    left: 0,
+    placement: "top",
+  });
+  const [mounted, setMounted] = useState(false);
+  const triggerRef = useRef(null);
   const tooltipRef = useRef(null);
+  const hideTimeoutRef = useRef(null);
 
-  const showTooltip = () => {
-    if (tooltipRef.current) {
-      tooltipRef.current.style.opacity = "1";
-      tooltipRef.current.style.visibility = "visible";
+  // Ensure we're on the client side
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const calculatePosition = useCallback(() => {
+    if (!triggerRef.current || !tooltipRef.current) return;
+
+    const triggerRect = triggerRef.current.getBoundingClientRect();
+    const tooltipRect = tooltipRef.current.getBoundingClientRect();
+    const viewport = {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    };
+
+    let newPosition = { top: 0, left: 0, placement: "top" };
+
+    // Try to place above first
+    const spaceAbove = triggerRect.top;
+    const spaceBelow = viewport.height - triggerRect.bottom;
+    const spaceLeft = triggerRect.left;
+    const spaceRight = viewport.width - triggerRect.right;
+
+    // Determine vertical placement
+    if (spaceAbove >= tooltipRect.height + 10 && spaceAbove > spaceBelow) {
+      // Place above
+      newPosition.top = triggerRect.top - tooltipRect.height - 8;
+      newPosition.placement = "top";
+    } else if (spaceBelow >= tooltipRect.height + 10) {
+      // Place below
+      newPosition.top = triggerRect.bottom + 8;
+      newPosition.placement = "bottom";
+    } else {
+      // Place on side with more space
+      if (spaceRight > spaceLeft) {
+        newPosition.left = triggerRect.right + 8;
+        newPosition.top =
+          triggerRect.top + (triggerRect.height - tooltipRect.height) / 2;
+        newPosition.placement = "right";
+      } else {
+        newPosition.left = triggerRect.left - tooltipRect.width - 8;
+        newPosition.top =
+          triggerRect.top + (triggerRect.height - tooltipRect.height) / 2;
+        newPosition.placement = "left";
+      }
+    }
+
+    // Determine horizontal placement for top/bottom placements
+    if (newPosition.placement === "top" || newPosition.placement === "bottom") {
+      // Try to center first
+      let leftPos =
+        triggerRect.left + (triggerRect.width - tooltipRect.width) / 2;
+
+      // Check boundaries and adjust
+      if (leftPos < 10) {
+        leftPos = 10;
+      } else if (leftPos + tooltipRect.width > viewport.width - 10) {
+        leftPos = viewport.width - tooltipRect.width - 10;
+      }
+
+      newPosition.left = leftPos;
+    }
+
+    // Ensure tooltip doesn't go off screen vertically for side placements
+    if (newPosition.placement === "left" || newPosition.placement === "right") {
+      if (newPosition.top < 10) {
+        newPosition.top = 10;
+      } else if (newPosition.top + tooltipRect.height > viewport.height - 10) {
+        newPosition.top = viewport.height - tooltipRect.height - 10;
+      }
+    }
+
+    setPosition(newPosition);
+    setIsPositioned(true);
+  }, []);
+
+  const showTooltip = useCallback(() => {
+    // Clear any pending hide timeout
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+      hideTimeoutRef.current = null;
+    }
+
+    setIsVisible(true);
+    setIsPositioned(false); // Reset positioning state
+  }, []);
+
+  const hideTooltip = useCallback(() => {
+    // Add a small delay to allow moving to tooltip
+    hideTimeoutRef.current = setTimeout(() => {
+      setIsVisible(false);
+      setIsPositioned(false);
+    }, 100);
+  }, []);
+
+  const cancelHide = useCallback(() => {
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+      hideTimeoutRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isVisible && mounted && !isPositioned) {
+      // Calculate position immediately when tooltip becomes visible
+      const timer = setTimeout(calculatePosition, 0);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, mounted, isPositioned, calculatePosition]);
+
+  useEffect(() => {
+    if (isVisible && mounted) {
+      const handleResize = () => {
+        if (isVisible) {
+          setIsPositioned(false);
+          calculatePosition();
+        }
+      };
+
+      const handleScroll = () => {
+        if (isVisible) {
+          setIsPositioned(false);
+          calculatePosition();
+        }
+      };
+
+      window.addEventListener("resize", handleResize);
+      window.addEventListener("scroll", handleScroll, true);
+
+      return () => {
+        window.removeEventListener("resize", handleResize);
+        window.removeEventListener("scroll", handleScroll, true);
+      };
+    }
+  }, [isVisible, mounted, calculatePosition]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const formatUrl = (url) => {
+    try {
+      const urlObj = new URL(url);
+      return urlObj.hostname + (urlObj.pathname !== "/" ? urlObj.pathname : "");
+    } catch {
+      return url;
     }
   };
 
-  const hideTooltip = () => {
-    if (tooltipRef.current) {
-      tooltipRef.current.style.opacity = "0";
-      tooltipRef.current.style.visibility = "hidden";
-    }
-  };
-  // console.log(fullText);
-  return (
-    <span
-      onMouseEnter={showTooltip}
+  // Tooltip content component
+  const TooltipContent = () => (
+    <div
+      ref={tooltipRef}
+      className="fixed z-[9999] max-w-sm min-w-[200px] pointer-events-none"
+      style={{
+        top: `${position.top}px`,
+        left: `${position.left}px`,
+        // Only show tooltip after position is calculated to prevent transition from top-left
+        opacity: isVisible && isPositioned ? 1 : 0,
+        visibility: isVisible && isPositioned ? "visible" : "hidden",
+        transition: isPositioned ? "opacity 150ms ease-in-out" : "none",
+      }}
+      role="tooltip"
+      onMouseEnter={cancelHide}
       onMouseLeave={hideTooltip}
-      className="relative inline-block cursor-pointer text-blue-500 underline"
     >
-      <span className="flex flex-col max-w-[80px]">
+      <div className="bg-gray-900 text-white rounded-lg shadow-xl border border-gray-700 overflow-hidden pointer-events-auto">
+        {/* Arrow */}
+        <div
+          className={`absolute w-2 h-2 bg-gray-900 border-gray-700 transform rotate-45 ${
+            position.placement === "top"
+              ? "bottom-[-4px] left-1/2 -translate-x-1/2 border-r border-b"
+              : position.placement === "bottom"
+                ? "top-[-4px] left-1/2 -translate-x-1/2 border-l border-t"
+                : position.placement === "left"
+                  ? "right-[-4px] top-1/2 -translate-y-1/2 border-r border-t"
+                  : "left-[-4px] top-1/2 -translate-y-1/2 border-l border-b"
+          }`}
+        />
+
+        <div className="p-3 space-y-2">
+          {/* Title */}
+          {title && (
+            <div className="font-medium text-sm text-gray-100 leading-tight">
+              {title}
+            </div>
+          )}
+
+          {/* URL */}
+          <div className="flex items-center space-x-2 text-xs">
+            <svg
+              className="w-3 h-3 text-blue-400 flex-shrink-0"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <span className="text-blue-300 truncate">{formatUrl(link)}</span>
+          </div>
+
+          {/* Snippet */}
+          {snippet && (
+            <div className="text-xs text-gray-300 leading-relaxed">
+              {snippet.length > 150 ? `${snippet.slice(0, 150)}...` : snippet}
+            </div>
+          )}
+
+          {/* Click hint */}
+          <div className="text-xs text-gray-500 border-t border-gray-700 pt-2 mt-2">
+            Click to open link
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      <span
+        ref={triggerRef}
+        onMouseEnter={showTooltip}
+        onMouseLeave={hideTooltip}
+        onFocus={showTooltip}
+        onBlur={hideTooltip}
+        className="relative inline-block cursor-pointer text-blue-600 hover:text-blue-800 underline decoration-dotted underline-offset-2 transition-colors"
+        tabIndex={0}
+      >
         <a
           href={link}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-xs truncate"
+          className="text-inherit no-underline"
+          onClick={(e) => e.stopPropagation()}
         >
           {fullText}
         </a>
       </span>
-      <span
-        ref={tooltipRef}
-        // className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-150 z-50"
-        // className="absolute bottom-full left-0 mb-2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-150 z-50 max-w-[300px]"
-        className="absolute bottom-full left-0 mb-2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-150 z-50 max-w-[calc(100vw-20px)] overflow-auto"
-        role="tooltip"
-      >
-        <span className="flex flex-col max-w-xs">
-          <span className="truncate">{fullText}</span>
-          <span className="truncate">{link}</span>
-        </span>
-      </span>
-    </span>
+
+      {/* Render tooltip using Portal to avoid HTML nesting issues */}
+      {mounted && isVisible && createPortal(<TooltipContent />, document.body)}
+    </>
   );
 }
 
 function LinkTooltip({ children, rest }) {
   const fullText = getTextFromChildren(children);
-  const firstWord = getFirstWord(fullText);
 
   return (
     <CustomTooltip
       fullText={fullText.trim()}
-      firstWord={firstWord}
       link={rest.href}
+      title={rest.title}
+      snippet={rest.snippet}
+      {...rest}
     />
   );
 }

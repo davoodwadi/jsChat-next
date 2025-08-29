@@ -45,6 +45,7 @@ export function RecursiveChatContainer(props) {
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [botMessageFinished, setBotMessageFinished] = useState(false);
 
+  // console.log("botMessages", botMessages);
   // chatId={props.chatId}
   // userMessages={userMessages}
   // botMessages={botMessages}

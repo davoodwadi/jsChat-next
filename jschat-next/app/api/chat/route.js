@@ -22,6 +22,11 @@ const anthropic = new Anthropic();
 import { GoogleGenAI } from "@google/genai";
 const googleAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
+const perplexityClient = new OpenAI({
+  apiKey: process.env.PERPLEXITY_API_KEY,
+  baseURL: "https://api.perplexity.ai",
+});
+
 import {
   groqModels,
   openaiModels,
@@ -29,6 +34,7 @@ import {
   anthropicModels,
   xAIModels,
   geminiModels,
+  perplexityModels,
 } from "@/app/models";
 import { updateGroundingChunksWithActualLinksAndTitles } from "@/components/searchGroundingUtils";
 import { allModelsWithoutIcon } from "@/app/models";
@@ -44,7 +50,7 @@ export async function POST(req) {
   // revalidatePath("/", "layout");
   console.log("model server", data.model);
   let total_tokens = 0;
-
+  const searchCost = 20000;
   if (anthropicModels.includes(data.model)) {
     const { convertedMessages, system } = convertToAnthropicFormat(
       data.messages
@@ -607,6 +613,79 @@ export async function POST(req) {
       headers: {
         "Content-Type": "application/json",
         "Transfer-Encoding": "chunked",
+      },
+    });
+  } else if (perplexityModels.includes(data.model)) {
+    console.log("perplexity");
+    const { convertedMessages, hasImage } = convertToOpenAIFormat(
+      data.messages
+    );
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          const encoder = new TextEncoder();
+          const stream = await perplexityClient.chat.completions.create({
+            model: "sonar",
+            messages: convertedMessages,
+            stream: true,
+            search_filter: "academic",
+          });
+          let search_results;
+          let usage;
+          for await (const chunk of stream) {
+            const content = chunk.choices?.[0]?.delta?.content;
+            if (content) {
+              controller.enqueue(
+                encoder.encode(
+                  JSON.stringify({
+                    text: content,
+                  }) + "\n"
+                )
+              );
+            }
+            if (chunk?.search_results) {
+              search_results = chunk.search_results;
+            }
+
+            if (chunk?.usage) {
+              usage = chunk.usage;
+            }
+          }
+          controller.enqueue(
+            encoder.encode(
+              JSON.stringify({
+                search_results: JSON.stringify(search_results),
+              }) + "\n"
+            )
+          );
+
+          total_tokens = usage?.total_tokens;
+          if (typeof usage?.cost?.total_cost === "number") {
+            total_tokens += searchCost;
+          }
+          console.log("total_tokens", total_tokens);
+          // update usage
+          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              amount: total_tokens,
+              email: data.email,
+            }),
+          });
+          //
+          controller.close(); // Close the stream
+        } catch (error) {
+          console.error("Streaming error:", error);
+          controller.error(error); // Signal an error in the stream
+        }
+      },
+    });
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "application/json",
       },
     });
   } else if (data.model === "test-llm") {
