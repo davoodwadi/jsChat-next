@@ -157,20 +157,6 @@ export function UserMessage(props) {
                 // set old value
                 setFinalValue((v) => props.children?.text);
                 setBase64Image((v) => props.children?.image);
-                setUserMessageModelInfo((prev) => {
-                  // console.log("prev", prev);
-                  return {
-                    ...prev,
-                    model: props?.botMessage?.model || prev.model,
-                    modelConfig: props?.botMessage?.modelConfig?.deepResearch
-                      ? {
-                          deepResearch:
-                            props?.botMessage?.modelConfig?.deepResearch,
-                          search: props?.botMessage?.modelConfig?.search,
-                        }
-                      : prev.modelConfig,
-                  };
-                });
               }
               props.handleSubmit(
                 props.refElementBot,
@@ -181,6 +167,17 @@ export function UserMessage(props) {
                 },
                 userMessageModelInfo
               );
+              if (props.children && props.botMessage) {
+                setUserMessageModelInfo((prev) => {
+                  // console.log("prev", prev);
+                  // console.log("props.botMessage", props.botMessage);
+                  return {
+                    ...prev,
+                    model: props?.botMessage?.model,
+                    modelConfig: props?.botMessage?.modelConfig,
+                  };
+                });
+              }
             }
           }}
           id={props.id}
@@ -267,9 +264,9 @@ export function UserMessage(props) {
           {/* deep research END */}
 
           {/* debug START */}
-          <div className="text-wrap break-all">
+          {/* <div className="text-wrap break-all">
             {JSON.stringify(userMessageModelInfo)}
-          </div>
+          </div> */}
           {/* debug END */}
 
           {/* model select START */}
@@ -335,20 +332,6 @@ export function UserMessage(props) {
                 // set old value
                 setFinalValue((v) => props.children?.text);
                 setBase64Image((v) => props.children?.image);
-                setUserMessageModelInfo((prev) => {
-                  // console.log("prev", prev);
-                  return {
-                    ...prev,
-                    model: props?.botMessage?.model || prev.model,
-                    modelConfig: props?.botMessage?.modelConfig?.deepResearch
-                      ? {
-                          deepResearch:
-                            props?.botMessage?.modelConfig?.deepResearch,
-                          search: props?.botMessage?.modelConfig?.search,
-                        }
-                      : prev.modelConfig,
-                  };
-                });
               }
 
               // console.log("userMessageModelInfo", userMessageModelInfo);
@@ -361,6 +344,17 @@ export function UserMessage(props) {
                 },
                 userMessageModelInfo
               );
+              if (props.children && props.botMessage) {
+                setUserMessageModelInfo((prev) => {
+                  // console.log("prev", prev);
+                  console.log("props.botMessage", props.botMessage);
+                  return {
+                    ...prev,
+                    model: props?.botMessage?.model,
+                    modelConfig: props?.botMessage?.modelConfig,
+                  };
+                });
+              }
             }}
           >
             <span className="inline-flex text-sm items-center">

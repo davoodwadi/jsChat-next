@@ -705,6 +705,12 @@ export async function POST(req) {
           const encoder = new TextEncoder();
 
           let words = (
+            "deepResearch: " +
+            data.modelConfig.deepResearch +
+            " " +
+            "search: " +
+            data.modelConfig.search +
+            " " +
             JSON.stringify(data.messages[data.messages.length - 1]) +
             sampleTextWithLink
           ).split(/\s+/);

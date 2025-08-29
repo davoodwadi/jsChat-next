@@ -71,10 +71,10 @@ export async function handleSubmit({
   // {name: 'Perplexity Search', model: 'sonar', meta: 'sonar', new: true, vision: false,
   // deepResearch: true, search: true…}
   //
-  console.log("chatUtils userMessageModelInfo", userMessageModelInfo);
+  // console.log("chatUtils userMessageModelInfo", userMessageModelInfo);
   const { model, modelConfig } = userMessageModelInfo;
-  console.log("chatUtils modelConfig", modelConfig);
-  console.log("chatUtils model", model);
+  // console.log("chatUtils modelConfig", modelConfig);
+  // console.log("chatUtils model", model);
 
   rest.setBotMessageFinished(false);
 
