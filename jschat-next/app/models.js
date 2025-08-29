@@ -41,12 +41,14 @@ const BrainIcon = () => (
 );
 export const perplexityModelsWithMeta = [
   {
-    name: "sonar",
+    name: "Perplexity Search",
     model: "sonar",
     meta: "sonar",
     new: true,
     vision: false,
     reasoning: false,
+    hasDeepResearch: true,
+    hasSearch: true,
     icon: SearchIcon,
   },
 ];
@@ -334,6 +336,8 @@ export const geminiModelsWithMeta = [
     new: true,
     vision: false,
     reasoning: true,
+    hasDeepResearch: false,
+    hasSearch: true,
     icon: SearchIcon,
   },
   {
@@ -343,6 +347,8 @@ export const geminiModelsWithMeta = [
     new: true,
     vision: false,
     reasoning: true,
+    hasDeepResearch: false,
+    hasSearch: true,
     icon: BrainIcon,
   },
 ];
@@ -354,6 +360,8 @@ export const testModels = [
     new: true,
     vision: false,
     reasoning: true,
+    hasDeepResearch: true,
+    hasSearch: true,
     icon: SearchIcon,
   },
 ];

@@ -121,14 +121,14 @@ export default function RecursiveBranch(props) {
                       botRef,
                       targetId,
                       multimediaMessage,
-                      model
+                      userMessageModelInfo
                     ) => {
                       handleSubmit({
                         ...props,
                         botRef,
                         targetId,
                         multimediaMessage,
-                        model,
+                        userMessageModelInfo,
                         toast,
                       });
                       // } else {
@@ -142,6 +142,7 @@ export default function RecursiveBranch(props) {
                     model={props.model}
                     setModel={props.setModel}
                     botModel={getBotMessageForKey(tm.key)?.model}
+                    botMessage={getBotMessageForKey(tm.key)}
                   >
                     {tm.content}
                   </UserMessage>

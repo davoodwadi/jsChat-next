@@ -56,18 +56,26 @@ export async function handleSubmit({
   globalIdBot,
   setGlobalIdBot,
   setResponse,
-  model,
+  userMessageModelInfo,
   setIsDialogOpen,
   setIsTopupDialogOpen,
   refChatContainer,
   systemPrompt,
+  // deepResearch,
+  // search,
   ...rest
 }) {
   // event.target.id
   // event.target.value
   //
-  // console.log("chatUtils model", model);
-  // console.log("rest", rest);
+  // {name: 'Perplexity Search', model: 'sonar', meta: 'sonar', new: true, vision: false,
+  // deepResearch: true, search: true…}
+  //
+  console.log("chatUtils userMessageModelInfo", userMessageModelInfo);
+  const { model, modelConfig } = userMessageModelInfo;
+  console.log("chatUtils modelConfig", modelConfig);
+  console.log("chatUtils model", model);
+
   rest.setBotMessageFinished(false);
 
   // const dummy =
@@ -126,6 +134,7 @@ export async function handleSubmit({
       role: "bot",
       status: "pending", // pending | reading | done
       model: model,
+      modelConfig,
     };
     setBotMessages((v) => [...v, newBotEntry]);
 
@@ -170,8 +179,9 @@ export async function handleSubmit({
           },
           body: JSON.stringify({
             messages: chain,
-            model: model.model,
+            model: model,
             email: authStatus,
+            modelConfig,
           }),
         }
       );
@@ -236,6 +246,7 @@ export async function handleSubmit({
             role: "bot",
             status: "reading", // pending | reading | done
             model: model,
+            modelConfig,
             ...extraContent,
           };
           setBotMessages((v) =>
@@ -275,6 +286,7 @@ export async function handleSubmit({
       role: "bot",
       status: "pending", // pending | reading | done
       model: model,
+      modelConfig,
     };
 
     setBotMessages((v) => {
@@ -344,8 +356,9 @@ export async function handleSubmit({
           },
           body: JSON.stringify({
             messages: chain,
-            model: model.model,
+            model: model,
             email: authStatus,
+            modelConfig,
           }),
         }
       );
@@ -380,6 +393,7 @@ export async function handleSubmit({
       role: "bot",
       status: "pending reading", // pending | reading | done
       model: model,
+      modelConfig,
     };
     setBotMessages((v) => {
       // console.log("botMessages pending", v);
@@ -427,6 +441,7 @@ export async function handleSubmit({
             role: "bot",
             status: "reading",
             model: model,
+            modelConfig,
             ...extraContent,
           };
           // console.log("newBotEntry", newBotEntry);
@@ -467,6 +482,7 @@ export async function handleSubmit({
     role: "bot",
     status: "done",
     model: model,
+    modelConfig,
     ...extraContent,
   };
   // console.log("tempChunks", tempChunks);

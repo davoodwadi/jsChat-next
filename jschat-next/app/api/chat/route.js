@@ -48,10 +48,14 @@ export async function POST(req) {
 
   console.log("route runtime", process.env.NEXT_RUNTIME);
   // revalidatePath("/", "layout");
-  console.log("model server", data.model);
+  console.log("model server", data.model.model);
+  console.log("server deepResearch", data?.modelConfig?.deepResearch);
+  console.log("server search", data.modelConfig?.search);
+  // return;
+
   let total_tokens = 0;
   const searchCost = 20000;
-  if (anthropicModels.includes(data.model)) {
+  if (anthropicModels.includes(data.model.model)) {
     const { convertedMessages, system } = convertToAnthropicFormat(
       data.messages
     );
@@ -61,7 +65,7 @@ export async function POST(req) {
           const encoder = new TextEncoder();
           // console.log("Anthropic Model", data.model);
 
-          const thinking = data.model.includes("claude-sonnet-4")
+          const thinking = data.model.model.includes("claude-sonnet-4")
             ? { thinking: { type: "enabled", budget_tokens: 8000 } }
             : {};
 
@@ -71,7 +75,7 @@ export async function POST(req) {
             max_tokens: 8192,
             system: system && system?.content,
             messages: convertedMessages,
-            model: data.model,
+            model: data.model.model,
             stream: true,
             ...thinking,
           });
@@ -160,7 +164,7 @@ export async function POST(req) {
         "Content-Type": "application/json",
       },
     });
-  } else if (groqModels.includes(data.model)) {
+  } else if (groqModels.includes(data.model.model)) {
     const stream = new ReadableStream({
       async start(controller) {
         try {
@@ -172,7 +176,7 @@ export async function POST(req) {
           );
           const streamResponse = await groq.chat.completions.create({
             messages: convertedMessages,
-            model: data.model,
+            model: data.model.model,
             stream: true,
             stream_options: { include_usage: true },
             max_completion_tokens: 8191,
@@ -242,18 +246,20 @@ export async function POST(req) {
         "Content-Type": "application/json",
       },
     });
-  } else if (deepinfraModels.includes(data.model)) {
+  } else if (deepinfraModels.includes(data.model.model)) {
     console.log("deepinfra");
     const { convertedMessages, hasImage } = convertToDeepInfraFormat(
       data.messages
     );
 
-    const modelMeta = allModelsWithoutIcon.find((m) => m.model === data.model);
+    const modelMeta = allModelsWithoutIcon.find(
+      (m) => m.model === data.model.model
+    );
     if (!modelMeta.vision && hasImage) {
-      // console.log("model does not have vision capabilities", data.model);
+      // console.log("model does not have vision capabilities", data.model.model);
       return new Response(
         JSON.stringify({
-          error: `${data.model} does not support vision`,
+          error: `${data.model.model} does not support vision`,
         }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
@@ -264,7 +270,7 @@ export async function POST(req) {
         try {
           const encoder = new TextEncoder();
           const result = streamText({
-            model: deepinfra(data.model),
+            model: deepinfra(data.model.model),
             messages: convertedMessages,
             maxTokens: 16384,
           });
@@ -308,7 +314,7 @@ export async function POST(req) {
         "Content-Type": "application/json",
       },
     });
-  } else if (openaiModels.includes(data.model)) {
+  } else if (openaiModels.includes(data.model.model)) {
     const stream = new ReadableStream({
       async start(controller) {
         try {
@@ -338,20 +344,21 @@ export async function POST(req) {
           // );
           // return;
 
-          console.log("openai", data.model);
+          console.log("openai", data.model.model);
           // console.log("key", process.env["OPENAI_KEY"]);
           const { convertedMessages, hasImage } =
             convertToOpenAIResponsesFormat(data.messages);
           const legacyMessages = convertToOpenAIFormat(data.messages);
           const reasoning =
-            data.model.includes("o3-mini") || data.model.includes("o4-mini")
+            data.model.model.includes("o3-mini") ||
+            data.model.model.includes("o4-mini")
               ? { reasoning: { effort: "high" } }
               : {};
 
           console.log("reasoning", reasoning);
           const streamResponse = await openai.responses.create({
             input: convertedMessages,
-            model: data.model,
+            model: data.model.model,
             stream: true,
             // stream_options: { include_usage: true },
             max_output_tokens: 16384,
@@ -395,21 +402,23 @@ export async function POST(req) {
         "Content-Type": "application/json",
       },
     });
-  } else if (xAIModels.includes(data.model)) {
+  } else if (xAIModels.includes(data.model.model)) {
     console.log("xAI");
-    const reasoning = data.model.includes("grok-3-mini-latest")
+    const reasoning = data.model.model.includes("grok-3-mini-latest")
       ? { reasoning_effort: "high" }
       : {};
-    const isReasoning = data.model.includes("grok-3-mini-latest");
+    const isReasoning = data.model.model.includes("grok-3-mini-latest");
     const { convertedMessages, hasImage } = convertToOpenAIFormat(
       data.messages
     );
-    const modelMeta = allModelsWithoutIcon.find((m) => m.model === data.model);
+    const modelMeta = allModelsWithoutIcon.find(
+      (m) => m.model === data.model.model
+    );
     if (!modelMeta.vision && hasImage) {
-      console.log("model does not have vision capabilities", data.model);
+      console.log("model does not have vision capabilities", data.model.model);
       return new Response(
         JSON.stringify({
-          error: `${data.model} does not support vision`,
+          error: `${data.model.model} does not support vision`,
         }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
@@ -421,14 +430,14 @@ export async function POST(req) {
 
           const streamResponse = await xAI.chat.completions.create({
             messages: convertedMessages,
-            model: data.model,
+            model: data.model.model,
             stream: true,
             stream_options: { include_usage: true },
             max_completion_tokens: 16384,
             ...reasoning,
           });
           let firstDelta = true;
-          if (isReasoning || data.model.includes("grok-4")) {
+          if (isReasoning || data.model.model.includes("grok-4")) {
             console.log("reasoning xai -> added think token");
             // controller.enqueue(encoder.encode("<think>"));
             controller.enqueue(
@@ -455,7 +464,7 @@ export async function POST(req) {
             } else if (chunk.choices[0]?.delta?.content) {
               if (
                 firstDelta &&
-                (isReasoning || data.model.includes("grok-4"))
+                (isReasoning || data.model.model.includes("grok-4"))
               ) {
                 firstDelta = false;
                 // controller.enqueue(encoder.encode("</think>"));
@@ -503,8 +512,8 @@ export async function POST(req) {
         "Content-Type": "application/json",
       },
     });
-  } else if (geminiModels.includes(data.model)) {
-    console.log("Gemini model", data.model);
+  } else if (geminiModels.includes(data.model.model)) {
+    console.log("Gemini model", data.model.model);
     // const modelList = await googleAI.models.list();
     // console.log("Gemini modelList", modelList);
     // return;
@@ -527,7 +536,7 @@ export async function POST(req) {
 
           // return;
           const chat = googleAI.chats.create({
-            model: data.model,
+            model: data.model.model,
             history: history,
             ...streamConfig,
           });
@@ -615,7 +624,7 @@ export async function POST(req) {
         "Transfer-Encoding": "chunked",
       },
     });
-  } else if (perplexityModels.includes(data.model)) {
+  } else if (perplexityModels.includes(data.model.model)) {
     console.log("perplexity");
     const { convertedMessages, hasImage } = convertToOpenAIFormat(
       data.messages
@@ -625,7 +634,7 @@ export async function POST(req) {
         try {
           const encoder = new TextEncoder();
           const stream = await perplexityClient.chat.completions.create({
-            model: "sonar",
+            model: data.model.model,
             messages: convertedMessages,
             stream: true,
             search_filter: "academic",
@@ -688,16 +697,19 @@ export async function POST(req) {
         "Content-Type": "application/json",
       },
     });
-  } else if (data.model === "test-llm") {
+  } else if (data.model.model === "test-llm") {
     console.log("test LLM");
     const stream = new ReadableStream({
       async start(controller) {
         try {
           const encoder = new TextEncoder();
 
-          let words = sampleTextWithLink.split(/\s+/);
+          let words = (
+            JSON.stringify(data.messages[data.messages.length - 1]) +
+            sampleTextWithLink
+          ).split(/\s+/);
           for (let word of words) {
-            await wait(20);
+            await wait(2);
             controller.enqueue(
               encoder.encode(
                 JSON.stringify({
@@ -720,7 +732,7 @@ export async function POST(req) {
       },
     });
   } else {
-    console.log(`Model ${data.model} not found in any list.`);
+    console.log(`Model ${data.model.model} not found in any list.`);
   }
 }
 

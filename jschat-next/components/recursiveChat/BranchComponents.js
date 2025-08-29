@@ -1,7 +1,15 @@
 import { test } from "@/lib/test";
 import MarkdownComponent from "@/components/MarkdownComponent";
 import CopyText from "@/components/CopyTextComponent";
-import { Trash2, SendHorizontal, Eraser, ImagePlus, X } from "lucide-react";
+import {
+  Trash2,
+  SendHorizontal,
+  Eraser,
+  ImagePlus,
+  X,
+  Microscope,
+  Search,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useRef, useState, useEffect } from "react";
@@ -64,13 +72,17 @@ export function UserMessage(props) {
   const [base64Image, setBase64Image] = useState(
     props.children?.image === "" ? "" : undefined
   );
-
-  const [userMessageModel, setUserMessageModel] = useState(() => {
-    if (props.botModel) {
-      return props.botModel;
-    }
+  // console.log("props.botMessage", props.botMessage);
+  const [userMessageModelInfo, setUserMessageModelInfo] = useState(() => {
+    return {
+      modelConfig: {
+        search: props?.botMessage?.modelConfig?.search || false,
+        deepResearch: props?.botMessage?.modelConfig?.deepResearch || false,
+      },
+      model: props?.botMessage?.model || props.model,
+    };
   });
-  // console.log("userMessageModel", userMessageModel);
+  // console.log("userMessageModelInfo", userMessageModelInfo);
   // console.log("props.model.name", props.model.name);
 
   const refThisUser = useRef(null);
@@ -122,13 +134,13 @@ export function UserMessage(props) {
   };
 
   // console.log("id", props.id);
-  // console.log("props.model", props.model);
+  // console.log("userMessageModel", userMessageModel);
   // console.log("props.botModel", props.botModel);
-  // console.log("userMessageModel", userMessageModel?.name);
-
+  // console.log("props.model", props.model);
   return (
     <>
       <div className={baseUserClass}>
+        {/* text area START  */}
         <Textarea
           placeholder="Type your message..."
           className={textareaClass}
@@ -145,25 +157,30 @@ export function UserMessage(props) {
                 // set old value
                 setFinalValue((v) => props.children?.text);
                 setBase64Image((v) => props.children?.image);
-                setUserMessageModel(props.botModel);
+                setUserMessageModelInfo((prev) => {
+                  // console.log("prev", prev);
+                  return {
+                    ...prev,
+                    model: props?.botMessage?.model || prev.model,
+                    modelConfig: props?.botMessage?.modelConfig?.deepResearch
+                      ? {
+                          deepResearch:
+                            props?.botMessage?.modelConfig?.deepResearch,
+                          search: props?.botMessage?.modelConfig?.search,
+                        }
+                      : prev.modelConfig,
+                  };
+                });
               }
-              if (refUser.current) {
-                const currentModel = props.botModel
-                  ? props.botModel
-                  : props.model;
-                if (!userMessageModel) {
-                  setUserMessageModel(currentModel);
-                }
-                props.handleSubmit(
-                  props.refElementBot,
-                  props.id,
-                  {
-                    image: base64Image,
-                    text: finalValue,
-                  },
-                  userMessageModel ? userMessageModel : currentModel
-                );
-              }
+              props.handleSubmit(
+                props.refElementBot,
+                props.id,
+                {
+                  image: base64Image,
+                  text: finalValue,
+                },
+                userMessageModelInfo
+              );
             }
           }}
           id={props.id}
@@ -171,7 +188,9 @@ export function UserMessage(props) {
           maxglobaliduser={props.maxGlobalIdUser}
           ref={refUser}
         />
+        {/* text area END  */}
 
+        {/* image preview START  */}
         {base64Image && (
           <div className="relative inline-block">
             {/* Preview Image */}
@@ -192,21 +211,79 @@ export function UserMessage(props) {
             </button>
           </div>
         )}
+        {/* image preview END  */}
 
         <div className="flex flex-wrap justify-center gap-2 pt-2">
+          {/* search START */}
+          {userMessageModelInfo?.model?.hasSearch && (
+            <Button
+              variant={
+                userMessageModelInfo.modelConfig.search ? "default" : "outline"
+              }
+              size="sm"
+              className="my-auto "
+              onClick={() => {
+                setUserMessageModelInfo((prev) => {
+                  return {
+                    ...prev,
+                    modelConfig: {
+                      ...prev.modelConfig,
+                      search: !prev.modelConfig.search,
+                    },
+                  };
+                });
+              }}
+            >
+              Search <Search />
+            </Button>
+          )}
+          {/* search END */}
+
+          {/* deep research START */}
+          {userMessageModelInfo?.model?.hasDeepResearch && (
+            <Button
+              variant={
+                userMessageModelInfo.modelConfig.deepResearch
+                  ? "default"
+                  : "outline"
+              }
+              size="sm"
+              className="my-auto "
+              onClick={() => {
+                setUserMessageModelInfo((prev) => {
+                  return {
+                    ...prev,
+                    modelConfig: {
+                      ...prev.modelConfig,
+                      deepResearch: !prev.modelConfig.deepResearch,
+                    },
+                  };
+                });
+              }}
+            >
+              Deep Research <Microscope />
+            </Button>
+          )}
+          {/* deep research END */}
+
+          {/* debug START */}
+          <div className="text-wrap break-all">
+            {JSON.stringify(userMessageModelInfo)}
+          </div>
+          {/* debug END */}
+
+          {/* model select START */}
           <select
             id="modelDropdown"
-            value={
-              userMessageModel?.name ||
-              props.botModel?.name ||
-              props.model?.name
-            }
+            value={userMessageModelInfo?.model?.name}
             onChange={(event) => {
               const selectedModelName = event.target.value; // Get the selected model's name
               const selectedModel = allModelsWithoutIcon.find(
                 (model) => model.name === selectedModelName
               );
-              setUserMessageModel(selectedModel);
+              setUserMessageModelInfo((v) => {
+                return { ...v, model: selectedModel };
+              });
               props.setModel(selectedModel);
             }}
             className=" rounded text-xs p-1 w-32 sm:w-48"
@@ -217,7 +294,9 @@ export function UserMessage(props) {
               </option>
             ))}
           </select>
+          {/* model select END */}
 
+          {/* eraser START */}
           <Button
             variant="ghost"
             size="sm"
@@ -232,6 +311,9 @@ export function UserMessage(props) {
               <Eraser className="mx-2" />
             </span>
           </Button>
+          {/* eraser END */}
+
+          {/* image upload START */}
           <label className=" my-auto mr-6 p-2 rounded cursor-pointer hover:bg-gray-400 dark:hover:bg-gray-800">
             <ImagePlus className=" w-4 h-4 " />
             <input
@@ -241,36 +323,44 @@ export function UserMessage(props) {
               className="hidden"
             />
           </label>
+          {/* image upload END */}
+
+          {/* send START */}
           <Button
             variant="default"
             size="sm"
             onClick={(e) => {
               // console.log("refUser.current", refUser.current);
-              // console.log("e", e);
               if (props.children) {
                 // set old value
                 setFinalValue((v) => props.children?.text);
                 setBase64Image((v) => props.children?.image);
-                setUserMessageModel(props.botModel);
+                setUserMessageModelInfo((prev) => {
+                  // console.log("prev", prev);
+                  return {
+                    ...prev,
+                    model: props?.botMessage?.model || prev.model,
+                    modelConfig: props?.botMessage?.modelConfig?.deepResearch
+                      ? {
+                          deepResearch:
+                            props?.botMessage?.modelConfig?.deepResearch,
+                          search: props?.botMessage?.modelConfig?.search,
+                        }
+                      : prev.modelConfig,
+                  };
+                });
               }
-              if (refUser.current) {
-                const currentModel = props.botModel
-                  ? props.botModel
-                  : props.model;
-                if (!userMessageModel) {
-                  setUserMessageModel(currentModel);
-                }
 
-                props.handleSubmit(
-                  props.refElementBot,
-                  props.id,
-                  {
-                    image: base64Image,
-                    text: finalValue,
-                  },
-                  userMessageModel ? userMessageModel : currentModel
-                );
-              }
+              // console.log("userMessageModelInfo", userMessageModelInfo);
+              props.handleSubmit(
+                props.refElementBot,
+                props.id,
+                {
+                  image: base64Image,
+                  text: finalValue,
+                },
+                userMessageModelInfo
+              );
             }}
           >
             <span className="inline-flex text-sm items-center">
@@ -279,6 +369,7 @@ export function UserMessage(props) {
               <span className="text-gray-500 hidden md:block"> Ctrl + ↵</span>
             </span>
           </Button>
+          {/* send END */}
         </div>
       </div>
     </>
@@ -317,7 +408,7 @@ export function BotMessage(props) {
     <div className={botClass}>
       <div className="flex flex-row justify-between text-xs mb-4">
         <p className="text-sm antialiased italic font-bold ">
-          {props.model.name}
+          {props.model?.name}
         </p>
         <div className="flex flex-row gap-4">
           <button onClick={(e) => maximizeBotMessage(e, botClass, setBotClass)}>
