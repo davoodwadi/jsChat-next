@@ -36,6 +36,7 @@ import React, {
   useCallback,
   forwardRef,
 } from "react";
+import { ChevronDown, ChevronRight, Brain } from "lucide-react"; // or your preferred icon library
 import { createPortal } from "react-dom";
 
 const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
@@ -67,17 +68,50 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
 
   return (
     <div ref={ref}>
-      {think && (
+      {/* {think && (
         <CustomMarkdown mode="think" props={props}>
           {think}
         </CustomMarkdown>
-      )}
+      )} */}
+      {think && <ThinkingSection content={think} props={props} />}
       <CustomMarkdown mode="regular" props={props}>
         {finalContent}
       </CustomMarkdown>
     </div>
   );
 });
+
+function ThinkingSection({ content, props }) {
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  return (
+    <div className=" rounded-lg bg-muted/30 mb-8">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center gap-3 p-4 text-left hover:bg-muted/50 transition-colors"
+      >
+        {/* <Brain className="h-4 w-4 text-muted-foreground shrink-0" /> */}
+        <span className="text-xs font-medium text-muted-foreground">
+          Thought Tokens
+        </span>
+        <div className="flex-1" />
+        {isExpanded ? (
+          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+        ) : (
+          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        )}
+      </button>
+
+      {isExpanded && (
+        <div className=" px-4 pb-4 text-sm text-muted-foreground">
+          <CustomMarkdown mode="thinking" props={props}>
+            {content}
+          </CustomMarkdown>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default MarkdownComponent;
 
