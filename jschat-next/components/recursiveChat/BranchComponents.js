@@ -57,15 +57,6 @@ focus-visible:ring-0
 dark:placeholder-gray-500 
 dark:text-gray-100
 `;
-// textareaClass += `
-// rounded-lg
-// focus:ring-blue-500 focus:border-blue-500
-// bg-white border border-gray-300
-// dark:focus:ring-blue-500 dark:focus:border-blue-500
-// dark:border-gray-400
-// dark:bg-sky-700
-// `;
-
 let baseBotClass = ` p-4 m-1 relative   
     text-gray-900 rounded-xl  
     focus:ring-blue-500 focus:border-blue-500 
@@ -130,6 +121,16 @@ export function UserMessage(props) {
       }
     }
   }, [refUser.current]);
+  // function to calculate dynamic rows
+  const calculateRows = (text, baseRows = 1) => {
+    if (!text) return baseRows;
+    const lineBreaks = (text.match(/\n/g) || []).length;
+    const estimatedLines = Math.ceil(text.length / 50); // Adjust 50 based on your typical line length
+    return Math.min(
+      Math.max(baseRows, lineBreaks + 1, Math.ceil(estimatedLines)),
+      8
+    ); // Max 8 rows
+  };
 
   // console.log("id", props.id);
   // console.log("userMessageModelInfo", userMessageModelInfo);
@@ -143,7 +144,11 @@ export function UserMessage(props) {
           placeholder="Type your message..."
           className={textareaClass}
           style={{ resize: "none" }}
-          rows={base64Image && 4}
+          // rows={base64Image && 4}
+          rows={Math.max(
+            calculateRows(finalValue, base64Image ? 4 : 2),
+            base64Image ? 4 : 2
+          )}
           value={finalValue} // props.children.text
           onChange={(e) => {
             setFinalValue((v) => e.target.value); // enable editing of textarea's text
