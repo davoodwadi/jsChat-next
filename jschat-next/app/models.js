@@ -42,8 +42,8 @@ const BrainIcon = () => (
 export const perplexityModelsWithMeta = [
   {
     name: "Perplexity Search",
-    model: "sonar",
-    meta: "sonar",
+    model: "Perplexity Search Model",
+    meta: "Advanced Grounded Model Capable of Searching and Deep Reasoning",
     new: true,
     vision: false,
     reasoning: false,

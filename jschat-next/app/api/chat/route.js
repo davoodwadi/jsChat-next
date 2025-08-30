@@ -626,6 +626,17 @@ export async function POST(req) {
     });
   } else if (perplexityModels.includes(data.model.model)) {
     console.log("perplexity");
+    let perplexityModel;
+    let extraConfigs = data?.modelConfig?.deepResearch
+      ? { search_filter: "academic" }
+      : {};
+    if (data?.modelConfig?.deepResearch) {
+      perplexityModel = "sonar-deep-research";
+    } else if (data?.modelConfig?.search) {
+      perplexityModel = "sonar-pro";
+    } else {
+      perplexityModel = "sonar";
+    }
     const { convertedMessages, hasImage } = convertToOpenAIFormat(
       data.messages
     );
@@ -634,10 +645,10 @@ export async function POST(req) {
         try {
           const encoder = new TextEncoder();
           const stream = await perplexityClient.chat.completions.create({
-            model: data.model.model,
+            model: perplexityModel,
             messages: convertedMessages,
             stream: true,
-            search_filter: "academic",
+            ...extraConfigs,
           });
           let search_results;
           let usage;

@@ -62,7 +62,7 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
   }
 
   if (props?.search_results) {
-    // console.log("getting search results in markdown");
+    console.log("getting search results in markdown", props.search_results);
     const contentWithCitations = addCitationsToContentInlineSuperPerplexity(
       finalContent,
       props.search_results

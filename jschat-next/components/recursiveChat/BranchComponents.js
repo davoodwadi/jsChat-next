@@ -347,7 +347,7 @@ export function UserMessage(props) {
               if (props.children && props.botMessage) {
                 setUserMessageModelInfo((prev) => {
                   // console.log("prev", prev);
-                  console.log("props.botMessage", props.botMessage);
+                  // console.log("props.botMessage", props.botMessage);
                   return {
                     ...prev,
                     model: props?.botMessage?.model,
