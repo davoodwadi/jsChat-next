@@ -73,8 +73,6 @@ export async function handleSubmit({
   //
   // console.log("chatUtils userMessageModelInfo", userMessageModelInfo);
   const { model, modelConfig } = userMessageModelInfo;
-  // console.log("chatUtils modelConfig", modelConfig);
-  // console.log("chatUtils model", model);
 
   rest.setBotMessageFinished(false);
 
@@ -239,6 +237,10 @@ export async function handleSubmit({
           if (parsedData?.groundingSupports) {
             extraContent.groundingSupports = parsedData.groundingSupports;
           }
+          if (parsedData?.search_results) {
+            extraContent.search_results = parsedData.search_results;
+          }
+
           newBotEntry = {
             key: JSON.stringify(array),
             globalIdBot: newGlobalIdBot,
@@ -391,7 +393,7 @@ export async function handleSubmit({
       globalIdBot: newGlobalIdBot,
       content: tempChunks,
       role: "bot",
-      status: "pending reading", // pending | reading | done
+      status: "pending", // pending | reading | done
       model: model,
       modelConfig,
     };
@@ -485,8 +487,24 @@ export async function handleSubmit({
     modelConfig,
     ...extraContent,
   };
-  // console.log("tempChunks", tempChunks);
-
+  setBotMessages((v) => {
+    const updatedBotMessages = v.map((m) =>
+      m.key === JSON.stringify(array) ? newBotEntry : m
+    );
+    rest.setBotMessageFinished(true);
+    return updatedBotMessages;
+  });
+  // 2x set status to 'done'
+  newBotEntry = {
+    key: JSON.stringify(array),
+    globalIdBot: newGlobalIdBot,
+    content: tempChunks,
+    role: "bot",
+    status: "done",
+    model: model,
+    modelConfig,
+    ...extraContent,
+  };
   setBotMessages((v) => {
     const updatedBotMessages = v.map((m) =>
       m.key === JSON.stringify(array) ? newBotEntry : m

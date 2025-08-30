@@ -50,19 +50,18 @@ export function addCitationsToContentInlineSuperPerplexity(
       const result = searchArray[index];
       // console.log("Found search result.snippet:", result.snippet);
 
-      const escapedTitle = result.title
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#x27;");
-      const escapedSnippet = result.snippet
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#x27;");
+      const escapedTitle = escapeHtmlAttr(result.title || "");
+      const escapedSnippet = escapeHtmlAttr(result.snippet || "");
+      const escapedUrl = escapeHtmlAttr(result.url || "");
       const replacement =
         '<sup><a href="' +
-        result.url +
-        '" target="_blank" rel="noopener noreferrer" title="' +
+        escapedUrl +
+        '" target="_blank" rel="noopener noreferrer" ' +
+        'title="' +
         escapedTitle +
-        '" class="citation-link"' +
-        ' snippet="' +
+        '" ' +
+        'class="citation-link" ' +
+        'data-snippet="' +
         escapedSnippet +
         '"' +
         ">" +
@@ -81,6 +80,16 @@ export function addCitationsToContentInlineSuperPerplexity(
   // console.log("=== Citation processing complete ===");
 
   return result;
+}
+
+function escapeHtmlAttr(str) {
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\r?\n|\r/g, " "); // flatten newlines
 }
 
 export const addCitationsToContentInline = (

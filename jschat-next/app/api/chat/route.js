@@ -630,6 +630,7 @@ export async function POST(req) {
     let extraConfigs = data?.modelConfig?.deepResearch
       ? { search_filter: "academic" }
       : {};
+    let search_results_sent = false;
     if (data?.modelConfig?.deepResearch) {
       perplexityModel = "sonar-deep-research";
     } else if (data?.modelConfig?.search) {
@@ -663,21 +664,23 @@ export async function POST(req) {
                 )
               );
             }
-            if (chunk?.search_results) {
+            if (chunk?.search_results && !search_results_sent) {
               search_results = chunk.search_results;
+              controller.enqueue(
+                encoder.encode(
+                  JSON.stringify({
+                    search_results: JSON.stringify(search_results),
+                  }) + "\n"
+                )
+              );
+              search_results_sent = true;
+              console.log("search results sent");
             }
 
             if (chunk?.usage) {
               usage = chunk.usage;
             }
           }
-          controller.enqueue(
-            encoder.encode(
-              JSON.stringify({
-                search_results: JSON.stringify(search_results),
-              }) + "\n"
-            )
-          );
 
           total_tokens = usage?.total_tokens;
           if (typeof usage?.cost?.total_cost === "number") {
@@ -710,6 +713,8 @@ export async function POST(req) {
     });
   } else if (data.model.model === "test-llm") {
     console.log("test LLM");
+    await wait(200);
+
     const stream = new ReadableStream({
       async start(controller) {
         try {
@@ -726,7 +731,7 @@ export async function POST(req) {
             sampleTextWithLink
           ).split(/\s+/);
           for (let word of words) {
-            await wait(2);
+            await wait(20);
             controller.enqueue(
               encoder.encode(
                 JSON.stringify({

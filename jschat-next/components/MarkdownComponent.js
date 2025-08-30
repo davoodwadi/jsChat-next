@@ -62,7 +62,7 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
   }
 
   if (props?.search_results) {
-    console.log("getting search results in markdown", props.search_results);
+    // console.log("getting search results in markdown", props.search_results);
     const contentWithCitations = addCitationsToContentInlineSuperPerplexity(
       finalContent,
       props.search_results
@@ -114,10 +114,6 @@ function CustomMarkdown({ children, mode, props }) {
       className={`markdown-body ${customStyle} pb-4`}
       // skipHtml={true}
       components={{
-        // p(props) {
-        //   const { children, className, node, ...rest } = props;
-        //   return <span className={className}>{children}</span>;
-        // },
         sup(props) {
           const { children, className, node, ...rest } = props;
           // console.log("children", children);
@@ -320,6 +316,7 @@ function extractThinKContent(text) {
 // }
 
 export function CustomTooltip({ fullText, link, snippet, title, ...rest }) {
+  // console.log(" snippet", snippet);
   const [isVisible, setIsVisible] = useState(false);
   const [isPositioned, setIsPositioned] = useState(false);
   const [position, setPosition] = useState({
@@ -594,7 +591,7 @@ function LinkTooltip({ children, rest }) {
       fullText={fullText.trim()}
       link={rest.href}
       title={rest.title}
-      snippet={rest.snippet}
+      snippet={rest["data-snippet"]}
       {...rest}
     />
   );

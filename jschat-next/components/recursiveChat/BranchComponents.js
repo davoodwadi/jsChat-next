@@ -14,6 +14,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useRef, useState, useEffect } from "react";
 import { MultilineSkeleton } from "@/components/ui/skeleton";
+import {
+  ThinkingSkeleton,
+  ThinkingReadingSkeleton,
+} from "@/components/ThinkingSkeleton";
 import { useSidebar } from "@/components/ui/sidebar";
 import { TTS } from "@/components/TTS";
 import { Maximize } from "lucide-react";
@@ -422,7 +426,10 @@ export function BotMessage(props) {
         ref={isLatestBot ? props.refElementBot : null}
       >
         {props.content === "" || props?.botMessage?.status === "pending" ? (
-          <MultilineSkeleton lines={4}>{props.children}</MultilineSkeleton>
+          // <MultilineSkeleton lines={4}>{props.children}</MultilineSkeleton>
+          <ThinkingSkeleton>{props.children}</ThinkingSkeleton>
+        ) : props?.botMessage?.status === "reading" ? (
+          <ThinkingReadingSkeleton>{props.children}</ThinkingReadingSkeleton>
         ) : (
           <MarkdownComponent
             ref={refRenderedText}
