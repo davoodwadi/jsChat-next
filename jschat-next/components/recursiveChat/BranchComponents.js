@@ -1,6 +1,14 @@
+"use client";
+
 import { test } from "@/lib/test";
+import dynamic from "next/dynamic";
 import MarkdownComponent from "@/components/MarkdownComponent";
 import CopyText from "@/components/CopyTextComponent";
+// Disable SSR for the ImageUploader component
+const ImageUploader = dynamic(() => import("./ImageUploader"), {
+  ssr: false,
+  loading: () => <p>Loading image uploader...</p>,
+});
 import { ModelSelector, CompactModelSelector } from "./ModelSelector";
 import {
   Trash2,
@@ -14,7 +22,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useRef, useState, useEffect } from "react";
-import { MultilineSkeleton } from "@/components/ui/skeleton";
 import {
   ThinkingSkeleton,
   ThinkingReadingSkeleton,
@@ -123,20 +130,6 @@ export function UserMessage(props) {
       }
     }
   }, [refUser.current]);
-
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file && file.type.startsWith("image/")) {
-      // setImage(file);
-      // setPreviewUrl(URL.createObjectURL(file));
-      //   encode image to Base64
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setBase64Image(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   // console.log("id", props.id);
   // console.log("userMessageModelInfo", userMessageModelInfo);
@@ -296,27 +289,7 @@ export function UserMessage(props) {
               props.setModel(selectedModel);
             }}
           />
-          {/* <select
-            id="modelDropdown"
-            value={userMessageModelInfo?.model?.name}
-            onChange={(event) => {
-              const selectedModelName = event.target.value; // Get the selected model's name
-              const selectedModel = allModelsWithoutIcon.find(
-                (model) => model.name === selectedModelName
-              );
-              setUserMessageModelInfo((v) => {
-                return { ...v, model: selectedModel };
-              });
-              props.setModel(selectedModel);
-            }}
-            className=" rounded text-xs p-1 w-32 sm:w-48"
-          >
-            {allModelsWithoutIcon.map((m, i) => (
-              <option key={i} value={m.name}>
-                {m.name}
-              </option>
-            ))}
-          </select> */}
+
           {/* model select END */}
 
           {/* eraser START */}
@@ -337,15 +310,10 @@ export function UserMessage(props) {
           {/* eraser END */}
 
           {/* image upload START */}
-          <label className=" my-auto mr-6 p-2 rounded cursor-pointer hover:bg-gray-400 dark:hover:bg-gray-800">
-            <ImagePlus className=" w-4 h-4 " />
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="hidden"
-            />
-          </label>
+          <ImageUploader
+            base64Image={base64Image}
+            setBase64Image={setBase64Image}
+          />
           {/* image upload END */}
 
           {/* send START */}

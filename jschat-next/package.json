@@ -44,6 +44,7 @@
     "feather-icons": "^4.29.2",
     "github-markdown-css": "^5.8.1",
     "groq-sdk": "^0.15.0",
+    "heic2any": "^0.0.4",
     "lucide-react": "^0.468.0",
     "markdown-to-jsx": "^7.7.6",
     "mongodb": "^6.11.0",
