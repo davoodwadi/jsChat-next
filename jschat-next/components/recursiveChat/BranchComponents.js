@@ -1,6 +1,7 @@
 import { test } from "@/lib/test";
 import MarkdownComponent from "@/components/MarkdownComponent";
 import CopyText from "@/components/CopyTextComponent";
+import { ModelSelector, CompactModelSelector } from "./ModelSelector";
 import {
   Trash2,
   SendHorizontal,
@@ -138,7 +139,7 @@ export function UserMessage(props) {
   };
 
   // console.log("id", props.id);
-  // console.log("userMessageModel", userMessageModel);
+  console.log("userMessageModelInfo", userMessageModelInfo);
   // console.log("props.botModel", props.botModel);
   // console.log("props.model", props.model);
   return (
@@ -274,7 +275,28 @@ export function UserMessage(props) {
           {/* debug END */}
 
           {/* model select START */}
-          <select
+          {/* <ModelSelector
+            selectedModel={userMessageModelInfo?.model}
+            onModelChange={(selectedModel) => {
+              setUserMessageModelInfo((v) => ({
+                ...v,
+                model: selectedModel,
+              }));
+              console.log("userMessageModelInfo", userMessageModelInfo);
+              props.setModel(selectedModel);
+            }}
+          /> */}
+          <CompactModelSelector
+            selectedModel={userMessageModelInfo?.model}
+            onModelChange={(selectedModel) => {
+              setUserMessageModelInfo((v) => ({
+                ...v,
+                model: selectedModel,
+              }));
+              props.setModel(selectedModel);
+            }}
+          />
+          {/* <select
             id="modelDropdown"
             value={userMessageModelInfo?.model?.name}
             onChange={(event) => {
@@ -294,7 +316,7 @@ export function UserMessage(props) {
                 {m.name}
               </option>
             ))}
-          </select>
+          </select> */}
           {/* model select END */}
 
           {/* eraser START */}

@@ -55,6 +55,7 @@ const modelMeta = [
 if (test) {
   modelMeta.unshift({ desc: "Test LLMs", models: testModels });
 }
+// let test = false;
 export default function Chat() {
   // console.log("rendering chat [chatid]");
   const { icon, ...startingModel } = test
