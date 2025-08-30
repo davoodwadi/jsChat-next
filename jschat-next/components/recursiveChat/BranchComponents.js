@@ -21,7 +21,13 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useRef, useState, useEffect } from "react";
+import {
+  useRef,
+  useState,
+  useEffect,
+  useCallback,
+  useLayoutEffect,
+} from "react";
 import {
   ThinkingSkeleton,
   ThinkingReadingSkeleton,
@@ -49,13 +55,23 @@ import { allModelsWithoutIcon } from "@/app/models";
 
 let baseUserClass = "  flex flex-col items-center p-4 m-1 rounded-xl "; //border-2 border-blue-500 min-w-fit
 baseUserClass += `bg-gray-100 dark:bg-gray-900 `; // bg-sky-50 dark:bg-sky-600
-let textareaClass = ` min-w-40 md:min-w-64  mx-4 p-2.5 
+// let textareaClass = ` min-w-40 md:min-w-64  mx-4 p-2.5
+// text-gray-950
+// placeholder-gray-800
+// border-none drop-shadow-none rounded-none divide-none outline-none shadow-none
+// focus-visible:ring-0
+// dark:placeholder-gray-500
+// dark:text-gray-100
+// `;
+const maxTextareHeight = 300;
+const textareaClass = `min-w-40 md:min-w-64 mx-4 p-2.5 
 text-gray-950
 placeholder-gray-800
 border-none drop-shadow-none rounded-none divide-none outline-none shadow-none
 focus-visible:ring-0
 dark:placeholder-gray-500 
 dark:text-gray-100
+min-h-[2.5rem] overflow-y-auto
 `;
 let baseBotClass = ` p-4 m-1 relative   
     text-gray-900 rounded-xl  
@@ -121,16 +137,21 @@ export function UserMessage(props) {
       }
     }
   }, [refUser.current]);
-  // function to calculate dynamic rows
-  const calculateRows = (text, baseRows = 1) => {
-    if (!text) return baseRows;
-    const lineBreaks = (text.match(/\n/g) || []).length;
-    const estimatedLines = Math.ceil(text.length / 50); // Adjust 50 based on your typical line length
-    return Math.min(
-      Math.max(baseRows, lineBreaks + 1, Math.ceil(estimatedLines)),
-      8
-    ); // Max 8 rows
-  };
+  // Create a reusable resize function
+  const resizeTextarea = useCallback(
+    (textarea) => {
+      if (textarea) {
+        textarea.style.height = "auto";
+        textarea.style.height =
+          Math.min(textarea.scrollHeight, maxTextareHeight) + "px";
+      }
+    },
+    [maxTextareHeight]
+  );
+  // useLayoutEffect runs synchronously after all DOM mutations
+  useLayoutEffect(() => {
+    resizeTextarea(refUser.current);
+  }, [finalValue, resizeTextarea]);
 
   // console.log("id", props.id);
   // console.log("userMessageModelInfo", userMessageModelInfo);
@@ -143,15 +164,16 @@ export function UserMessage(props) {
         <Textarea
           placeholder="Type your message..."
           className={textareaClass}
-          style={{ resize: "none" }}
+          // style={{ resize: "none" }}
+          style={{
+            resize: "none",
+            maxHeight: `${maxTextareHeight}px`, // Set max height in style instead
+          }}
           // rows={base64Image && 4}
-          rows={Math.max(
-            calculateRows(finalValue, base64Image ? 4 : 2),
-            base64Image ? 4 : 2
-          )}
           value={finalValue} // props.children.text
           onChange={(e) => {
-            setFinalValue((v) => e.target.value); // enable editing of textarea's text
+            setFinalValue((v) => e.target.value);
+            resizeTextarea(e.target); // Reuse the same function
           }}
           onKeyDown={(e) => {
             if (e.ctrlKey === true && e.code === "Enter") {
