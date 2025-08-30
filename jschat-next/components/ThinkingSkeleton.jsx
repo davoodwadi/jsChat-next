@@ -1,6 +1,6 @@
 export const ThinkingSkeleton = ({ children }) => {
   return (
-    <div className="p-4 rounded-lg ">
+    <div className="p-4  ">
       {/* Thinking indicator */}
       <div className="flex items-center gap-2 mb-3">
         <div className="flex items-center gap-1">
@@ -25,7 +25,7 @@ export const ThinkingSkeleton = ({ children }) => {
 };
 export const ThinkingReadingSkeleton = ({ children }) => {
   return (
-    <div className="p-4 rounded-lg ">
+    <div className="p-4 ">
       {/* Thinking indicator */}
       <div className="flex items-center gap-2 mb-3">
         <div className="flex items-center gap-1">

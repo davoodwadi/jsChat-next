@@ -37,16 +37,6 @@ import React, {
   forwardRef,
 } from "react";
 import { createPortal } from "react-dom";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Tooltip as ReactToolTip } from "react-tooltip";
-import Link from "next/link";
-
-// const inter = Inter({ subsets: ["latin"] });
 
 const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
   // console.log("props", props);
@@ -228,6 +218,7 @@ const preprocessMarkdown = (text) => {
   return processedTexts;
 };
 function extractThinKContent(text) {
+  // console.log("text", text);
   const startTag = "<think>";
   const endTag = "</think>";
 
@@ -255,65 +246,6 @@ function extractThinKContent(text) {
 
   return { content, think };
 }
-
-// export function CustomTooltip({ fullText, link, ...rest }) {
-//   const tooltipRef = useRef(null);
-//   // console.log("rest", rest);
-
-//   const showTooltip = () => {
-//     if (tooltipRef.current) {
-//       tooltipRef.current.style.opacity = "1";
-//       tooltipRef.current.style.visibility = "visible";
-//     }
-//   };
-
-//   const hideTooltip = () => {
-//     if (tooltipRef.current) {
-//       tooltipRef.current.style.opacity = "0";
-//       tooltipRef.current.style.visibility = "hidden";
-//     }
-//   };
-//   // console.log(fullText);
-//   return (
-//     <span
-//       onMouseEnter={showTooltip}
-//       onMouseLeave={hideTooltip}
-//       className="relative inline-block cursor-pointer text-blue-500 underline"
-//     >
-//       <span className="flex flex-col max-w-[80px]">
-//         <a
-//           href={link}
-//           target="_blank"
-//           rel="noopener noreferrer"
-//           className="text-xs truncate"
-//         >
-//           {fullText}
-//         </a>
-//       </span>
-//       <span
-//         ref={tooltipRef}
-//         // className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-150 z-50"
-//         // className="absolute bottom-full left-0 mb-2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-150 z-50 max-w-[300px]"
-//         className="absolute bottom-full left-0 mb-2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-150 z-50 max-w-[calc(100vw-20px)] overflow-auto"
-//         role="tooltip"
-//       >
-//         <span className="flex flex-col max-w-xs">
-//           <span className="truncate">{fullText}</span>
-//           <span className="truncate">{link}</span>
-//           {rest?.snippet && <span>{rest?.snippet}</span>}
-//         </span>
-//       </span>
-//     </span>
-//   );
-// }
-
-// function LinkTooltip({ children, rest }) {
-//   const fullText = getTextFromChildren(children);
-
-//   return (
-//     <CustomTooltip fullText={fullText.trim()} link={rest.href} {...rest} />
-//   );
-// }
 
 export function CustomTooltip({ fullText, link, snippet, title, ...rest }) {
   // console.log(" snippet", snippet);

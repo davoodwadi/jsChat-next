@@ -429,7 +429,17 @@ export function BotMessage(props) {
           // <MultilineSkeleton lines={4}>{props.children}</MultilineSkeleton>
           <ThinkingSkeleton>{props.children}</ThinkingSkeleton>
         ) : props?.botMessage?.status === "reading" ? (
-          <ThinkingReadingSkeleton>{props.children}</ThinkingReadingSkeleton>
+          <ThinkingReadingSkeleton>
+            <MarkdownComponent
+              ref={refRenderedText}
+              groundingChunks={props?.groundingChunks}
+              groundingSupports={props?.groundingSupports}
+              botMessage={props?.botMessage}
+              {...props}
+            >
+              {props.children}
+            </MarkdownComponent>
+          </ThinkingReadingSkeleton>
         ) : (
           <MarkdownComponent
             ref={refRenderedText}
