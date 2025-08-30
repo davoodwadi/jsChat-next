@@ -139,7 +139,7 @@ export function UserMessage(props) {
   };
 
   // console.log("id", props.id);
-  console.log("userMessageModelInfo", userMessageModelInfo);
+  // console.log("userMessageModelInfo", userMessageModelInfo);
   // console.log("props.botModel", props.botModel);
   // console.log("props.model", props.model);
   return (

@@ -141,13 +141,13 @@ export function CompactModelSelector({
 }) {
   // Build provider groups
   const providerGroups = {
+    Perplexity: perplexityModelsWithMeta,
     OpenAI: openaiModelsWithMeta,
+    Gemini: geminiModelsWithMeta,
+    xAI: xAIModelsWithMeta,
     Anthropic: anthropicModelsWithMeta,
     Groq: groqModelsWithMeta,
-    xAI: xAIModelsWithMeta,
     DeepInfra: deepinfraModelsWithMeta,
-    Gemini: geminiModelsWithMeta,
-    Perplexity: perplexityModelsWithMeta,
   };
 
   // Only include test models if the test flag is true
