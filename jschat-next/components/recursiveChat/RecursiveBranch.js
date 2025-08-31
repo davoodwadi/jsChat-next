@@ -24,7 +24,7 @@ const Branch = dynamic(
   }
 );
 
-export default function RecursiveBranch(props) {
+export default function RecursiveBranch({ ...props }) {
   // console.log("RecursiveBranch props", props);
   // console.log('runtime', typeof globalThis)
 
@@ -55,7 +55,6 @@ export default function RecursiveBranch(props) {
       (m) => JSON.parse(m.key).length === 1
     );
   }
-  // console.log("tempUserMessages", tempUserMessages);
   const { toast } = useToast();
 
   return (
@@ -131,10 +130,6 @@ export default function RecursiveBranch(props) {
                         userMessageModelInfo,
                         toast,
                       });
-                      // } else {
-                      // console.log("resizing");
-                      // resizeTextarea(event);
-                      // }
                     }}
                     refElementUser={props.refElementUser}
                     refElementBot={props.refElementBot}
@@ -143,6 +138,7 @@ export default function RecursiveBranch(props) {
                     setModel={props.setModel}
                     botModel={getBotMessageForKey(tm.key)?.model}
                     botMessage={getBotMessageForKey(tm.key)}
+                    {...props}
                   >
                     {tm.content}
                   </UserMessage>

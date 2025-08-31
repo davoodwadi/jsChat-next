@@ -141,7 +141,23 @@ export async function POST(req) {
               }
             }
           }
-          // console.log("total_tokens", total_tokens);
+          controller.close(); // Close the stream
+        } catch (err) {
+          if (err.code === "ECONNRESET" || err.name === "AbortError") {
+            console.log("🔌 Client disconnected / aborted");
+          } else if (err.code === "ERR_INVALID_STATE") {
+            console.log("⚠️ Tried writing to closed stream, ignoring");
+          } else {
+            console.error("❌ Unexpected streaming error:", err);
+          }
+          try {
+            controller.close();
+          } catch {}
+        } finally {
+          console.log("UPDATING TOKEN USAGE");
+          console.log("total_tokens", total_tokens);
+          // UPDATE TOKENS HERE START
+          // update usage
           fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
             method: "POST",
             headers: {
@@ -152,10 +168,8 @@ export async function POST(req) {
               email: data.email,
             }),
           });
-          controller.close(); // Close the stream
-        } catch (error) {
-          console.error("Streaming error:", error);
-          controller.error(error); // Signal an error in the stream
+          //
+          // UPDATE TOKENS HERE END
         }
       },
     });
@@ -183,12 +197,7 @@ export async function POST(req) {
           });
 
           for await (const chunk of streamResponse) {
-            // console.log("chunk", chunk);
-
             if (chunk.choices[0]?.delta?.content) {
-              // controller.enqueue(
-              //   encoder.encode(chunk.choices[0]?.delta?.content)
-              // );
               controller.enqueue(
                 encoder.encode(
                   JSON.stringify({
@@ -204,40 +213,39 @@ export async function POST(req) {
                   }) + "\n"
                 )
               );
-              // } else if (chunk.choices[0]?.delta?.executed_tools) {
-              //   // console.log(
-              //   //   "typeof chunk.choices[0]?.delta?.executed_tools",
-              //   //   typeof chunk.choices[0]?.delta?.executed_tools
-              //   // );
-              //   controller.enqueue(
-              //     encoder.encode(
-              //       JSON.stringify({
-              //         text: JSON.stringify(
-              //           chunk.choices[0]?.delta?.executed_tools
-              //         ),
-              //       }) + "\n"
-              //     )
-              //   );
             } else if (typeof chunk?.choices[0]?.finish_reason === "string") {
-              // console.log("chunk", chunk);
-
-              // console.log("finished: ", chunk?.x_groq?.usage?.total_tokens);
-              fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  amount: chunk?.x_groq?.usage?.total_tokens,
-                  email: data.email,
-                }),
-              });
+              total_tokens += chunk?.x_groq?.usage?.total_tokens;
             }
           }
           controller.close(); // Close the stream
-        } catch (error) {
-          console.error("Streaming error:", error);
-          controller.error(error); // Signal an error in the stream
+        } catch (err) {
+          if (err.code === "ECONNRESET" || err.name === "AbortError") {
+            console.log("🔌 Client disconnected / aborted");
+          } else if (err.code === "ERR_INVALID_STATE") {
+            console.log("⚠️ Tried writing to closed stream, ignoring");
+          } else {
+            console.error("❌ Unexpected streaming error:", err);
+          }
+          try {
+            controller.close();
+          } catch {}
+        } finally {
+          console.log("UPDATING TOKEN USAGE");
+          console.log("total_tokens", total_tokens);
+          // UPDATE TOKENS HERE START
+          // update usage
+          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              amount: total_tokens,
+              email: data.email,
+            }),
+          });
+          //
+          // UPDATE TOKENS HERE END
         }
       },
     });
@@ -251,7 +259,6 @@ export async function POST(req) {
     const { convertedMessages, hasImage } = convertToDeepInfraFormat(
       data.messages
     );
-
     const modelMeta = allModelsWithoutIcon.find(
       (m) => m.model === data.model.model
     );
@@ -279,8 +286,6 @@ export async function POST(req) {
             // console.log("fullPart", fullPart);
             if (fullPart.type === "text-delta") {
               const chunk = fullPart.textDelta;
-              // console.log(chunk);
-              // controller.enqueue(encoder.encode(chunk));
               controller.enqueue(
                 encoder.encode(
                   JSON.stringify({
@@ -289,23 +294,38 @@ export async function POST(req) {
                 )
               );
             } else if (fullPart.type === "finish") {
-              fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  amount: fullPart.usage.totalTokens,
-                  email: data.email,
-                }),
-              });
+              total_tokens += fullPart.usage.totalTokens;
             }
           }
-
           controller.close(); // Close the stream
-        } catch (error) {
-          console.error("Streaming error:", error);
-          controller.error(error); // Signal an error in the stream
+        } catch (err) {
+          if (err.code === "ECONNRESET" || err.name === "AbortError") {
+            console.log("🔌 Client disconnected / aborted");
+          } else if (err.code === "ERR_INVALID_STATE") {
+            console.log("⚠️ Tried writing to closed stream, ignoring");
+          } else {
+            console.error("❌ Unexpected streaming error:", err);
+          }
+          try {
+            controller.close();
+          } catch {}
+        } finally {
+          console.log("UPDATING TOKEN USAGE");
+          console.log("total_tokens", total_tokens);
+          // UPDATE TOKENS HERE START
+          // update usage
+          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              amount: total_tokens,
+              email: data.email,
+            }),
+          });
+          //
+          // UPDATE TOKENS HERE END
         }
       },
     });
@@ -320,30 +340,6 @@ export async function POST(req) {
         try {
           const encoder = new TextEncoder();
 
-          // controller.enqueue(
-          //   encoder.encode(
-          //     JSON.stringify({
-          //       text: "Hello\n",
-          //     }) + "\n"
-          //   )
-          // );
-
-          // controller.enqueue(
-          //   encoder.encode(
-          //     JSON.stringify({
-          //       text: "Here is a joke:\n\n",
-          //     }) + "\n"
-          //   )
-          // );
-          // controller.enqueue(
-          //   encoder.encode(
-          //     JSON.stringify({
-          //       text: "Hahaha\n",
-          //     }) + "\n"
-          //   )
-          // );
-          // return;
-
           console.log("openai", data.model.model);
           // console.log("key", process.env["OPENAI_KEY"]);
           const { convertedMessages, hasImage } =
@@ -355,7 +351,7 @@ export async function POST(req) {
               ? { reasoning: { effort: "high" } }
               : {};
 
-          console.log("reasoning", reasoning);
+          // console.log("reasoning", reasoning);
           const streamResponse = await openai.responses.create({
             input: convertedMessages,
             model: data.model.model,
@@ -377,23 +373,38 @@ export async function POST(req) {
                 )
               );
             } else if (chunk.type === "response.completed") {
-              // console.log("total tokens", chunk?.response?.usage?.total_tokens);
-              fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  amount: chunk?.response?.usage?.total_tokens,
-                  email: data.email,
-                }),
-              });
+              total_tokens += chunk?.response?.usage?.total_tokens;
             }
           }
           controller.close(); // Close the stream
-        } catch (error) {
-          console.error("Streaming error:", error);
-          controller.error(error); // Signal an error in the stream
+        } catch (err) {
+          if (err.code === "ECONNRESET" || err.name === "AbortError") {
+            console.log("🔌 Client disconnected / aborted");
+          } else if (err.code === "ERR_INVALID_STATE") {
+            console.log("⚠️ Tried writing to closed stream, ignoring");
+          } else {
+            console.error("❌ Unexpected streaming error:", err);
+          }
+          try {
+            controller.close();
+          } catch {}
+        } finally {
+          console.log("UPDATING TOKEN USAGE");
+          console.log("total_tokens", total_tokens);
+          // UPDATE TOKENS HERE START
+          // update usage
+          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              amount: total_tokens,
+              email: data.email,
+            }),
+          });
+          //
+          // UPDATE TOKENS HERE END
         }
       },
     });
@@ -438,8 +449,7 @@ export async function POST(req) {
           });
           let firstDelta = true;
           if (isReasoning || data.model.model.includes("grok-4")) {
-            console.log("reasoning xai -> added think token");
-            // controller.enqueue(encoder.encode("<think>"));
+            // console.log("reasoning xai -> added think token");
             controller.enqueue(
               encoder.encode(
                 JSON.stringify({
@@ -451,9 +461,6 @@ export async function POST(req) {
           for await (const chunk of streamResponse) {
             console.log("chunk", chunk);
             if (chunk.choices[0]?.delta?.reasoning_content) {
-              // controller.enqueue(
-              //   encoder.encode(chunk.choices[0]?.delta?.reasoning_content)
-              // );
               controller.enqueue(
                 encoder.encode(
                   JSON.stringify({
@@ -467,7 +474,6 @@ export async function POST(req) {
                 (isReasoning || data.model.model.includes("grok-4"))
               ) {
                 firstDelta = false;
-                // controller.enqueue(encoder.encode("</think>"));
                 controller.enqueue(
                   encoder.encode(
                     JSON.stringify({
@@ -476,9 +482,6 @@ export async function POST(req) {
                   )
                 );
               }
-              // controller.enqueue(
-              //   encoder.encode(chunk.choices[0]?.delta?.content)
-              // );
               controller.enqueue(
                 encoder.encode(
                   JSON.stringify({
@@ -487,23 +490,38 @@ export async function POST(req) {
                 )
               );
             } else if (chunk?.usage?.total_tokens) {
-              // console.log("total tokens", chunk?.usage?.total_tokens);
-              fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  amount: chunk?.usage?.total_tokens,
-                  email: data.email,
-                }),
-              });
+              total_tokens += chunk?.usage?.total_tokens;
             }
           }
           controller.close(); // Close the stream
-        } catch (error) {
-          console.error("Streaming error:", error);
-          controller.error(error); // Signal an error in the stream
+        } catch (err) {
+          if (err.code === "ECONNRESET" || err.name === "AbortError") {
+            console.log("🔌 Client disconnected / aborted");
+          } else if (err.code === "ERR_INVALID_STATE") {
+            console.log("⚠️ Tried writing to closed stream, ignoring");
+          } else {
+            console.error("❌ Unexpected streaming error:", err);
+          }
+          try {
+            controller.close();
+          } catch {}
+        } finally {
+          console.log("UPDATING TOKEN USAGE");
+          console.log("total_tokens", total_tokens);
+          // UPDATE TOKENS HERE START
+          // update usage
+          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              amount: total_tokens,
+              email: data.email,
+            }),
+          });
+          //
+          // UPDATE TOKENS HERE END
         }
       },
     });
@@ -516,7 +534,6 @@ export async function POST(req) {
     console.log("Gemini model", data.model.model);
     // const modelList = await googleAI.models.list();
     // console.log("Gemini modelList", modelList);
-    // return;
     const { history, newUserMessage, system } = convertToGoogleFormat(
       data.messages
     );
@@ -534,21 +551,18 @@ export async function POST(req) {
         try {
           const encoder = new TextEncoder();
 
-          // return;
           const chat = googleAI.chats.create({
             model: data.model.model,
             history: history,
             ...streamConfig,
           });
-          // console.log("getHistory", chat.getHistory());
-          // return;
 
           const stream = await chat.sendMessageStream({
             message: newUserMessage,
           });
           for await (const chunk of stream) {
-            // console.log(chunk);
             const usageMetadata = chunk?.usageMetadata;
+            // console.log("usageMetadata", usageMetadata);
             total_tokens += usageMetadata?.totalTokenCount;
             try {
               if (chunk?.candidates[0]?.content?.parts[0]?.text) {
@@ -561,10 +575,6 @@ export async function POST(req) {
                     await updateGroundingChunksWithActualLinksAndTitles(
                       groundingChunks
                     );
-                  // console.log(
-                  //   "groundingChunksRedirect",
-                  //   groundingChunksRedirect
-                  // );
                   controller.enqueue(
                     encoder.encode(
                       JSON.stringify({
@@ -584,9 +594,6 @@ export async function POST(req) {
                     )
                   );
                 }
-                // controller.enqueue(
-                //   encoder.encode(chunk?.candidates[0]?.content?.parts[0]?.text)
-                // );
                 controller.enqueue(
                   encoder.encode(
                     JSON.stringify({
@@ -599,8 +606,23 @@ export async function POST(req) {
               console.log(e);
             }
           }
-          // return;
-
+          controller.close(); // Close the stream
+        } catch (err) {
+          if (err.code === "ECONNRESET" || err.name === "AbortError") {
+            console.log("🔌 Client disconnected / aborted");
+          } else if (err.code === "ERR_INVALID_STATE") {
+            console.log("⚠️ Tried writing to closed stream, ignoring");
+          } else {
+            console.error("❌ Unexpected streaming error:", err);
+          }
+          try {
+            controller.close();
+          } catch {}
+        } finally {
+          console.log("UPDATING TOKEN USAGE");
+          console.log("total_tokens", total_tokens);
+          // UPDATE TOKENS HERE START
+          // update usage
           fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
             method: "POST",
             headers: {
@@ -611,10 +633,8 @@ export async function POST(req) {
               email: data.email,
             }),
           });
-          controller.close(); // Close the stream
-        } catch (error) {
-          console.error("Streaming error:", error);
-          controller.error(error); // Signal an error in the stream
+          //
+          // UPDATE TOKENS HERE END
         }
       },
     });
@@ -628,12 +648,15 @@ export async function POST(req) {
     console.log("perplexity");
     let perplexityModel;
     let extraConfigs = data?.modelConfig?.deepResearch
-      ? { search_filter: "academic" }
-      : {};
+      ? {
+          search_filter: "academic",
+          web_search_options: { search_context_size: "high" },
+        }
+      : { web_search_options: { search_context_size: "low" } };
 
-    extraConfigs.search_context_size = data?.modelConfig?.search
-      ? "high"
-      : "low";
+    if (data?.modelConfig?.search) {
+      extraConfigs.web_search_options.search_context_size = "high";
+    }
     // console.log("PERPLEXITY extraConfigs", extraConfigs);
     // return;
     let search_results_sent = false;
@@ -647,6 +670,7 @@ export async function POST(req) {
     const { convertedMessages, hasImage } = convertToOpenAIFormat(
       data.messages
     );
+    let usage;
     const stream = new ReadableStream({
       async start(controller) {
         try {
@@ -658,7 +682,7 @@ export async function POST(req) {
             ...extraConfigs,
           });
           let search_results;
-          let usage;
+
           for await (const chunk of stream) {
             const content = chunk.choices?.[0]?.delta?.content;
             if (content) {
@@ -669,6 +693,20 @@ export async function POST(req) {
                   }) + "\n"
                 )
               );
+            }
+            if (chunk?.usage) {
+              if (!search_results_sent) {
+                usage = chunk.usage;
+                // add reasoning, citation tokens
+                if (usage?.citation_tokens) {
+                  total_tokens += usage?.citation_tokens;
+                }
+                if (usage?.reasoning_tokens) {
+                  total_tokens += usage?.reasoning_tokens;
+                }
+              }
+              usage = chunk.usage;
+              // console.log("usage", usage);
             }
             if (chunk?.search_results && !search_results_sent) {
               search_results = chunk.search_results;
@@ -682,17 +720,34 @@ export async function POST(req) {
               search_results_sent = true;
               console.log("search results sent");
             }
-
-            if (chunk?.usage) {
-              usage = chunk.usage;
-            }
           }
-
-          total_tokens = usage?.total_tokens;
-          if (typeof usage?.cost?.total_cost === "number") {
+          controller.close(); // Close the stream
+        } catch (err) {
+          if (err.code === "ECONNRESET" || err.name === "AbortError") {
+            console.log("🔌 Client disconnected / aborted");
+          } else if (err.code === "ERR_INVALID_STATE") {
+            console.log("⚠️ Tried writing to closed stream, ignoring");
+          } else {
+            console.error("❌ Unexpected streaming error:", err);
+          }
+          try {
+            controller.close();
+          } catch {}
+        } finally {
+          console.log("UPDATING TOKEN USAGE");
+          if (usage?.total_tokens) {
+            total_tokens += usage.total_tokens;
+          }
+          // console.log("extraConfigs", extraConfigs);
+          if (extraConfigs.web_search_options.search_context_size === "low") {
+            console.log("added search cost", "low");
             total_tokens += searchCost;
+          } else {
+            console.log("added search cost", "high");
+            total_tokens += searchCost * 3;
           }
           console.log("total_tokens", total_tokens);
+          // UPDATE TOKENS HERE START
           // update usage
           fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
             method: "POST",
@@ -705,10 +760,7 @@ export async function POST(req) {
             }),
           });
           //
-          controller.close(); // Close the stream
-        } catch (error) {
-          console.error("Streaming error:", error);
-          controller.error(error); // Signal an error in the stream
+          // UPDATE TOKENS HERE END
         }
       },
     });
@@ -719,7 +771,7 @@ export async function POST(req) {
     });
   } else if (data.model.model === "test-llm") {
     console.log("test LLM");
-    await wait(200);
+    await wait(5);
 
     const stream = new ReadableStream({
       async start(controller) {
@@ -736,7 +788,8 @@ export async function POST(req) {
             // JSON.stringify(data.messages[data.messages.length - 1]) +
             .split(/\s+/);
           for (let word of words) {
-            await wait(8);
+            // try {
+            await wait(20);
             controller.enqueue(
               encoder.encode(
                 JSON.stringify({
@@ -744,20 +797,70 @@ export async function POST(req) {
                 }) + "\n"
               )
             );
+            total_tokens += 1;
           }
-
           controller.close(); // Close the stream
-        } catch (error) {
-          console.error("Streaming error:", error);
-          controller.error(error); // Signal an error in the stream
+        } catch (err) {
+          // console.log("***streaming error***:", err.code);
+          // controller.error(error);
+          if (err.code === "ECONNRESET" || err.name === "AbortError") {
+            console.log("🔌 Client disconnected / aborted");
+          } else if (err.code === "ERR_INVALID_STATE") {
+            console.log("⚠️ Tried writing to closed stream, ignoring");
+          } else {
+            console.error("❌ Unexpected streaming error:", err);
+          }
+          try {
+            controller.close();
+          } catch {}
+        } finally {
+          // console.log("FINISHED STREAMINGGGGGGGGGGG");
+          console.log("UPDATING TOKEN USAGE");
+          console.log("total_tokens", total_tokens);
+          // UPDATE TOKENS HERE START
+          // update usage
+          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              amount: total_tokens,
+              email: data.email,
+            }),
+          });
+          //
+          // UPDATE TOKENS HERE END
         }
       },
     });
+
     return new Response(stream, {
       headers: {
         "Content-Type": "application/json",
       },
     });
+
+    // } catch (err) {
+    //   console.log("***streaming error***:", err.code);
+    //   // controller.error(error);
+    //   if (err.code === "ECONNRESET" || err.name === "AbortError") {
+    //     console.log("🔌 Client disconnected / aborted");
+    //   } else if (err.code === "ERR_INVALID_STATE") {
+    //     console.log("⚠️ Tried writing to closed stream, ignoring");
+    //   } else {
+    //     console.error("❌ Unexpected streaming error:", err);
+    //   }
+    //   try {
+    //     controller.close();
+    //   } catch {}
+    // } finally {
+    //   console.log("FINISHED STREAMINGGGGGGGGGGG");
+    //   console.log("UPDATING TOKEN USAGE");
+    //   console.log("total_tokens", total_tokens);
+    //   // UPDATE TOKENS HERE START
+    //   // UPDATE TOKENS HERE END
+    // }
   } else {
     console.log(`Model ${data.model.model} not found in any list.`);
   }

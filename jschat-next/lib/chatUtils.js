@@ -9,40 +9,6 @@ import { wait } from "@/lib/actions";
 import { v4 as uuidv4 } from "uuid";
 // import { useTransition } from "react";
 
-const idInUserMessages = (id, userMessages) =>
-  userMessages.filter((m) => m.key === id).length > 0; // bool; if id is in userMessages
-const idInBotMessages = (id, botMessages) =>
-  botMessages.filter((m) => m.key === id).length > 0; // // bool; if id is in botMessages
-
-export const generateChatId = () => {
-  const randomString = Math.random().toString(36).substring(2, 15);
-  const timestamp = Date.now().toString(36);
-  return `${randomString}-${timestamp}`;
-};
-export const generateCanvasId = () => {
-  const randomString = Math.random().toString(36).substring(2, 15);
-  const timestamp = Date.now().toString(36);
-  return `canvas-${randomString}-${timestamp}`;
-};
-export async function handleTestDummy(setText) {
-  const streamIterator = await generateTestDummmy();
-  console.log("streamIterator.output is a promise");
-
-  for await (const delta of readStreamableValue(streamIterator.output)) {
-    console.log("delta", delta);
-    setText((t) => t + " " + delta);
-  }
-  console.log("done");
-}
-
-export async function handleDummy({ setText }) {
-  const streamIterator = await generateDummmy();
-  for await (const delta of readStreamableValue(streamIterator.output)) {
-    console.log("delta", delta);
-    setText((v) => v + delta);
-  }
-}
-
 export async function handleSubmit({
   botRef,
   targetId,
@@ -61,16 +27,26 @@ export async function handleSubmit({
   setIsTopupDialogOpen,
   refChatContainer,
   systemPrompt,
+  isStreaming,
+  setIsStreaming,
+  abortControllerRef,
   // deepResearch,
   // search,
   ...rest
 }) {
-  // event.target.id
-  // event.target.value
-  //
-  // {name: 'Perplexity Search', model: 'sonar', meta: 'sonar', new: true, vision: false,
-  // deepResearch: true, search: true…}
-  //
+  // check if isStreaming -> stop stream START
+  if (isStreaming) {
+    console.log("STOPPING the stream");
+    if (abortControllerRef.current) {
+      console.log("aborting stream client side BUTTON");
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+      setIsStreaming(false);
+      return;
+    }
+  }
+  // check if isStreaming -> stop stream END
+
   // console.log("chatUtils userMessageModelInfo", userMessageModelInfo);
   const { model, modelConfig } = userMessageModelInfo;
 
@@ -91,12 +67,42 @@ export async function handleSubmit({
   const newGlobalIdBot = globalIdBot + 1;
   setGlobalIdBot(newGlobalIdBot);
   let newBotEntry;
+
+  // Clean up any existing controller
+  if (abortControllerRef.current) {
+    console.log("Clean up any existing controller");
+    abortControllerRef.current.abort();
+  }
+
+  // Create new controller
+  abortControllerRef.current = new AbortController();
+  setIsStreaming(true);
+
+  // AUTH CHECKS START
+  const authStatus = await getAuth();
+  // console.log("authStatus", authStatus);
+  if (authStatus === 400) {
+    console.log("Not Authenticated", authStatus);
+    setIsDialogOpen(true);
+    return;
+  } else if (authStatus === 401) {
+    console.log("authStatus Not Enough Tokens", authStatus);
+    setIsTopupDialogOpen(true);
+    return;
+  }
+
+  let newGlobalIdUser;
+  let newNewGlobalIdUser;
+  let newUserMessage;
+  let isNew;
+  // AUTH CHECKS END
+
+  // check OLD vs. NEW START
   // check if event.target.id in userMessages
   if (idInBotMessages(targetId, botMessages)) {
     // old user /////////////////////
-    ////////////////////////////////
     console.log("old message");
-
+    isNew = false;
     // find the latest branch on the same key length
     const sameParents = userMessages.filter(
       (m) =>
@@ -110,20 +116,20 @@ export async function handleSubmit({
 
     // add a horizontal branch in the key array
     array[array.length - 1] = maxSameBranch + 1;
-    const newArray = array.slice();
-    newArray.push(1); // for new empty userMessage
     // console.log("array", array);
-    const newGlobalIdUser = globalIdUser + 1;
+
+    // is old
+    newGlobalIdUser = globalIdUser + 1;
     setGlobalIdUser(newGlobalIdUser);
-    setUserMessages((m) => [
-      ...m,
-      {
-        key: JSON.stringify(array), // new horizontal branch key
-        globalIdUser: newGlobalIdUser,
-        content: multimediaMessage,
-        role: "user",
-      },
-    ]);
+    newUserMessage = {
+      key: JSON.stringify(array), // new horizontal branch key
+      globalIdUser: newGlobalIdUser,
+      content: multimediaMessage,
+      role: "user",
+    };
+    newNewGlobalIdUser = newGlobalIdUser + 1;
+
+    setUserMessages((m) => [...m, newUserMessage]);
 
     newBotEntry = {
       key: JSON.stringify(array),
@@ -149,24 +155,9 @@ export async function handleSubmit({
       role: "user",
     }); // key: JSON.stringify(array),
 
-    // console.log("userMessages", userMessages);
-    // console.log("chain", chain);
     // streaming the LLM old user
-    //
-    const authStatus = await getAuth();
-    // console.log("authStatus", authStatus);
-
-    if (authStatus === 400) {
-      console.log("Not Authenticated", authStatus);
-      setIsDialogOpen(true);
-      return;
-    } else if (authStatus === 401) {
-      console.log("authStatus Not Enough Tokens", authStatus);
-      setIsTopupDialogOpen(true);
-      return;
-    }
-
     let data;
+    // try catch finally START
     try {
       data = await fetch(
         `${process.env.NEXT_PUBLIC_BASE_URL}/api/${endpoint}`,
@@ -181,106 +172,147 @@ export async function handleSubmit({
             email: authStatus,
             modelConfig,
           }),
+          signal: abortControllerRef.current.signal, // Safe reference
         }
       );
       if (!data.ok) {
         // Handle 400/500 responses from the server BEFORE the stream
         const errorData = await data.json();
-        console.log("Error:", errorData.error);
+        // console.log("Error:", errorData.error);
         rest.toast({
           title: "Error",
           description: errorData.error,
         });
         return;
       }
-    } catch (err) {
-      // check if server sent error
-      console.log("Fetch failed:", err);
-      rest.toast({
-        title: "Error",
-        description: "There was a problem with your request.",
-      });
-      return;
-    }
+      const reader = data.body.getReader();
+      const decoder = new TextDecoder();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-    // if (dummy) {
-    //   streamIterator = await generateDummmy(JSON.stringify(array), model);
-    // } else {
-    //   streamIterator = await generate({
-    //     messages: chain,
-    //     model: model,
-    //   });
-    // }
+        let chunk = decoder.decode(value, { stream: true });
+        const jsonLines = chunk.split("\n").filter((line) => line.trim());
 
-    const reader = data.body.getReader();
-    const decoder = new TextDecoder();
+        for (const jsonStr of jsonLines) {
+          try {
+            const parsedData = JSON.parse(jsonStr);
+            if (parsedData?.text) {
+              tempChunks += parsedData?.text;
+            }
+            if (parsedData?.groundingChunks) {
+              extraContent.groundingChunks = parsedData.groundingChunks;
+            }
+            if (parsedData?.groundingSupports) {
+              extraContent.groundingSupports = parsedData.groundingSupports;
+            }
+            if (parsedData?.search_results) {
+              extraContent.search_results = parsedData.search_results;
+            }
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      let chunk = decoder.decode(value, { stream: true });
-      // console.log("Received chunk:", chunk);
-      const jsonLines = chunk.split("\n").filter((line) => line.trim());
-      // console.log("Received jsonLines:", jsonLines);
-
-      for (const jsonStr of jsonLines) {
-        try {
-          const parsedData = JSON.parse(jsonStr);
-          // console.log("parsedData.text", parsedData.text);
-          if (parsedData?.text) {
-            tempChunks += parsedData?.text;
+            newBotEntry = {
+              key: JSON.stringify(array),
+              globalIdBot: newGlobalIdBot,
+              content: tempChunks,
+              role: "bot",
+              status: "reading", // pending | reading | done
+              model: model,
+              modelConfig,
+              ...extraContent,
+            };
+            setBotMessages((v) =>
+              v.map((m) => (m.key === JSON.stringify(array) ? newBotEntry : m))
+            );
+          } catch (e) {
+            console.log("Failed to parse JSON:", e);
           }
-          if (parsedData?.groundingChunks) {
-            extraContent.groundingChunks = parsedData.groundingChunks;
-          }
-          if (parsedData?.groundingSupports) {
-            extraContent.groundingSupports = parsedData.groundingSupports;
-          }
-          if (parsedData?.search_results) {
-            extraContent.search_results = parsedData.search_results;
-          }
-
-          newBotEntry = {
-            key: JSON.stringify(array),
-            globalIdBot: newGlobalIdBot,
-            content: tempChunks,
-            role: "bot",
-            status: "reading", // pending | reading | done
-            model: model,
-            modelConfig,
-            ...extraContent,
-          };
-          setBotMessages((v) =>
-            v.map((m) => (m.key === JSON.stringify(array) ? newBotEntry : m))
-          );
-        } catch (e) {
-          console.error("Failed to parse JSON:", e);
         }
       }
-    }
-    // END: streaming the LLM
-    // // //
-    // set new userMessage
-    const newNewGlobalIdUser = newGlobalIdUser + 1;
-    setGlobalIdUser(newNewGlobalIdUser);
-    setUserMessages((v) => [
-      ...v,
-      {
+      // END: streaming the LLM
+    } catch (error) {
+      if (error.name === "AbortError") {
+        console.log("While loop aborted");
+        rest.toast({
+          title: "Stop",
+          description: "Generation stopped by user",
+        });
+      } else {
+        throw error; // Re-throw other errors
+      }
+    } finally {
+      const newArray = array.slice();
+      newArray.push(1); // for new empty userMessage
+      // set new userMessage
+      newUserMessage = {
         key: JSON.stringify(newArray),
         globalIdUser: newNewGlobalIdUser,
         content: {},
         role: "user",
-      },
-    ]);
+      };
+      setUserMessages((v) => [...v, newUserMessage]);
+
+      // set status to 'done'
+      newBotEntry = {
+        key: JSON.stringify(array),
+        globalIdBot: newGlobalIdBot,
+        content: tempChunks,
+        role: "bot",
+        status: "done",
+        model: model,
+        modelConfig,
+        ...extraContent,
+      };
+      setBotMessages((v) => {
+        const updatedBotMessages = v.map((m) =>
+          m.key === JSON.stringify(array) ? newBotEntry : m
+        );
+        rest.setBotMessageFinished(true);
+        return updatedBotMessages;
+      });
+      // 2x set status to 'done'
+      newBotEntry = {
+        key: JSON.stringify(array),
+        globalIdBot: newGlobalIdBot,
+        content: tempChunks,
+        role: "bot",
+        status: "done",
+        model: model,
+        modelConfig,
+        ...extraContent,
+      };
+      setBotMessages((v) => {
+        const updatedBotMessages = v.map((m) =>
+          m.key === JSON.stringify(array) ? newBotEntry : m
+        );
+        rest.setBotMessageFinished(true);
+        return updatedBotMessages;
+      });
+
+      // update isStreaming to false
+      setIsStreaming(false);
+      abortControllerRef.current = null;
+      //
+    }
+    // try catch finally END
   } else {
     // new user /////////////////////
     ////////////////////////////////
     console.log("new message");
+    isNew = true;
 
-    const newArray = array.slice();
-    newArray.push(1);
-
+    // after 'enter' press, the current userMessage is ""
+    // manually set current userMessage to event.target.value
+    // find the id and update the old userMessage
+    // set the content on the current UserMessage
+    setUserMessages((v) => {
+      const userMessagesCopy = [...v];
+      const messageToUpdate = userMessagesCopy.find(
+        (msg) => msg.key === JSON.stringify(array)
+      );
+      messageToUpdate.content = multimediaMessage;
+      return userMessagesCopy;
+    });
+    // 'pending' botMessage
     newBotEntry = {
       key: JSON.stringify(array),
       globalIdBot: newGlobalIdBot,
@@ -290,10 +322,8 @@ export async function handleSubmit({
       model: model,
       modelConfig,
     };
+    setBotMessages((v) => [...v, newBotEntry]);
 
-    setBotMessages((v) => {
-      return [...v, newBotEntry];
-    });
     // get chain new message
     chain = getChain({
       targetId,
@@ -307,48 +337,10 @@ export async function handleSubmit({
       role: "user",
     }); // key: JSON.stringify(array),
 
-    // console.log("chain", chain);
-    //
-
-    setUserMessages((v) => {
-      // after 'enter' press, the current userMessage is ""
-      // manually set current userMessage to event.target.value
-      // find the id and update the old userMessage
-      const userMessagesCopy = [...v];
-      const messageToUpdate = userMessagesCopy.find(
-        (msg) => msg.key === JSON.stringify(array)
-      );
-      messageToUpdate.content = multimediaMessage;
-      return userMessagesCopy;
-    });
-
-    // streaming the LLM new user
-    // // //
-    // if (dummy) {
-    //   streamIterator = await generateDummmy(JSON.stringify(array), model);
-    // } else {
-    //   streamIterator = await generate({
-    //     messages: chain,
-    //     model: model,
-    //   });
-    // }
-    const authStatus = await getAuth();
-    console.log("authStatus", authStatus);
-
-    if (authStatus === 400) {
-      console.log("Not Authenticated", authStatus);
-      setIsDialogOpen(true);
-      return;
-    } else if (authStatus === 401) {
-      console.log("authStatus Not Enough Tokens", authStatus);
-      setIsTopupDialogOpen(true);
-      return;
-    }
-    // console.log("userMessages", userMessages);
-    // console.log("chain", chain);
-    // return;
     let data;
+    // try catch finally START
     try {
+      console.log("STARTING FETCH");
       data = await fetch(
         `${process.env.NEXT_PUBLIC_BASE_URL}/api/${endpoint}`,
         {
@@ -362,6 +354,7 @@ export async function handleSubmit({
             email: authStatus,
             modelConfig,
           }),
+          signal: abortControllerRef.current.signal, // Safe reference
         }
       );
       if (!data.ok) {
@@ -374,144 +367,139 @@ export async function handleSubmit({
         });
         return;
       }
-    } catch (err) {
-      // check if server sent error
-      console.log("Fetch failed:", err);
-      rest.toast({
-        title: "Error",
-        description: "There was a problem with your request.",
+      const reader = data.body.getReader();
+      const decoder = new TextDecoder();
+      // 'pending' botMessage
+      newBotEntry = {
+        key: JSON.stringify(array),
+        globalIdBot: newGlobalIdBot,
+        content: tempChunks,
+        role: "bot",
+        status: "pending", // pending | reading | done
+        model: model,
+        modelConfig,
+      };
+      setBotMessages((v) => {
+        return v.map((m) =>
+          m.key === JSON.stringify(array) ? newBotEntry : m
+        );
       });
-      return;
-    }
-    // console.log("data", data);
-    // return;
-    const reader = data.body.getReader();
-    const decoder = new TextDecoder();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-    newBotEntry = {
-      key: JSON.stringify(array),
-      globalIdBot: newGlobalIdBot,
-      content: tempChunks,
-      role: "bot",
-      status: "pending", // pending | reading | done
-      model: model,
-      modelConfig,
-    };
-    setBotMessages((v) => {
-      // console.log("botMessages pending", v);
-      return v.map((m) => (m.key === JSON.stringify(array) ? newBotEntry : m));
-    });
+        let chunk = decoder.decode(value, { stream: true });
+        // console.log("Received chunk:", chunk);
+        const jsonLines = chunk.split("\n").filter((line) => line.trim());
+        // console.log("Received jsonLines:", jsonLines);
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+        for (const jsonStr of jsonLines) {
+          try {
+            const parsedData = JSON.parse(jsonStr);
+            // console.log("parsedData", parsedData);
+            if (parsedData?.text) {
+              // console.log("parsedData?.text", parsedData?.text);
+              tempChunks += parsedData?.text;
+            }
 
-      let chunk = decoder.decode(value, { stream: true });
-      // console.log("Received chunk:", chunk);
-      const jsonLines = chunk.split("\n").filter((line) => line.trim());
-      // console.log("Received jsonLines:", jsonLines);
-
-      for (const jsonStr of jsonLines) {
-        try {
-          // console.log("jsonStr", jsonStr);
-
-          const parsedData = JSON.parse(jsonStr);
-          // console.log("parsedData", parsedData);
-          if (parsedData?.text) {
-            // console.log("parsedData?.text", parsedData?.text);
-            tempChunks += parsedData?.text;
+            if (parsedData?.groundingChunks) {
+              extraContent.groundingChunks = parsedData.groundingChunks;
+            }
+            if (parsedData?.groundingSupports) {
+              extraContent.groundingSupports = parsedData.groundingSupports;
+            }
+            if (parsedData?.search_results) {
+              extraContent.search_results = parsedData.search_results;
+            }
+            newBotEntry = {
+              key: JSON.stringify(array),
+              globalIdBot: newGlobalIdBot,
+              content: tempChunks,
+              role: "bot",
+              status: "reading",
+              model: model,
+              modelConfig,
+              ...extraContent,
+            };
+            setBotMessages((v) => {
+              return v.map((m) =>
+                m.key === JSON.stringify(array) ? newBotEntry : m
+              );
+            });
+          } catch (e) {
+            console.error("Failed to parse JSON:", e);
           }
-          // console.log("tempChunks", tempChunks);
-          // console.log(
-          //   "Last char code",
-          //   tempChunks.charCodeAt(tempChunks.length - 1)
-          // );
-
-          if (parsedData?.groundingChunks) {
-            extraContent.groundingChunks = parsedData.groundingChunks;
-          }
-          if (parsedData?.groundingSupports) {
-            extraContent.groundingSupports = parsedData.groundingSupports;
-          }
-          if (parsedData?.search_results) {
-            extraContent.search_results = parsedData.search_results;
-          }
-          newBotEntry = {
-            key: JSON.stringify(array),
-            globalIdBot: newGlobalIdBot,
-            content: tempChunks,
-            role: "bot",
-            status: "reading",
-            model: model,
-            modelConfig,
-            ...extraContent,
-          };
-          // console.log("newBotEntry", newBotEntry);
-          setBotMessages((v) => {
-            return v.map((m) =>
-              m.key === JSON.stringify(array) ? newBotEntry : m
-            );
-          });
-        } catch (e) {
-          console.error("Failed to parse JSON:", e);
         }
       }
-    }
-    // console.log("botMessages", botMessages);
-
-    // END: streaming the LLM
-    //
-    const newGlobalIdUser = globalIdUser + 1;
-    setGlobalIdUser(newGlobalIdUser);
-    const newUserEntry = {
-      key: JSON.stringify(newArray),
-      globalIdUser: newGlobalIdUser,
-      content: {},
-      role: "user",
-    };
-    setUserMessages((v) => {
+      // END: streaming the LLM
+    } catch (error) {
+      if (error.name === "AbortError") {
+        console.log("While loop aborted");
+        rest.toast({
+          title: "Stop",
+          description: "Generation stopped by user",
+        });
+      } else {
+        throw error; // Re-throw other errors
+      }
+    } finally {
+      // add new empty UserMessage
+      const newArray = array.slice();
+      newArray.push(1);
+      newGlobalIdUser = globalIdUser + 1;
+      setGlobalIdUser(newGlobalIdUser);
+      newUserMessage = {
+        key: JSON.stringify(newArray),
+        globalIdUser: newGlobalIdUser,
+        content: {},
+        role: "user",
+      };
       // new userMessage
-      const newUserMessages = [...v, newUserEntry];
-      return newUserMessages;
-    });
-  }
+      setUserMessages((v) => [...v, newUserMessage]);
+      // set status to 'done'
+      newBotEntry = {
+        key: JSON.stringify(array),
+        globalIdBot: newGlobalIdBot,
+        content: tempChunks,
+        role: "bot",
+        status: "done",
+        model: model,
+        modelConfig,
+        ...extraContent,
+      };
+      setBotMessages((v) => {
+        const updatedBotMessages = v.map((m) =>
+          m.key === JSON.stringify(array) ? newBotEntry : m
+        );
+        rest.setBotMessageFinished(true);
+        return updatedBotMessages;
+      });
+      // 2x set status to 'done'
+      newBotEntry = {
+        key: JSON.stringify(array),
+        globalIdBot: newGlobalIdBot,
+        content: tempChunks,
+        role: "bot",
+        status: "done",
+        model: model,
+        modelConfig,
+        ...extraContent,
+      };
+      setBotMessages((v) => {
+        const updatedBotMessages = v.map((m) =>
+          m.key === JSON.stringify(array) ? newBotEntry : m
+        );
+        rest.setBotMessageFinished(true);
+        return updatedBotMessages;
+      });
 
-  // set status to 'done'
-  newBotEntry = {
-    key: JSON.stringify(array),
-    globalIdBot: newGlobalIdBot,
-    content: tempChunks,
-    role: "bot",
-    status: "done",
-    model: model,
-    modelConfig,
-    ...extraContent,
-  };
-  setBotMessages((v) => {
-    const updatedBotMessages = v.map((m) =>
-      m.key === JSON.stringify(array) ? newBotEntry : m
-    );
-    rest.setBotMessageFinished(true);
-    return updatedBotMessages;
-  });
-  // 2x set status to 'done'
-  newBotEntry = {
-    key: JSON.stringify(array),
-    globalIdBot: newGlobalIdBot,
-    content: tempChunks,
-    role: "bot",
-    status: "done",
-    model: model,
-    modelConfig,
-    ...extraContent,
-  };
-  setBotMessages((v) => {
-    const updatedBotMessages = v.map((m) =>
-      m.key === JSON.stringify(array) ? newBotEntry : m
-    );
-    rest.setBotMessageFinished(true);
-    return updatedBotMessages;
-  });
+      // update isStreaming to false
+      setIsStreaming(false);
+      abortControllerRef.current = null;
+      //
+    }
+    // try catch finally END
+  }
 }
 
 function getChain({
@@ -570,4 +558,38 @@ export function resizeTextarea(event) {
   // console.log("height", height);
 
   event.target.style.height = `${height}px`;
+}
+
+const idInUserMessages = (id, userMessages) =>
+  userMessages.filter((m) => m.key === id).length > 0; // bool; if id is in userMessages
+const idInBotMessages = (id, botMessages) =>
+  botMessages.filter((m) => m.key === id).length > 0; // // bool; if id is in botMessages
+
+export const generateChatId = () => {
+  const randomString = Math.random().toString(36).substring(2, 15);
+  const timestamp = Date.now().toString(36);
+  return `${randomString}-${timestamp}`;
+};
+export const generateCanvasId = () => {
+  const randomString = Math.random().toString(36).substring(2, 15);
+  const timestamp = Date.now().toString(36);
+  return `canvas-${randomString}-${timestamp}`;
+};
+export async function handleTestDummy(setText) {
+  const streamIterator = await generateTestDummmy();
+  console.log("streamIterator.output is a promise");
+
+  for await (const delta of readStreamableValue(streamIterator.output)) {
+    console.log("delta", delta);
+    setText((t) => t + " " + delta);
+  }
+  console.log("done");
+}
+
+export async function handleDummy({ setText }) {
+  const streamIterator = await generateDummmy();
+  for await (const delta of readStreamableValue(streamIterator.output)) {
+    console.log("delta", delta);
+    setText((v) => v + delta);
+  }
 }

@@ -15,6 +15,7 @@ import {
   SendHorizontal,
   Eraser,
   ImagePlus,
+  Square,
   X,
   Microscope,
   Search,
@@ -55,14 +56,6 @@ import { allModelsWithoutIcon } from "@/app/models";
 
 let baseUserClass = "  flex flex-col items-center p-4 m-1 rounded-xl "; //border-2 border-blue-500 min-w-fit
 baseUserClass += `bg-gray-100 dark:bg-gray-900 `; // bg-sky-50 dark:bg-sky-600
-// let textareaClass = ` min-w-40 md:min-w-64  mx-4 p-2.5
-// text-gray-950
-// placeholder-gray-800
-// border-none drop-shadow-none rounded-none divide-none outline-none shadow-none
-// focus-visible:ring-0
-// dark:placeholder-gray-500
-// dark:text-gray-100
-// `;
 const maxTextareHeight = 300;
 const textareaClass = `min-w-40 md:min-w-64 mx-4 p-2.5 
 text-gray-950
@@ -80,11 +73,15 @@ let baseBotClass = ` p-4 m-1 relative
      dark:text-white 
      dark:focus:ring-blue-500 dark:focus:border-blue-500 `;
 
-export function UserMessage(props) {
+export function UserMessage({
+  isStreaming,
+  setIsStreaming,
+  abortControllerRef,
+  ...props
+}) {
   // console.log("User props", props);
   // console.log("User props.id", props.id);
   // console.log("User props.children", props.children);
-
   const [finalValue, setFinalValue] = useState(
     props.children?.text === "" ? "" : undefined
   );
@@ -101,8 +98,6 @@ export function UserMessage(props) {
       model: props?.botMessage?.model || props.model,
     };
   });
-  // console.log("userMessageModelInfo", userMessageModelInfo);
-  // console.log("props.model.name", props.model.name);
 
   const refThisUser = useRef(null);
   const isLatestUser = props.maxGlobalIdUser === props.globalIdUser;
@@ -127,6 +122,7 @@ export function UserMessage(props) {
     }
   }, [props.children]);
 
+  // focus to Textarea on mount START
   useEffect(() => {
     // console.log("refUser.current", refUser.current);
     if (props.userMessages.length === 1) {
@@ -137,6 +133,8 @@ export function UserMessage(props) {
       }
     }
   }, [refUser.current]);
+  // focus to Textarea on mount END
+
   // Create a reusable resize function
   const resizeTextarea = useCallback(
     (textarea) => {
@@ -153,7 +151,29 @@ export function UserMessage(props) {
     resizeTextarea(refUser.current);
   }, [finalValue, resizeTextarea]);
 
+  // Cleanup on unmount START
+  // useEffect(() => {
+  //   return () => {
+  //     if (abortControllerRef.current) {
+  //       console.log("useEffect abort controller");
+  //       abortControllerRef.current.abort();
+  //     }
+  //   };
+  // }, []);
+  // Cleanup on unmount END
+
+  // // Safe stop function
+  // const stopStream = () => {
+  //   if (abortControllerRef.current) {
+  //     console.log("aborting stream client side BUTTON");
+  //     abortControllerRef.current.abort();
+  //     abortControllerRef.current = null;
+  //     setIsStreaming(false);
+  //   }
+  // };
+  // //
   // console.log("id", props.id);
+  // console.log("isStreaming", isStreaming);
   // console.log("userMessageModelInfo", userMessageModelInfo);
   // console.log("props.botModel", props.botModel);
   // console.log("props.model", props.model);
@@ -295,17 +315,6 @@ export function UserMessage(props) {
           {/* debug END */}
 
           {/* model select START */}
-          {/* <ModelSelector
-            selectedModel={userMessageModelInfo?.model}
-            onModelChange={(selectedModel) => {
-              setUserMessageModelInfo((v) => ({
-                ...v,
-                model: selectedModel,
-              }));
-              console.log("userMessageModelInfo", userMessageModelInfo);
-              props.setModel(selectedModel);
-            }}
-          /> */}
           <CompactModelSelector
             selectedModel={userMessageModelInfo?.model}
             onModelChange={(selectedModel) => {
@@ -316,7 +325,6 @@ export function UserMessage(props) {
               props.setModel(selectedModel);
             }}
           />
-
           {/* model select END */}
 
           {/* eraser START */}
@@ -378,13 +386,24 @@ export function UserMessage(props) {
               }
             }}
           >
-            <span className="inline-flex text-sm items-center">
-              <SendHorizontal className="mx-2" />{" "}
-              <span className="hidden sm:block">Send</span>&nbsp;
-              <span className="text-gray-500 hidden md:block"> Ctrl + ↵</span>
-            </span>
+            {isStreaming ? (
+              <span className="inline-flex text-sm items-center">
+                <Square className="mx-2" />{" "}
+                <span className="hidden sm:block">Stop</span>&nbsp;
+              </span>
+            ) : (
+              <span className="inline-flex text-sm items-center">
+                <SendHorizontal className="mx-2" />{" "}
+                <span className="hidden sm:block">Send</span>&nbsp;
+                <span className="text-gray-500 hidden md:block"> Ctrl + ↵</span>
+              </span>
+            )}
           </Button>
           {/* send END */}
+
+          {/* stop START */}
+          {/* <Button onClick={stopStream}>STOP</Button> */}
+          {/* stop END */}
         </div>
       </div>
     </>
@@ -442,7 +461,8 @@ export function BotMessage(props) {
         latest={isLatestBot ? "true" : "false"}
         ref={isLatestBot ? props.refElementBot : null}
       >
-        {props.content === "" || props?.botMessage?.status === "pending" ? (
+        {/* props.content === "" || props?.botMessage?.status === "pending" */}
+        {props?.botMessage?.status === "pending" ? (
           // <MultilineSkeleton lines={4}>{props.children}</MultilineSkeleton>
           <ThinkingSkeleton>{props.children}</ThinkingSkeleton>
         ) : props?.botMessage?.status === "reading" ? (

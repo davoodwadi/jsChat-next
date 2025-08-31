@@ -27,7 +27,8 @@ export function RecursiveChatContainer(props) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const [isPending, startTransition] = useTransition();
+  const abortControllerRef = useRef(null);
+  const [isStreaming, setIsStreaming] = useState(false);
 
   const [globalIdUser, setGlobalIdUser] = useState(1);
   const [globalIdBot, setGlobalIdBot] = useState(0);
@@ -44,16 +45,6 @@ export function RecursiveChatContainer(props) {
   // load history if exists
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [botMessageFinished, setBotMessageFinished] = useState(false);
-
-  // console.log("botMessages", botMessages);
-  // chatId={props.chatId}
-  // userMessages={userMessages}
-  // botMessages={botMessages}
-  // setUserMessages={setUserMessages}
-  // setBotMessages={setBotMessages}
-  // setChatContainerKey={props.setChatContainerKey}
-  // systemPrompt={props.systemPrompt}
-  // setSystemPrompt={props.setSystemPrompt}
 
   useEffect(() => {
     const loadHistory = async () => {
@@ -94,7 +85,7 @@ export function RecursiveChatContainer(props) {
 
       // push {status: new} to query params to prompt layout to refetch chatHistory only if botMessages.length===1
       if (botMessages.length === 1) {
-        console.log("botMessages.length===1", botMessages.length === 1);
+        // console.log("botMessages.length===1", botMessages.length === 1);
         // console.log("pathname", pathname);
         // console.log("searchParams", searchParams);
         const params = new URLSearchParams(searchParams.toString());
@@ -108,7 +99,6 @@ export function RecursiveChatContainer(props) {
     }
   }, [botMessages]);
   // console.log("botMessages", botMessages);
-  const [response, setResponse] = useState({});
   const [branchKeyToMaximize, setBranchKeyToMaximize] = useState(
     JSON.stringify([1])
   );
@@ -120,7 +110,8 @@ export function RecursiveChatContainer(props) {
     });
     setBranchKeyToMaximize(newBranchKeyToMaximize);
   }, [globalIdUser]);
-
+  // console.log("branchKeyToMaximize", branchKeyToMaximize);
+  // console.log("globalIdUser", globalIdUser);
   const {
     state,
     open,
@@ -148,11 +139,7 @@ export function RecursiveChatContainer(props) {
           </div>
         }
       >
-        <div
-          id="chat-container"
-          className={chatContainerClass}
-          // ref={refChatContainer}
-        >
+        <div id="chat-container" className={chatContainerClass}>
           <Suspense
             fallback={
               <div className="w-3/4 mx-auto">
@@ -170,9 +157,6 @@ export function RecursiveChatContainer(props) {
               <RecursiveBranch
                 level={0}
                 {...props}
-                // refElementUser={props.refElementUser}
-                // refElementBot={props.refElementBot}
-                // setIsDialogOpen={props.setIsDialogOpen}
                 userMessages={userMessages}
                 setUserMessages={setUserMessages}
                 botMessages={botMessages}
@@ -182,11 +166,11 @@ export function RecursiveChatContainer(props) {
                 globalIdUser={globalIdUser}
                 setGlobalIdUser={setGlobalIdUser}
                 model={props.model}
-                setResponse={setResponse}
                 branchKeyToMaximize={branchKeyToMaximize}
                 setBotMessageFinished={setBotMessageFinished}
-                // router={router}
-                // startTransition={startTransition}
+                isStreaming={isStreaming}
+                setIsStreaming={setIsStreaming}
+                abortControllerRef={abortControllerRef}
               />
             )}
           </Suspense>
@@ -212,14 +196,6 @@ export default function ChatContainer(props) {
   // console.log("ChatContainer props", props);
   const refUser = useRef(null);
   const refBot = useRef(null);
-  // const [tokens, setTokens] = useState();
-  // useEffect(() => {
-  //   const getTokensLeftAction = async () => {
-  //     const { tokensRemaining } = await getSessionTokensLeft();
-  //     setTokens(tokensRemaining);
-  //   };
-  //   getTokensLeftAction();
-  // }, []);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isTopupDialogOpen, setIsTopupDialogOpen] = useState(false);
 
