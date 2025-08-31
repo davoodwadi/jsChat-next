@@ -630,6 +630,12 @@ export async function POST(req) {
     let extraConfigs = data?.modelConfig?.deepResearch
       ? { search_filter: "academic" }
       : {};
+
+    extraConfigs.search_context_size = data?.modelConfig?.search
+      ? "high"
+      : "low";
+    // console.log("PERPLEXITY extraConfigs", extraConfigs);
+    // return;
     let search_results_sent = false;
     if (data?.modelConfig?.deepResearch) {
       perplexityModel = "sonar-deep-research";
