@@ -1,6 +1,7 @@
 "use client";
 
 import Markdown from "react-markdown";
+import { remarkCustomMath } from "./remark-latex-style-math";
 // import remarkParse from "remark-parse";
 // import remarkRehype from "remark-rehype";
 import remarkGfm from "remark-gfm";
@@ -62,8 +63,9 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
   }
 
   const processedText = preprocessMarkdown(finalContent);
-  finalContent = processedText;
-  // console.log("finalContent", finalContent);
+  const mathProcessedText = preprocessLatexMath(processedText);
+  // console.log("mathProcessedText", mathProcessedText);
+  finalContent = mathProcessedText;
 
   return (
     <div ref={ref}>
@@ -81,7 +83,11 @@ function CustomMarkdown({ children, mode, props }) {
   const style = a11yDark;
   return (
     <Markdown
-      remarkPlugins={[[remarkMath, { singleDollarTextMath: true }], remarkGfm]}
+      remarkPlugins={[
+        remarkGfm,
+        remarkCustomMath,
+        // [remarkMath, { singleDollarTextMath: false }],
+      ]}
       rehypePlugins={[
         rehypeKatex,
         // rehypeFormat,
@@ -306,19 +312,32 @@ const preprocessMarkdown = (text) => {
     "\n\n<output>\n\n$1\n\n</output>\n\n"
   );
   // Replace \[ ... \] with $$ ... $$ for block math
-  processedTexts = processedTexts.replace(
-    /\\\[(.*?)\\\]/gs,
-    (_, match) => `\n$$${match}$$\n`
-  );
-  // processedTexts = processedTexts.replace(/\\\[/g, "```math ");
-  // processedTexts = processedTexts.replace(/\\\]/g, "```");
+  // processedTexts = processedTexts.replace(
+  //   /\\\[(.*?)\\\]/gs,
+  //   (_, match) => `\n$$${match}$$\n`
+  // );
   // Replace \( ... \) with $ ... $ for inline math
-  processedTexts = processedTexts.replace(
-    /\\\((.*?)\\\)/gs,
-    (_, match) => `$${match}$`
-  );
+  // processedTexts = processedTexts.replace(
+  //   /\\\((.*?)\\\)/gs,
+  //   (_, match) => `$${match}$`
+  // );
   return processedTexts;
 };
+function preprocessLatexMath(content) {
+  if (!content) return content;
+
+  return (
+    content
+      // Block math: \[...\] → %%%BLOCK_MATH%%%...%%%/BLOCK_MATH%%%
+      .replace(/\\\[([\s\S]*?)\\\]/g, (match, mathContent) => {
+        return `\n%%%BLOCK_MATH%%%${mathContent.trim()}%%%/BLOCK_MATH%%%\n`;
+      })
+      // Inline math: \(...\) → %%%INLINE_MATH%%%...%%%/INLINE_MATH%%%
+      .replace(/\\\((.*?)\\\)/g, (match, mathContent) => {
+        return `%%%INLINE_MATH%%%${mathContent}%%%/INLINE_MATH%%%`;
+      })
+  );
+}
 function extractThinKContent(text) {
   // console.log("text", text);
   const startTag = "<think>";
