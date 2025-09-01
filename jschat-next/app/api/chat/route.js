@@ -778,22 +778,20 @@ export async function POST(req) {
         try {
           const encoder = new TextEncoder();
 
-          let words = sampleTextWithLink
-            // "deepResearch: " +
-            // data.modelConfig.deepResearch +
-            // " " +
-            // "search: " +
-            // data.modelConfig.search +
-            // " " +
-            // JSON.stringify(data.messages[data.messages.length - 1]) +
-            .split(/\s+/);
-          for (let word of words) {
+          // "deepResearch: " +
+          // data.modelConfig.deepResearch +
+          // " " +
+          // "search: " +
+          // data.modelConfig.search +
+          // " " +
+          // JSON.stringify(data.messages[data.messages.length - 1]) +
+          for (let word of sampleTextWithLink) {
             // try {
-            await wait(20);
+            await wait(2);
             controller.enqueue(
               encoder.encode(
                 JSON.stringify({
-                  text: word + " ",
+                  text: word,
                 }) + "\n"
               )
             );
@@ -814,7 +812,6 @@ export async function POST(req) {
             controller.close();
           } catch {}
         } finally {
-          // console.log("FINISHED STREAMINGGGGGGGGGGG");
           console.log("UPDATING TOKEN USAGE");
           console.log("total_tokens", total_tokens);
           // UPDATE TOKENS HERE START
@@ -1050,7 +1047,16 @@ function formatBase64ImageAnthropic(base64String) {
     },
   };
 }
-const sampleTextWithLink = `<think> Examples include hair color, blood type, ethnic group, the type of car a person drives, or the street a person lives on. <sup>[ Sampling and Data | Introduction to Statistics ](https://courses.lumenlearning.com/introstats1/chapter/sampling-and-data/)</sup> Quantitative data, on the other hand, are numerical measurements resulting from counting or measuring attributes of a population.<sup>[ Sampling and Data | Introduction to Statistics ](https://courses.lumenlearning.com/introstats1/chapter/sampling-and-data/) </sup> This type of data can be subjected to mathematical analysis.<sup>[ Sampling and Data | Introduction to Statistics ](https://courses.lumenlearning.com/introstats1/chapter/sampling-and-data/)</sup> Quantitative data can be further divided into discrete data, which are countable and have a limited number of possible values, and continuous data, which can take on any value within a given range.<sup>[ Chapter one: Introduction, Sampling and Data | Introduction to Statistics ](https://courses.lumenlearning.com/introstats1/chapter/sampling-and-data/)</sup> Using samples, we can measure various aspects and calculate statistics to estimate population parameters. Some concrete examples include:
-</think>
-The main topics are here...
-`;
+let sampleTextWithLink = [];
+sampleTextWithLink.push("<think> a ");
+sampleTextWithLink.push("person lives on. <sup>");
+sampleTextWithLink.push("[ Sampling and Data | Introduction to Statistics ");
+sampleTextWithLink.push(
+  "](https://courses.lumenlearning.com/introstats1/chapter/sampling-and-data/)</sup>"
+);
+sampleTextWithLink.push(" Quantitative data, samples.</think>");
+sampleTextWithLink.push("The main topics are here...\n");
+sampleTextWithLink.push("<tool>");
+sampleTextWithLink.push("call a tool\n");
+sampleTextWithLink.push("</tool>");
+sampleTextWithLink.push("The rest of the text");

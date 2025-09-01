@@ -59,72 +59,26 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
       props.search_results
     );
     finalContent = contentWithCitations;
-    // console.log("finalContent", finalContent);
   }
 
   const processedText = preprocessMarkdown(finalContent);
-  const { think, content } = extractThinKContent(processedText);
-  finalContent = content;
+  finalContent = processedText;
+  // console.log("finalContent", finalContent);
 
   return (
     <div ref={ref}>
-      {/* {think && (
-        <CustomMarkdown mode="think" props={props}>
-          {think}
-        </CustomMarkdown>
-      )} */}
-      {think && <ThinkingSection content={think} props={props} />}
-      <CustomMarkdown mode="regular" props={props}>
-        {finalContent}
-      </CustomMarkdown>
+      {/* {think && <ThinkingSection content={think} props={props} />} */}
+      <CustomMarkdown props={props}>{finalContent}</CustomMarkdown>
     </div>
   );
 });
 
-function ThinkingSection({ content, props }) {
-  const [isExpanded, setIsExpanded] = useState(true);
-
-  return (
-    <div className=" rounded-lg bg-muted/30 mb-8">
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center gap-3 p-4 text-left hover:bg-muted/50 transition-colors"
-      >
-        {/* <Brain className="h-4 w-4 text-muted-foreground shrink-0" /> */}
-        <span className="text-xs font-medium text-muted-foreground">
-          Thought Tokens
-        </span>
-        <div className="flex-1" />
-        {isExpanded ? (
-          <ChevronDown className="h-4 w-4 text-muted-foreground" />
-        ) : (
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        )}
-      </button>
-
-      {isExpanded && (
-        <div className=" px-4 pb-4 text-sm text-muted-foreground">
-          <CustomMarkdown mode="thinking" props={props}>
-            {content}
-          </CustomMarkdown>
-        </div>
-      )}
-    </div>
-  );
-}
-
 export default MarkdownComponent;
 
 function CustomMarkdown({ children, mode, props }) {
+  const problematicTags = ["div", "pre", "tool", "output", "think"];
   const markdownChildren = children;
   const style = a11yDark;
-  const customStyle = mode === "think" ? " text-gray-600 italic " : "";
-  // console.log(
-  //         "CustomMarkdown props?.botMessage?.status",
-  //         props?.botMessage?.status
-  //       );
-  const status = props?.botMessage?.status;
-  // console.log("status", status);
   return (
     <Markdown
       remarkPlugins={[[remarkMath, { singleDollarTextMath: true }], remarkGfm]}
@@ -135,7 +89,7 @@ function CustomMarkdown({ children, mode, props }) {
         rehypeRaw,
       ]}
       // children={props.children}
-      className={`markdown-body ${customStyle} pb-4`}
+      className={`markdown-body pb-4`}
       // skipHtml={true}
       components={{
         sup(props) {
@@ -194,13 +148,119 @@ function CustomMarkdown({ children, mode, props }) {
             );
           }
         },
+        tool({ node, children, ...props }) {
+          return (
+            <div
+              {...props}
+              className="flex flex-col my-2 p-2 text-sm rounded-md bg-[#2d2d2d] text-gray-100 shadow-md"
+            >
+              {/* Header Row */}
+              <div className="flex flex-row justify-between items-center text-xs mb-2 text-gray-300 border-b border-gray-600 pb-1">
+                <div className="uppercase tracking-wide font-semibold">
+                  Tool Call
+                </div>
+                <CopyText text={children} />
+              </div>
+
+              {/* Tool content (rendered markdown/code/etc) */}
+              <div className="overflow-x-auto">{children}</div>
+            </div>
+          );
+        },
+        output({ node, children, ...props }) {
+          return <OutputBlock {...props}>{children}</OutputBlock>;
+        },
+        think({ node, children, ...props }) {
+          return <ThinkingBlock {...props}>{children}</ThinkingBlock>;
+        },
+        p({ node, children, ...props }) {
+          const hasBlockChild = React.Children.toArray(children).some(
+            (child) => {
+              if (!child || !child.type) return false;
+              return problematicTags.includes(
+                child.type.displayName || child.type.name || child.type
+              );
+            }
+          );
+
+          const paragraphClasses = "mb-4 leading-relaxed ";
+
+          if (hasBlockChild) {
+            return (
+              <div {...props} className={paragraphClasses}>
+                {children}
+              </div>
+            );
+          }
+
+          return (
+            <p {...props} className={paragraphClasses}>
+              {children}
+            </p>
+          );
+        },
       }}
     >
       {markdownChildren}
     </Markdown>
   );
 }
+function ThinkingBlock({ children, ...props }) {
+  const [isExpanded, setIsExpanded] = useState(true);
+  // console.log("ThinkingBlock children:", children);
+  // console.log("ThinkingBlock children type:", typeof children);
+  // console.log("ThinkingBlock children length:", React.Children.count(children));
 
+  return (
+    <div className=" rounded-lg bg-muted/30 mb-8">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center gap-3 p-4 text-left hover:bg-muted/50 transition-colors"
+      >
+        {/* <Brain className="h-4 w-4 text-muted-foreground shrink-0" /> */}
+        <span className="text-xs font-medium text-muted-foreground">
+          Thought Tokens
+        </span>
+        <div className="flex-1" />
+        {isExpanded ? (
+          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+        ) : (
+          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        )}
+      </button>
+
+      {isExpanded && (
+        <div className=" px-4 pb-4 text-sm text-muted-foreground">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+// Output block component
+function OutputBlock({ children, ...props }) {
+  return (
+    <div
+      {...props}
+      className="flex flex-col my-2 px-3 py-2 text-sm rounded-md 
+                 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 
+                 border border-gray-300 dark:border-gray-700"
+    >
+      {/* Header Row */}
+      <div
+        className="flex flex-row justify-between items-center text-xs mb-2 
+                      text-gray-600 dark:text-gray-400 border-b border-gray-300 
+                      dark:border-gray-700 pb-1"
+      >
+        <div className="uppercase tracking-wide font-medium">Output</div>
+        <CopyText text={children} />
+      </div>
+
+      {/* Main Output Content */}
+      <div className="font-mono whitespace-pre-wrap">{children}</div>
+    </div>
+  );
+}
 function getFirstWord(str) {
   try {
     if (typeof str !== "string") return "";
@@ -235,7 +295,15 @@ const preprocessMarkdown = (text) => {
   let processedTexts = text;
   processedTexts = processedTexts.replace(
     /<think>([\s\S]*?)<\/think>/g,
-    "\n\n<think>\n$1\n</think>\n\n"
+    "\n\n<think>\n\n$1\n\n</think>\n\n"
+  );
+  processedTexts = processedTexts.replace(
+    /<tool>([\s\S]*?)<\/tool>/g,
+    "\n\n<tool>\n\n$1\n\n</tool>\n\n"
+  );
+  processedTexts = processedTexts.replace(
+    /<output>([\s\S]*?)<\/output>/g,
+    "\n\n<output>\n\n$1\n\n</output>\n\n"
   );
   // Replace \[ ... \] with $$ ... $$ for block math
   processedTexts = processedTexts.replace(
