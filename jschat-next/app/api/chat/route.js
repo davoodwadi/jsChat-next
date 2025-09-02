@@ -343,17 +343,22 @@ export async function POST(req) {
           const encoder = new TextEncoder();
 
           console.log("openai", data.model.model);
+          const agentic = data?.modelConfig?.agentic;
+
           // console.log("key", process.env["OPENAI_KEY"]);
           const { convertedMessages, hasImage } =
-            convertToOpenAIResponsesFormat(data.messages);
+            convertToOpenAIResponsesFormat({
+              messages: data.messages,
+              agentic,
+            });
           // const legacyMessages = convertToOpenAIFormat(data.messages);
+          console.log("convertedMessages", convertedMessages);
+          return;
           const reasoning =
             data.model.model.includes("o3-mini") ||
             data.model.model.includes("o4-mini")
               ? { reasoning: { effort: "high" } }
               : {};
-
-          const agentic = data?.modelConfig?.agentic;
 
           let extraConfigs = { tools: [] };
           if (data?.modelConfig?.search) {
@@ -918,6 +923,7 @@ async function getOpenAIResponse({
   mutables,
 }) {
   // console.log("convertedMessages", convertedMessages);
+  // return;
   const toolCalls = [];
   let llmResponseText = "";
   if (search) {
@@ -1125,8 +1131,9 @@ async function callTool({ toolCall, controller, encoder }) {
     return tool_output;
   } catch {}
 }
-function convertToOpenAIResponsesFormat(messages) {
+function convertToOpenAIResponsesFormat({ agentic, messages }) {
   let hasImage = false;
+  let hasDeveloper = false;
   const converted = messages.map((m) => {
     if (m.role === "user") {
       const userM = {
@@ -1143,11 +1150,36 @@ function convertToOpenAIResponsesFormat(messages) {
         hasImage = true;
       }
       return userM;
-    } else {
+    } else if (agentic) {
+      const currentDate = new Date().toISOString();
+      if (m.role === "developer") {
+        const devM = {
+          content: "Current date: " + currentDate + "\n" + m.content,
+          role: "developer",
+        };
+        hasDeveloper = true;
+        return devM;
+      }
+    }
+    {
       return m;
     }
   });
-  return { convertedMessages: converted, hasImage: hasImage };
+  if (agentic && !hasDeveloper) {
+    const currentDate = new Date().toISOString();
+    return {
+      convertedMessages: [
+        {
+          content: "Current date: " + currentDate,
+          role: "developer",
+        },
+        ...converted,
+      ],
+      hasImage: hasImage,
+    };
+  } else {
+    return { convertedMessages: converted, hasImage: hasImage };
+  }
 }
 
 function convertToOpenAIFormat(messages) {
