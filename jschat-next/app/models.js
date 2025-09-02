@@ -193,6 +193,9 @@ export const openaiModelsWithMeta = [
     new: true,
     vision: true,
     reasoning: false,
+    hasDeepResearch: false,
+    hasSearch: true,
+    hasAgentic: true,
     icon: FastIcon,
   },
   {
@@ -202,6 +205,9 @@ export const openaiModelsWithMeta = [
     reasoning: true,
     new: true,
     vision: true,
+    hasDeepResearch: false,
+    hasSearch: true,
+    hasAgentic: true,
     icon: BrainIcon,
   },
   // {
@@ -220,6 +226,9 @@ export const openaiModelsWithMeta = [
     new: true,
     vision: true,
     reasoning: false,
+    hasDeepResearch: false,
+    hasSearch: true,
+    hasAgentic: true,
     icon: DetailedIcon,
   },
   {
@@ -238,6 +247,9 @@ export const openaiModelsWithMeta = [
     new: false,
     vision: true,
     reasoning: false,
+    hasDeepResearch: false,
+    hasSearch: true,
+    hasAgentic: true,
     icon: DetailedIcon,
   },
   {
@@ -247,6 +259,9 @@ export const openaiModelsWithMeta = [
     new: false,
     vision: true,
     reasoning: false,
+    hasDeepResearch: false,
+    hasSearch: true,
+    hasAgentic: true,
     icon: FastIcon,
   },
   {
@@ -256,6 +271,9 @@ export const openaiModelsWithMeta = [
     new: false,
     vision: true,
     reasoning: false,
+    hasDeepResearch: false,
+    hasSearch: true,
+    hasAgentic: true,
     icon: DetailedIcon,
   },
   {
@@ -265,6 +283,9 @@ export const openaiModelsWithMeta = [
     new: false,
     vision: true,
     reasoning: false,
+    hasDeepResearch: false,
+    hasSearch: true,
+    hasAgentic: true,
     icon: DetailedIcon,
   },
 ];

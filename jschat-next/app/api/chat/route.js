@@ -38,7 +38,7 @@ import {
 } from "@/app/models";
 import { updateGroundingChunksWithActualLinksAndTitles } from "@/components/searchGroundingUtils";
 import { allModelsWithoutIcon } from "@/app/models";
-
+import { basic_search } from "@/lib/sample";
 // // Allow streaming responses up to 30 seconds
 // export const maxDuration = 30
 export const runtime = "edge";
@@ -53,7 +53,7 @@ export async function POST(req) {
   console.log("server search", data.modelConfig?.search);
   // return;
 
-  let total_tokens = 0;
+  const mutables = { total_tokens: 0, citationNumber: 1 };
   const searchCost = 20000;
   if (anthropicModels.includes(data.model.model)) {
     const { convertedMessages, system } = convertToAnthropicFormat(
@@ -87,15 +87,17 @@ export async function POST(req) {
             // console.log("messageStreamEvent", messageStreamEvent);
             if (messageStreamEvent.type === "message_start") {
               // console.log("message_start", messageStreamEvent.message.usage);
-              total_tokens += messageStreamEvent.message.usage.input_tokens; // messageStreamEvent.usage.input_tokens
-              total_tokens += messageStreamEvent.message.usage.output_tokens; // messageStreamEvent.usage.output_tokens
-              total_tokens +=
+              mutables.total_tokens +=
+                messageStreamEvent.message.usage.input_tokens; // messageStreamEvent.usage.input_tokens
+              mutables.total_tokens +=
+                messageStreamEvent.message.usage.output_tokens; // messageStreamEvent.usage.output_tokens
+              mutables.total_tokens +=
                 messageStreamEvent.message.usage.cache_creation_input_tokens; // messageStreamEvent.usage.cache_creation_input_tokens,
-              total_tokens +=
+              mutables.total_tokens +=
                 messageStreamEvent.message.usage.cache_read_input_tokens; // messageStreamEvent.usage.cache_read_input_tokens
             } else if (messageStreamEvent.type === "message_delta") {
               // console.log("message_delta", messageStreamEvent);
-              total_tokens += messageStreamEvent.usage.output_tokens;
+              mutables.total_tokens += messageStreamEvent.usage.output_tokens;
             } else if (messageStreamEvent?.content_block?.type === "thinking") {
               // controller.enqueue(encoder.encode("<think>\n"));
               controller.enqueue(
@@ -155,7 +157,7 @@ export async function POST(req) {
           } catch {}
         } finally {
           console.log("UPDATING TOKEN USAGE");
-          console.log("total_tokens", total_tokens);
+          console.log("mutables.total_tokens", mutables.total_tokens);
           // UPDATE TOKENS HERE START
           // update usage
           fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
@@ -164,7 +166,7 @@ export async function POST(req) {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              amount: total_tokens,
+              amount: mutables.total_tokens,
               email: data.email,
             }),
           });
@@ -214,7 +216,7 @@ export async function POST(req) {
                 )
               );
             } else if (typeof chunk?.choices[0]?.finish_reason === "string") {
-              total_tokens += chunk?.x_groq?.usage?.total_tokens;
+              mutables.total_tokens += chunk?.x_groq?.usage?.total_tokens;
             }
           }
           controller.close(); // Close the stream
@@ -231,7 +233,7 @@ export async function POST(req) {
           } catch {}
         } finally {
           console.log("UPDATING TOKEN USAGE");
-          console.log("total_tokens", total_tokens);
+          console.log("mutables.total_tokens", mutables.total_tokens);
           // UPDATE TOKENS HERE START
           // update usage
           fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
@@ -240,7 +242,7 @@ export async function POST(req) {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              amount: total_tokens,
+              amount: mutables.total_tokens,
               email: data.email,
             }),
           });
@@ -294,7 +296,7 @@ export async function POST(req) {
                 )
               );
             } else if (fullPart.type === "finish") {
-              total_tokens += fullPart.usage.totalTokens;
+              mutables.total_tokens += fullPart.usage.totalTokens;
             }
           }
           controller.close(); // Close the stream
@@ -311,7 +313,7 @@ export async function POST(req) {
           } catch {}
         } finally {
           console.log("UPDATING TOKEN USAGE");
-          console.log("total_tokens", total_tokens);
+          console.log("mutables.total_tokens", mutables.total_tokens);
           // UPDATE TOKENS HERE START
           // update usage
           fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
@@ -320,7 +322,7 @@ export async function POST(req) {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              amount: total_tokens,
+              amount: mutables.total_tokens,
               email: data.email,
             }),
           });
@@ -344,39 +346,41 @@ export async function POST(req) {
           // console.log("key", process.env["OPENAI_KEY"]);
           const { convertedMessages, hasImage } =
             convertToOpenAIResponsesFormat(data.messages);
-          const legacyMessages = convertToOpenAIFormat(data.messages);
+          // const legacyMessages = convertToOpenAIFormat(data.messages);
           const reasoning =
             data.model.model.includes("o3-mini") ||
             data.model.model.includes("o4-mini")
               ? { reasoning: { effort: "high" } }
               : {};
 
-          // console.log("reasoning", reasoning);
-          const streamResponse = await openai.responses.create({
-            input: convertedMessages,
-            model: data.model.model,
-            stream: true,
-            // stream_options: { include_usage: true },
-            max_output_tokens: 16384,
-            ...reasoning,
-          });
+          const agentic = data?.modelConfig?.agentic;
 
-          for await (const chunk of streamResponse) {
-            // console.log("chunk", chunk);
-            if (chunk.type === "response.output_text.delta") {
-              // controller.enqueue(encoder.encode(chunk?.delta));
-              controller.enqueue(
-                encoder.encode(
-                  JSON.stringify({
-                    text: chunk?.delta,
-                  }) + "\n"
-                )
-              );
-            } else if (chunk.type === "response.completed") {
-              total_tokens += chunk?.response?.usage?.total_tokens;
-            }
+          let extraConfigs = { tools: [] };
+          if (data?.modelConfig?.search) {
+            extraConfigs["tools"].push({
+              type: "web_search",
+              search_context_size: "high",
+            });
+            extraConfigs["include"] = ["web_search_call.action.sources"];
           }
-          controller.close(); // Close the stream
+          if (agentic) {
+            extraConfigs["tools"].push(...openAI_tools);
+          }
+          // console.log("extraConfigs", extraConfigs);
+          // controller.close();
+          // return;
+          await getOpenAIResponse({
+            controller,
+            encoder,
+            convertedMessages,
+            model: data.model.model,
+            reasoning,
+            extraConfigs,
+            search: data?.modelConfig?.search,
+            agentic,
+            searchCost,
+            mutables: mutables,
+          });
         } catch (err) {
           if (err.code === "ECONNRESET" || err.name === "AbortError") {
             console.log("🔌 Client disconnected / aborted");
@@ -390,7 +394,7 @@ export async function POST(req) {
           } catch {}
         } finally {
           console.log("UPDATING TOKEN USAGE");
-          console.log("total_tokens", total_tokens);
+          console.log("mutables.total_tokens", mutables.total_tokens);
           // UPDATE TOKENS HERE START
           // update usage
           fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
@@ -399,7 +403,7 @@ export async function POST(req) {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              amount: total_tokens,
+              amount: mutables.total_tokens,
               email: data.email,
             }),
           });
@@ -490,7 +494,7 @@ export async function POST(req) {
                 )
               );
             } else if (chunk?.usage?.total_tokens) {
-              total_tokens += chunk?.usage?.total_tokens;
+              mutables.total_tokens += chunk?.usage?.total_tokens;
             }
           }
           controller.close(); // Close the stream
@@ -507,7 +511,7 @@ export async function POST(req) {
           } catch {}
         } finally {
           console.log("UPDATING TOKEN USAGE");
-          console.log("total_tokens", total_tokens);
+          console.log("mutables.total_tokens", mutables.total_tokens);
           // UPDATE TOKENS HERE START
           // update usage
           fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
@@ -516,7 +520,7 @@ export async function POST(req) {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              amount: total_tokens,
+              amount: mutables.total_tokens,
               email: data.email,
             }),
           });
@@ -534,18 +538,27 @@ export async function POST(req) {
     console.log("Gemini model", data.model.model);
     // const modelList = await googleAI.models.list();
     // console.log("Gemini modelList", modelList);
+
     const { history, newUserMessage, system } = convertToGoogleFormat(
       data.messages
     );
-    const streamConfig = {
+    let streamConfig = {
       config: {
         systemInstruction: system?.content ? system.content : null,
         thinkingConfig: {
           thinkingBudget: 16000,
         },
-        tools: [{ googleSearch: {} }],
       },
     };
+    streamConfig = data?.modelConfig?.search
+      ? {
+          ...streamConfig,
+          config: { ...streamConfig.config, tools: [{ googleSearch: {} }] },
+        }
+      : streamConfig;
+
+    // console.log("streamConfig", streamConfig);
+    // return;
     const stream = new ReadableStream({
       async start(controller) {
         try {
@@ -563,7 +576,7 @@ export async function POST(req) {
           for await (const chunk of stream) {
             const usageMetadata = chunk?.usageMetadata;
             // console.log("usageMetadata", usageMetadata);
-            total_tokens += usageMetadata?.totalTokenCount;
+            mutables.total_tokens += usageMetadata?.totalTokenCount;
             try {
               if (chunk?.candidates[0]?.content?.parts[0]?.text) {
                 const groundingMetadata =
@@ -620,7 +633,7 @@ export async function POST(req) {
           } catch {}
         } finally {
           console.log("UPDATING TOKEN USAGE");
-          console.log("total_tokens", total_tokens);
+          console.log("mutables.total_tokens", mutables.total_tokens);
           // UPDATE TOKENS HERE START
           // update usage
           fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
@@ -629,7 +642,7 @@ export async function POST(req) {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              amount: total_tokens,
+              amount: mutables.total_tokens,
               email: data.email,
             }),
           });
@@ -699,10 +712,10 @@ export async function POST(req) {
                 usage = chunk.usage;
                 // add reasoning, citation tokens
                 if (usage?.citation_tokens) {
-                  total_tokens += usage?.citation_tokens;
+                  mutables.total_tokens += usage?.citation_tokens;
                 }
                 if (usage?.reasoning_tokens) {
-                  total_tokens += usage?.reasoning_tokens;
+                  mutables.total_tokens += usage?.reasoning_tokens;
                 }
               }
               usage = chunk.usage;
@@ -736,15 +749,15 @@ export async function POST(req) {
         } finally {
           console.log("UPDATING TOKEN USAGE");
           if (usage?.total_tokens) {
-            total_tokens += usage.total_tokens;
+            mutables.total_tokens += usage.total_tokens;
           }
           // console.log("extraConfigs", extraConfigs);
           if (extraConfigs.web_search_options.search_context_size === "low") {
             console.log("added search cost", "low");
-            total_tokens += searchCost;
+            mutables.total_tokens += searchCost;
           } else {
             console.log("added search cost", "high");
-            total_tokens += searchCost * 3;
+            mutables.total_tokens += searchCost * 3;
           }
           console.log("total_tokens", total_tokens);
           // UPDATE TOKENS HERE START
@@ -755,7 +768,7 @@ export async function POST(req) {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              amount: total_tokens,
+              amount: mutables.total_tokens,
               email: data.email,
             }),
           });
@@ -795,7 +808,7 @@ export async function POST(req) {
                 }) + "\n"
               )
             );
-            total_tokens += 1;
+            mutables.total_tokens += 1;
           }
           controller.close(); // Close the stream
         } catch (err) {
@@ -813,7 +826,7 @@ export async function POST(req) {
           } catch {}
         } finally {
           console.log("UPDATING TOKEN USAGE");
-          console.log("total_tokens", total_tokens);
+          console.log("mutables.total_tokens", mutables.total_tokens);
           // UPDATE TOKENS HERE START
           // update usage
           fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
@@ -822,7 +835,7 @@ export async function POST(req) {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              amount: total_tokens,
+              amount: mutables.total_tokens,
               email: data.email,
             }),
           });
@@ -837,27 +850,6 @@ export async function POST(req) {
         "Content-Type": "application/json",
       },
     });
-
-    // } catch (err) {
-    //   console.log("***streaming error***:", err.code);
-    //   // controller.error(error);
-    //   if (err.code === "ECONNRESET" || err.name === "AbortError") {
-    //     console.log("🔌 Client disconnected / aborted");
-    //   } else if (err.code === "ERR_INVALID_STATE") {
-    //     console.log("⚠️ Tried writing to closed stream, ignoring");
-    //   } else {
-    //     console.error("❌ Unexpected streaming error:", err);
-    //   }
-    //   try {
-    //     controller.close();
-    //   } catch {}
-    // } finally {
-    //   console.log("FINISHED STREAMINGGGGGGGGGGG");
-    //   console.log("UPDATING TOKEN USAGE");
-    //   console.log("total_tokens", total_tokens);
-    //   // UPDATE TOKENS HERE START
-    //   // UPDATE TOKENS HERE END
-    // }
   } else {
     console.log(`Model ${data.model.model} not found in any list.`);
   }
@@ -902,7 +894,237 @@ export async function GET(req) {
 async function wait(duration) {
   return new Promise((resolve) => setTimeout(resolve, duration));
 }
+async function get_search_results_tavily(query) {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tavily`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ query: query }),
+  });
+  const data = await res.json();
+  return data;
+}
+async function getOpenAIResponse({
+  controller,
+  encoder,
+  convertedMessages,
+  model,
+  reasoning,
+  extraConfigs,
+  search,
+  agentic,
+  searchCost,
+  mutables,
+}) {
+  console.log("convertedMessages", convertedMessages);
+  const toolCalls = [];
+  let llmResponseText = "";
+  if (search) {
+    mutables.total_tokens += searchCost * 2;
+  }
+  const streamResponse = await openai.responses.create({
+    input: convertedMessages,
+    model: model,
+    stream: true,
+    // stream_options: { include_usage: true },
+    max_output_tokens: 16384,
+    ...reasoning,
+    ...extraConfigs,
+  });
 
+  for await (const chunk of streamResponse) {
+    // console.log("chunk", chunk);
+    if (chunk.type === "response.output_item.done") {
+      convertedMessages.push(chunk?.item);
+    }
+    if (
+      chunk.type === "response.output_item.done" &&
+      chunk?.item?.type === "function_call"
+    ) {
+      if (chunk?.item?.name === "get_search_results") {
+        toolCalls.push({
+          type: chunk.item?.type,
+          arguments: chunk.item?.arguments,
+          call_id: chunk.item?.call_id,
+          name: chunk.item?.name,
+        });
+      }
+    }
+    if (
+      chunk.type === "response.output_item.done" &&
+      chunk?.item?.action?.query
+    ) {
+      controller.enqueue(
+        encoder.encode(
+          JSON.stringify({
+            text:
+              "\n\n<query>\n\n" +
+              chunk?.item?.action?.query +
+              "\n\n</query>\n\n",
+          }) + "\n"
+        )
+      );
+      // console.log("chunk", chunk);
+    }
+    if (
+      chunk.type === "response.output_item.done" &&
+      chunk?.item?.action?.sources
+    ) {
+      const openAISearchResults = chunk?.item?.action?.sources; // array of {type, url}
+
+      controller.enqueue(
+        encoder.encode(
+          JSON.stringify({
+            openai_search_results: openAISearchResults,
+          }) + "\n"
+        )
+      );
+      // console.log("chunk", chunk);
+    }
+    if (chunk.type == "response.output_text.annotation.added") {
+      const citationElement =
+        '<sup><a href="' +
+        chunk?.annotation?.url +
+        '" target="_blank" rel="noopener noreferrer" ' +
+        'title="' +
+        chunk?.annotation?.title +
+        '" ' +
+        'class="citation-link" ' +
+        ">" +
+        mutables.citationNumber +
+        "</a></sup>";
+      mutables.citationNumber += 1;
+      controller.enqueue(
+        encoder.encode(
+          JSON.stringify({
+            text: citationElement,
+          }) + "\n"
+        )
+      );
+      // console.log("chunk", chunk);
+    }
+    if (chunk.type === "response.output_text.delta") {
+      // controller.enqueue(encoder.encode(chunk?.delta));
+      llmResponseText += chunk?.delta;
+      controller.enqueue(
+        encoder.encode(
+          JSON.stringify({
+            text: chunk?.delta,
+          }) + "\n"
+        )
+      );
+    }
+    if (chunk.type === "response.completed") {
+      mutables.total_tokens += chunk?.response?.usage?.total_tokens;
+    }
+  }
+  // if tool called -> call the tools
+  if (toolCalls.length > 0) {
+    const toolCallResults = await callTheTools({
+      toolCalls,
+      controller,
+      encoder,
+      convertedMessages,
+      model,
+      reasoning,
+      extraConfigs,
+      search,
+      searchCost,
+      mutables,
+    });
+    convertedMessages.push(...toolCallResults);
+    // console.log("convertedMessages", convertedMessages);
+
+    // call openAI API again
+    await getOpenAIResponse({
+      controller,
+      encoder,
+      convertedMessages,
+      model: model,
+      reasoning,
+      extraConfigs,
+      search: search,
+      agentic,
+      searchCost,
+      mutables: mutables,
+    });
+    //
+  }
+  // console.log("convertedMessages", convertedMessages);
+  controller.close(); // Close the stream
+}
+async function callTheTools({
+  toolCalls,
+  controller,
+  encoder,
+  convertedMessages,
+  model,
+  reasoning,
+  extraConfigs,
+  search,
+  searchCost,
+  mutables,
+}) {
+  const toolCallResults = [];
+  // console.log("toolCalls", toolCalls);
+
+  for (const toolCall of toolCalls) {
+    mutables.total_tokens += searchCost;
+    try {
+      const queryObj = JSON.parse(toolCall?.arguments);
+      const query = queryObj?.query;
+      controller.enqueue(
+        encoder.encode(
+          JSON.stringify({
+            text: "\n```query\n" + JSON.stringify(query) + "\n```\n",
+          }) + "\n"
+        )
+      );
+    } catch {}
+    const res = await callTool({ toolCall, controller, encoder });
+
+    // console.log("res", res);
+    toolCallResults.push(res);
+  }
+  // console.log("toolCallResults", toolCallResults);
+  return toolCallResults;
+}
+
+async function callTool({ toolCall, controller, encoder }) {
+  try {
+    const queryObj = JSON.parse(toolCall?.arguments);
+    const query = queryObj?.query;
+    if (!query) {
+      console.log("ERROR in callTool");
+      return;
+    }
+    const search_results_tavily = await get_search_results_tavily(query);
+    // const search_results_tavily = basic_search;
+    // const search_results_tavily =
+    // "the temperature in london is 50 degrees celcius";
+    // console.log("search_results_tavily", search_results_tavily);
+
+    const minimalResults = search_results_tavily?.results.map((r) => {
+      return { url: r.url, title: r.title, content: r.content, score: r.score };
+    });
+
+    controller.enqueue(
+      encoder.encode(
+        JSON.stringify({
+          text: "\n```search\n" + JSON.stringify(minimalResults) + "\n```\n",
+        }) + "\n"
+      )
+    );
+
+    const tool_output = {
+      type: "function_call_output",
+      call_id: toolCall?.call_id,
+      output: JSON.stringify(minimalResults),
+    };
+    return tool_output;
+  } catch {}
+}
 function convertToOpenAIResponsesFormat(messages) {
   let hasImage = false;
   const converted = messages.map((m) => {
@@ -1047,6 +1269,28 @@ function formatBase64ImageAnthropic(base64String) {
     },
   };
 }
+
+const openAI_tools = [
+  {
+    type: "function",
+    name: "get_search_results",
+    description: "Retrieves search results for the provided query",
+    parameters: {
+      type: "object",
+      properties: {
+        query: {
+          type: "string",
+          description:
+            "The query sent to the search tool. The search tool searches the web using query. query is natural language text.",
+        },
+      },
+      required: ["query"],
+      additionalProperties: false,
+    },
+    strict: true,
+  },
+];
+
 let sampleTextWithLink = [];
 sampleTextWithLink.push("<think> a ");
 sampleTextWithLink.push("person lives on. <sup>");

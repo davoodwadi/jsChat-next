@@ -10,6 +10,7 @@ const ImageUploader = dynamic(() => import("./ImageUploader"), {
   loading: () => <p>Loading image uploader...</p>,
 });
 import { ModelSelector, CompactModelSelector } from "./ModelSelector";
+import { HatGlasses } from "lucide-react";
 import {
   Trash2,
   SendHorizontal,
@@ -94,6 +95,7 @@ export function UserMessage({
       modelConfig: {
         search: props?.botMessage?.modelConfig?.search || false,
         deepResearch: props?.botMessage?.modelConfig?.deepResearch || false,
+        agentic: props?.botMessage?.modelConfig?.agentic || false,
       },
       model: props?.botMessage?.model || props.model,
     };
@@ -280,6 +282,32 @@ export function UserMessage({
             </Button>
           )}
           {/* search END */}
+
+          {/* agentic START */}
+          {userMessageModelInfo?.model?.hasAgentic && (
+            <Button
+              variant={
+                userMessageModelInfo.modelConfig.agentic ? "default" : "outline"
+              }
+              size="sm"
+              className="my-auto "
+              onClick={() => {
+                setUserMessageModelInfo((prev) => {
+                  return {
+                    ...prev,
+                    modelConfig: {
+                      ...prev.modelConfig,
+                      agentic: !prev.modelConfig.agentic,
+                    },
+                  };
+                });
+              }}
+            >
+              Agentic
+              <HatGlasses />
+            </Button>
+          )}
+          {/* agentic END */}
 
           {/* deep research START */}
           {userMessageModelInfo?.model?.hasDeepResearch && (
@@ -469,8 +497,8 @@ export function BotMessage(props) {
           <ThinkingReadingSkeleton>
             <MarkdownComponent
               ref={refRenderedText}
-              groundingChunks={props?.groundingChunks}
-              groundingSupports={props?.groundingSupports}
+              // groundingChunks={props?.groundingChunks}
+              // groundingSupports={props?.groundingSupports}
               botMessage={props?.botMessage}
               {...props}
             >
@@ -480,8 +508,8 @@ export function BotMessage(props) {
         ) : (
           <MarkdownComponent
             ref={refRenderedText}
-            groundingChunks={props?.groundingChunks}
-            groundingSupports={props?.groundingSupports}
+            // groundingChunks={props?.groundingChunks}
+            // groundingSupports={props?.groundingSupports}
             botMessage={props?.botMessage}
             {...props}
           >

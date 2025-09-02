@@ -37,13 +37,13 @@ import React, {
   useCallback,
   forwardRef,
 } from "react";
-import { ChevronDown, ChevronRight, Brain } from "lucide-react"; // or your preferred icon library
+import { ChevronDown, ChevronRight, Brain, ExternalLink } from "lucide-react"; // or your preferred icon library
 import { createPortal } from "react-dom";
 
 const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
   // console.log("props", props);
   let finalContent = props.children;
-
+  // console.log(props);
   if (props?.groundingChunks && props?.groundingSupports) {
     const contentWithCitations = addCitationsToContentInlineSuper(
       finalContent,
@@ -66,16 +66,125 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
   const mathProcessedText = preprocessLatexMath(processedText);
   // console.log("mathProcessedText", mathProcessedText);
   finalContent = mathProcessedText;
+  // console.log("finalContent", finalContent);
 
   return (
     <div ref={ref}>
       {/* {think && <ThinkingSection content={think} props={props} />} */}
       <CustomMarkdown props={props}>{finalContent}</CustomMarkdown>
+      {props?.openai_search_results && (
+        <OpenAISourcesComponent props={props}>
+          {props?.openai_search_results}
+        </OpenAISourcesComponent>
+      )}
+      {props?.groundingChunks && (
+        <GeminiSourcesComponent props={props}>
+          {props?.groundingChunks}
+        </GeminiSourcesComponent>
+      )}
     </div>
   );
 });
 
 export default MarkdownComponent;
+
+function GeminiSourcesComponent({ children, ...props }) {
+  if (!Array.isArray(children)) {
+    return null; // nothing will render
+  }
+  return (
+    <div className="mt-8 rounded-xl border bg-gradient-to-br from-muted/40 to-background p-[1px] shadow-md">
+      <div className="rounded-xl bg-card p-6">
+        {/* Section heading */}
+        <div className="mb-5 flex items-center gap-2">
+          <span className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
+            Sources
+          </span>
+          <div className="h-px flex-1 bg-gradient-to-r from-primary/40 to-transparent" />
+        </div>
+
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {children.map((source, idx) => {
+            const domain = getDomain(source.web.uri);
+
+            return (
+              <li key={idx}>
+                <a
+                  href={source.web.uri}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center justify-between rounded-lg border bg-muted/30 p-3 text-sm hover:border-primary/40 hover:bg-accent hover:text-accent-foreground transition-colors"
+                >
+                  <span className="flex items-center gap-3">
+                    {/* Domain Avatar */}
+                    <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-bold">
+                      {domain[0]?.toUpperCase()}
+                    </span>
+
+                    {/* Title + Domain */}
+                    <div className="flex flex-col">
+                      <span className="line-clamp-1 text-sm font-medium">
+                        {source.web.title || domain}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {domain}
+                      </span>
+                    </div>
+                  </span>
+                  <ExternalLink className="h-4 w-4 flex-shrink-0 opacity-60 group-hover:opacity-100" />
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+function OpenAISourcesComponent({ children, ...props }) {
+  if (!Array.isArray(children)) {
+    return null; // nothing will render
+  }
+  return (
+    <div className="mt-8 rounded-xl border bg-gradient-to-br from-muted/40 to-background p-[1px] shadow-md">
+      <div className="rounded-xl bg-card p-6">
+        {/* Section heading */}
+        <div className="mb-5 flex items-center gap-2">
+          <span className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
+            Sources
+          </span>
+          <div className="h-px flex-1 bg-gradient-to-r from-primary/40 to-transparent" />
+        </div>
+
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {children.map((source, idx) => {
+            const domain = getDomain(source.url);
+            return (
+              <li key={idx}>
+                <a
+                  href={source.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center justify-between rounded-lg border bg-muted/30 p-3 text-sm hover:border-primary/40 hover:bg-accent hover:text-accent-foreground transition-colors"
+                >
+                  {/* Domain chip */}
+                  <span className="flex items-center gap-2">
+                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">
+                      {domain[0].toUpperCase()}
+                    </span>
+                    <span className="truncate">{domain}</span>
+                  </span>
+                  <ExternalLink className="h-4 w-4 opacity-60 group-hover:opacity-100" />
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </div>
+  );
+}
 
 function CustomMarkdown({ children, mode, props }) {
   const problematicTags = ["div", "pre", "tool", "output", "think"];
@@ -111,6 +220,30 @@ function CustomMarkdown({ children, mode, props }) {
             return <LinkTooltip rest={rest}>{children}</LinkTooltip>;
           }
         },
+        pre({ node, children, ...props }) {
+          // If the only child is "code" with `language-search`, skip wrapping in <pre>
+          if (
+            node.children &&
+            node.children[0]?.tagName === "code" &&
+            (node.children[0]?.properties?.className?.includes(
+              "language-search"
+            ) ||
+              node.children[0]?.properties?.className?.includes(
+                "language-query"
+              ) ||
+              node.children[0]?.properties?.className?.includes(
+                "language-tool"
+              ) ||
+              node.children[0]?.properties?.className?.includes(
+                "language-output"
+              ))
+          ) {
+            // Just render the children directly (SearchBlock will take over)
+            return <>{children}</>;
+          }
+          // Default: keep pre
+          return <pre {...props}>{children}</pre>;
+        },
         code(props) {
           const { children, className, node, ...rest } = props;
           const text = children;
@@ -134,6 +267,34 @@ function CustomMarkdown({ children, mode, props }) {
               );
             }
             // console.log("children", typeof children);
+            if (language === "search") {
+              return (
+                <SearchBlock {...rest} className={className}>
+                  {children}
+                </SearchBlock>
+              );
+            }
+            if (language === "tool") {
+              return (
+                <ToolBlock {...rest} className={className}>
+                  {children}
+                </ToolBlock>
+              );
+            }
+            if (language === "query") {
+              return (
+                <QueryBlock {...rest} className={className}>
+                  {children}
+                </QueryBlock>
+              );
+            }
+            if (language === "output") {
+              return (
+                <OutputBlock {...rest} className={className}>
+                  {children}
+                </OutputBlock>
+              );
+            }
             return (
               <>
                 <SyntaxHighlighter
@@ -155,27 +316,17 @@ function CustomMarkdown({ children, mode, props }) {
           }
         },
         tool({ node, children, ...props }) {
-          return (
-            <div
-              {...props}
-              className="flex flex-col my-2 p-2 text-sm rounded-md bg-[#2d2d2d] text-gray-100 shadow-md"
-            >
-              {/* Header Row */}
-              <div className="flex flex-row justify-between items-center text-xs mb-2 text-gray-300 border-b border-gray-600 pb-1">
-                <div className="uppercase tracking-wide font-semibold">
-                  Tool Call
-                </div>
-                <CopyText text={children} />
-              </div>
-
-              {/* Tool content (rendered markdown/code/etc) */}
-              <div className="overflow-x-auto">{children}</div>
-            </div>
-          );
+          return <ToolBlock {...props}>{children}</ToolBlock>;
         },
         output({ node, children, ...props }) {
           return <OutputBlock {...props}>{children}</OutputBlock>;
         },
+        query({ node, children, ...props }) {
+          return <QueryBlock {...props}>{children}</QueryBlock>;
+        },
+        // search({ node, children, ...props }) {
+        //   return <SearchBlock {...props}>{children}</SearchBlock>;
+        // },
         think({ node, children, ...props }) {
           return <ThinkingBlock {...props}>{children}</ThinkingBlock>;
         },
@@ -211,6 +362,47 @@ function CustomMarkdown({ children, mode, props }) {
     </Markdown>
   );
 }
+function ToolBlock({ children, ...props }) {
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  return (
+    <div
+      {...props}
+      className="flex flex-col my-2 p-2 text-sm rounded-md bg-[#2d2d2d] text-gray-100 shadow-md"
+    >
+      {/* Header Row */}
+      {/* <div className="flex flex-row justify-between items-center text-xs mb-2 text-gray-300 border-b border-gray-600 pb-1"> */}
+      {/* <div className="uppercase tracking-wide font-semibold">Tool Call</div> */}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center p-2 text-xs text-left transition-colors"
+      >
+        {/* <Brain className="h-4 w-4 text-muted-foreground shrink-0" /> */}
+        {/* <span className="text-xs font-medium text-muted-foreground">
+            Thought Tokens
+          </span> */}
+        <div className="uppercase tracking-wide font-semibold">Tool Call</div>
+        <div className="flex-1" />
+        {isExpanded ? (
+          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+        ) : (
+          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        )}
+      </button>
+      {/* </div> */}
+
+      {/* Tool content (rendered markdown/code/etc) */}
+      {isExpanded && <div className="overflow-x-auto m-2">{children}</div>}
+    </div>
+  );
+}
+function getDomain(url) {
+  try {
+    return new URL(url).hostname.replace("www.", "");
+  } catch {
+    return url;
+  }
+}
 function ThinkingBlock({ children, ...props }) {
   const [isExpanded, setIsExpanded] = useState(true);
   // console.log("ThinkingBlock children:", children);
@@ -240,6 +432,135 @@ function ThinkingBlock({ children, ...props }) {
           {children}
         </div>
       )}
+    </div>
+  );
+}
+// Search block component
+function SearchBlock({ children, ...props }) {
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  // console.log("SearchBlock children", children);
+  let parsedResults = null;
+  try {
+    if (typeof children === "string") {
+      const json = JSON.parse(children);
+      parsedResults = Array.isArray(json) ? json : json.results || [];
+    } else if (typeof children === "object" && children !== null) {
+      parsedResults = Array.isArray(children)
+        ? children
+        : children.results || [];
+    }
+  } catch (e) {
+    console.warn("Failed to parse children JSON", e);
+  }
+  // console.log("parsedResults", parsedResults);
+  return (
+    <div
+      {...props}
+      className="flex flex-col my-4 rounded-lg shadow-md bg-white text-gray-900 dark:bg-[#1f1f1f] dark:text-gray-100 border border-gray-200 dark:border-gray-700 transition-colors"
+    >
+      {/* Header Toggle */}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center px-4 py-3 text-xs font-semibold uppercase tracking-wider transition-colors hover:bg-gray-100 dark:hover:bg-[#2a2a2a]"
+      >
+        <span>Search Results</span>
+        <div className="flex-1" />
+        {isExpanded ? (
+          <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+        ) : (
+          <ChevronRight className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+        )}
+      </button>
+
+      {/* Results */}
+      {isExpanded && (
+        <div className="overflow-x-auto divide-y divide-gray-200 dark:divide-gray-700">
+          {parsedResults ? (
+            parsedResults.length > 0 ? (
+              parsedResults.map((r, i) => (
+                <div
+                  key={i}
+                  className="p-4 hover:bg-gray-50 dark:hover:bg-[#2d2d2d] transition-colors cursor-pointer rounded-md"
+                >
+                  {/* Title */}
+                  <a
+                    className="text-base font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                    // onClick={() => window.open(r.url, "_blank")}
+                    href={r.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {r.title || "Untitled"}
+                  </a>
+
+                  {/* Score */}
+                  {r.score !== undefined && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Relevance Score:{" "}
+                      <span className="font-medium">{r.score}</span>
+                    </p>
+                  )}
+
+                  {/* Content */}
+                  {r.content && (
+                    <p className="mt-2 text-sm leading-relaxed text-gray-700 dark:text-gray-200">
+                      {r.content}
+                    </p>
+                  )}
+                </div>
+              ))
+            ) : (
+              <p className="p-4 text-gray-500 dark:text-gray-400 text-sm italic">
+                No results found.
+              </p>
+            )
+          ) : (
+            <pre className="m-4 whitespace-pre-wrap text-xs text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-[#2a2a2a] rounded-md p-3 overflow-auto">
+              {typeof children === "string"
+                ? children
+                : JSON.stringify(children, null, 2)}
+            </pre>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+// Query block component
+function QueryBlock({ children, ...props }) {
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  return (
+    <div
+      {...props}
+      className="flex flex-col my-2 p-2 text-sm rounded-md bg-[#2d2d2d] text-gray-100 shadow-md"
+    >
+      {/* Header Row */}
+      {/* <div className="flex flex-row justify-between items-center text-xs mb-2 text-gray-300 border-b border-gray-600 pb-1"> */}
+      {/* <div className="uppercase tracking-wide font-semibold">Tool Call</div> */}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center p-2 text-xs text-left transition-colors"
+      >
+        {/* <Brain className="h-4 w-4 text-muted-foreground shrink-0" /> */}
+        {/* <span className="text-xs font-medium text-muted-foreground">
+            Thought Tokens
+          </span> */}
+        <div className="uppercase tracking-wide font-semibold">
+          Search Query
+        </div>
+        <div className="flex-1" />
+        {isExpanded ? (
+          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+        ) : (
+          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        )}
+      </button>
+      {/* </div> */}
+
+      {/* Tool content (rendered markdown/code/etc) */}
+      {isExpanded && <div className="overflow-x-auto m-2">{children}</div>}
     </div>
   );
 }
@@ -310,6 +631,14 @@ const preprocessMarkdown = (text) => {
   processedTexts = processedTexts.replace(
     /<output>([\s\S]*?)<\/output>/g,
     "\n\n<output>\n\n$1\n\n</output>\n\n"
+  );
+  processedTexts = processedTexts.replace(
+    /<query>([\s\S]*?)<\/query>/g,
+    "\n\n<query>\n\n$1\n\n</query>\n\n"
+  );
+  processedTexts = processedTexts.replace(
+    /<search>([\s\S]*?)<\/search>/g,
+    "\n\n<search>\n\n$1\n\n</search>\n\n"
   );
   // Replace \[ ... \] with $$ ... $$ for block math
   // processedTexts = processedTexts.replace(

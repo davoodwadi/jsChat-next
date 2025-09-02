@@ -30,8 +30,6 @@ export async function handleSubmit({
   isStreaming,
   setIsStreaming,
   abortControllerRef,
-  // deepResearch,
-  // search,
   ...rest
 }) {
   // check if isStreaming -> stop stream START
@@ -196,7 +194,9 @@ export async function handleSubmit({
 
         for (const jsonStr of jsonLines) {
           try {
+            // console.log("chunk to parse:", jsonStr);
             const parsedData = JSON.parse(jsonStr);
+            // console.log("parsedData", parsedData);
             if (parsedData?.text) {
               tempChunks += parsedData?.text;
             }
@@ -209,6 +209,16 @@ export async function handleSubmit({
             if (parsedData?.search_results) {
               extraContent.search_results = parsedData.search_results;
             }
+            if (parsedData?.openai_search_results) {
+              extraContent.openai_search_results =
+                parsedData.openai_search_results;
+            }
+            // console.log(
+            //   "parsedData?.openai_search_results",
+            //   parsedData?.openai_search_results
+            // );
+            // console.log("extraContent", extraContent);
+            // console.log("botMessages", botMessages);
 
             newBotEntry = {
               key: JSON.stringify(array),
@@ -410,6 +420,10 @@ export async function handleSubmit({
             }
             if (parsedData?.search_results) {
               extraContent.search_results = parsedData.search_results;
+            }
+            if (parsedData?.openai_search_results) {
+              extraContent.openai_search_results =
+                parsedData.openai_search_results;
             }
             newBotEntry = {
               key: JSON.stringify(array),
