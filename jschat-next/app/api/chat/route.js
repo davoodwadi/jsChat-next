@@ -917,7 +917,7 @@ async function getOpenAIResponse({
   searchCost,
   mutables,
 }) {
-  console.log("convertedMessages", convertedMessages);
+  // console.log("convertedMessages", convertedMessages);
   const toolCalls = [];
   let llmResponseText = "";
   if (search) {
