@@ -82,11 +82,113 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
           {props?.groundingChunks}
         </GeminiSourcesComponent>
       )}
+      {props?.search_results && (
+        <PerplexitySourcesComponent props={props}>
+          {props.search_results}
+        </PerplexitySourcesComponent>
+      )}
     </div>
   );
 });
 
 export default MarkdownComponent;
+
+function PerplexitySourcesComponent({ children, ...props }) {
+  let sources = [];
+
+  try {
+    if (typeof children === "string") {
+      sources = JSON.parse(children);
+    } else if (Array.isArray(children)) {
+      sources = children;
+    }
+  } catch (err) {
+    console.error("Failed to parse sources JSON", err);
+    return null;
+  }
+
+  if (!Array.isArray(sources) || sources.length === 0) {
+    return null;
+  }
+
+  return (
+    <div
+      {...props}
+      className="mt-8 rounded-xl border bg-gradient-to-br from-muted/40 to-background p-[1px] shadow-md"
+    >
+      <div className="rounded-xl bg-card p-6">
+        {/* Section heading */}
+        <div className="mb-5 flex items-center gap-2">
+          <span className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
+            Sources
+          </span>
+          <div className="h-px flex-1 bg-gradient-to-r from-primary/40 to-transparent" />
+        </div>
+
+        <ul className="grid gap-4 sm:grid-cols-2">
+          {sources.map((source, idx) => {
+            const domain = getDomain(source.url);
+
+            return (
+              <li
+                key={idx}
+                className="rounded-lg border bg-muted/30 p-4 text-sm hover:border-primary/40 hover:bg-accent hover:text-accent-foreground transition-colors"
+              >
+                <a
+                  href={source.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col h-full group"
+                >
+                  {/* Title with numeric badge */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex flex-col items-start gap-2 flex-1">
+                      <span className="shrink-0 inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">
+                        {idx + 1}
+                      </span>
+                      <h3 className="font-medium leading-snug line-clamp-2 flex-1">
+                        {source.title}
+                      </h3>
+                    </div>
+                    <ExternalLink className="h-4 w-4 shrink-0 opacity-60 group-hover:opacity-100 mt-1" />
+                  </div>
+
+                  {/* Snippet */}
+                  {source.snippet && (
+                    <p className="mt-2 text-muted-foreground line-clamp-3 text-xs">
+                      {source.snippet}
+                    </p>
+                  )}
+
+                  {/* Footer */}
+                  <div className="mt-3 flex flex-col gap-1 text-xs text-muted-foreground">
+                    <div className="flex items-center justify-between">
+                      <span className="truncate">{domain}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {source.date && (
+                        <time dateTime={source.date}>
+                          Published:{" "}
+                          {new Date(source.date).toLocaleDateString()}
+                        </time>
+                      )}
+                      {source.last_updated && (
+                        <time dateTime={source.last_updated}>
+                          Updated:{" "}
+                          {new Date(source.last_updated).toLocaleDateString()}
+                        </time>
+                      )}
+                    </div>
+                  </div>
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </div>
+  );
+}
 
 function GeminiSourcesComponent({ children, ...props }) {
   if (!Array.isArray(children)) {
@@ -478,38 +580,60 @@ function SearchBlock({ children, ...props }) {
         <div className="overflow-x-auto divide-y divide-gray-200 dark:divide-gray-700">
           {parsedResults ? (
             parsedResults.length > 0 ? (
-              parsedResults.map((r, i) => (
-                <div
-                  key={i}
-                  className="p-4 hover:bg-gray-50 dark:hover:bg-[#2d2d2d] transition-colors cursor-pointer rounded-md"
-                >
-                  {/* Title */}
-                  <a
-                    className="text-base font-semibold text-blue-600 dark:text-blue-400 hover:underline"
-                    // onClick={() => window.open(r.url, "_blank")}
-                    href={r.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
+              parsedResults.map((r, i) => {
+                let chunks;
+                if (r.content) {
+                  // Split using `[...]` as delimiter
+                  chunks = r.content
+                    .split(/\[\.\.\.\]/g)
+                    .filter((chunk) => chunk.trim() !== "");
+                }
+                return (
+                  <div
+                    key={i}
+                    className="p-4 hover:bg-gray-50 dark:hover:bg-[#2d2d2d] transition-colors rounded-md"
                   >
-                    {r.title || "Untitled"}
-                  </a>
+                    {/* Title */}
+                    <a
+                      className="text-base font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                      // onClick={() => window.open(r.url, "_blank")}
+                      href={r.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {r.title || "Untitled"}
+                    </a>
+                    {/* url */}
+                    {r.url !== undefined && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        {" "}
+                        <span className="font-medium truncate">{r.url}</span>
+                      </p>
+                    )}
+                    {/* Score */}
+                    {r.score !== undefined && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Relevance Score:{" "}
+                        <span className="font-medium">{r.score}</span>
+                      </p>
+                    )}
 
-                  {/* Score */}
-                  {r.score !== undefined && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      Relevance Score:{" "}
-                      <span className="font-medium">{r.score}</span>
-                    </p>
-                  )}
-
-                  {/* Content */}
-                  {r.content && (
-                    <p className="mt-2 text-sm leading-relaxed text-gray-700 dark:text-gray-200">
-                      {r.content}
-                    </p>
-                  )}
-                </div>
-              ))
+                    {/* Content */}
+                    {r.content && (
+                      <div className="mt-2 text-sm leading-relaxed text-gray-700 dark:text-gray-200">
+                        {r.content
+                          .split(/\[\.\.\.\]/g)
+                          .filter((chunk) => chunk.trim() !== "")
+                          .map((chunk, idx) => (
+                            <div key={idx} className="flex flex-col py-2">
+                              {chunk}
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })
             ) : (
               <p className="p-4 text-gray-500 dark:text-gray-400 text-sm italic">
                 No results found.

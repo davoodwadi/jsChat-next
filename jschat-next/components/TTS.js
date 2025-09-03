@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 
 import { Volume2, Pause, Play } from "lucide-react";
+import { Button } from "./ui/button";
 
 export function TTS({ text }) {
   const [voices, setVoices] = useState([]);
@@ -61,7 +62,11 @@ export function TTS({ text }) {
   };
 
   return (
-    <button disabled={!windowLoaded} onClick={(e) => handleSpeakToggle(text)}>
+    <Button
+      variant="ghost"
+      disabled={!windowLoaded}
+      onClick={(e) => handleSpeakToggle(text)}
+    >
       {!windowLoaded ? (
         <></>
       ) : speakStatus === "speaking" ? (
@@ -71,6 +76,6 @@ export function TTS({ text }) {
       ) : (
         <Play size={16} />
       )}
-    </button>
+    </Button>
   );
 }

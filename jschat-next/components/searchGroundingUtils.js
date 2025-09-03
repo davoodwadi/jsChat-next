@@ -33,12 +33,6 @@ export function addCitationsToContentInlineSuperPerplexity(
   // Step 4: Create and test the regex
   const citationRegex = /\[(\d+)\]/g;
 
-  // console.log("Using regex:", citationRegex);
-
-  // Step 5: Test if regex finds any matches
-  // const matches = content.match(citationRegex);
-  // console.log("Regex matches found:", matches);
-
   // Step 6: Process replacements with debugging
   const result = content.replace(citationRegex, (match, citationNumber) => {
     // console.log("Processing match:", match, "Citation number:", citationNumber);

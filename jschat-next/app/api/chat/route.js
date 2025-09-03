@@ -760,14 +760,17 @@ export async function POST(req) {
             mutables.total_tokens += usage.total_tokens;
           }
           // console.log("extraConfigs", extraConfigs);
-          if (extraConfigs.web_search_options.search_context_size === "low") {
-            console.log("added search cost", "low");
-            mutables.total_tokens += searchCost;
-          } else {
+          if (search) {
             console.log("added search cost", "high");
             mutables.total_tokens += searchCost * 3;
+          } else {
+            console.log("added search cost", "low");
+            mutables.total_tokens += searchCost * 2;
           }
-          console.log("total_tokens", total_tokens);
+          if (deepResearch) {
+            mutables.total_tokens += searchCost * 5;
+          }
+          console.log("mutables.total_tokens", mutables.total_tokens);
           // UPDATE TOKENS HERE START
           // update usage
           fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
@@ -792,11 +795,17 @@ export async function POST(req) {
     });
   } else if (data.model.model === "test-llm") {
     console.log("test LLM");
+    const search = data.modelConfig?.search;
+    const academic = data.modelConfig?.academic;
+    const deepResearch = data.modelConfig?.deepResearch;
+    const agentic = data.modelConfig?.agentic;
+    console.log("data.modelConfig", data.modelConfig);
     await wait(5);
 
     const stream = new ReadableStream({
       async start(controller) {
         try {
+          // console.log("sampleTextWithLink", sampleTextWithLink);
           const encoder = new TextEncoder();
 
           // "deepResearch: " +
@@ -806,6 +815,10 @@ export async function POST(req) {
           // data.modelConfig.search +
           // " " +
           // JSON.stringify(data.messages[data.messages.length - 1]) +
+          console.log(data.messages[data.messages.length - 1]);
+          // sampleTextWithLink.push(
+          //   data.messages[data.messages.length - 1]
+          // );
           for (let word of sampleTextWithLink) {
             // try {
             await wait(2);

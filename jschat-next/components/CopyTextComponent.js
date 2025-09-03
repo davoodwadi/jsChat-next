@@ -4,6 +4,7 @@ import { faCopy } from "@fortawesome/free-regular-svg-icons";
 import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState, useEffect } from "react";
+import { Button } from "./ui/button";
 export default function CopyText(props) {
   const [hasCopied, setHasCopied] = useState(false);
   // console.log("hasCopied", hasCopied);
@@ -15,7 +16,8 @@ export default function CopyText(props) {
     }
   }, [hasCopied]);
   return (
-    <button
+    <Button
+      variant="ghost"
       onClick={() => {
         navigator.clipboard.writeText(props.text);
         // Optional: display success message or update state
@@ -27,6 +29,6 @@ export default function CopyText(props) {
       ) : (
         <FontAwesomeIcon icon={faCopy} />
       )}
-    </button>
+    </Button>
   );
 }
