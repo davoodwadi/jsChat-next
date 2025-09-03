@@ -10,7 +10,7 @@ const ImageUploader = dynamic(() => import("./ImageUploader"), {
   loading: () => <p>Loading image uploader...</p>,
 });
 import { ModelSelector, CompactModelSelector } from "./ModelSelector";
-import { HatGlasses } from "lucide-react";
+import { HatGlasses, GraduationCap } from "lucide-react";
 import {
   Trash2,
   SendHorizontal,
@@ -96,6 +96,7 @@ export function UserMessage({
         search: props?.botMessage?.modelConfig?.search || false,
         deepResearch: props?.botMessage?.modelConfig?.deepResearch || false,
         agentic: props?.botMessage?.modelConfig?.agentic || false,
+        academic: props?.botMessage?.modelConfig?.academic || false,
       },
       model: props?.botMessage?.model || props.model,
     };
@@ -278,7 +279,7 @@ export function UserMessage({
                 });
               }}
             >
-              Search <Search />
+              High Search <Search />
             </Button>
           )}
           {/* search END */}
@@ -308,6 +309,34 @@ export function UserMessage({
             </Button>
           )}
           {/* agentic END */}
+
+          {/* academic START */}
+          {userMessageModelInfo?.model?.hasAcademic && (
+            <Button
+              variant={
+                userMessageModelInfo.modelConfig.academic
+                  ? "default"
+                  : "outline"
+              }
+              size="sm"
+              className="my-auto "
+              onClick={() => {
+                setUserMessageModelInfo((prev) => {
+                  return {
+                    ...prev,
+                    modelConfig: {
+                      ...prev.modelConfig,
+                      academic: !prev.modelConfig.academic,
+                    },
+                  };
+                });
+              }}
+            >
+              Academic
+              <GraduationCap />
+            </Button>
+          )}
+          {/* academic END */}
 
           {/* deep research START */}
           {userMessageModelInfo?.model?.hasDeepResearch && (

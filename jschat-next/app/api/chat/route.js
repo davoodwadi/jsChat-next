@@ -352,8 +352,8 @@ export async function POST(req) {
               agentic,
             });
           // const legacyMessages = convertToOpenAIFormat(data.messages);
-          console.log("convertedMessages", convertedMessages);
-          return;
+          // console.log("convertedMessages", convertedMessages);
+          // return;
           const reasoning =
             data.model.model.includes("o3-mini") ||
             data.model.model.includes("o4-mini")
@@ -664,27 +664,30 @@ export async function POST(req) {
     });
   } else if (perplexityModels.includes(data.model.model)) {
     console.log("perplexity");
-    let perplexityModel;
-    let extraConfigs = data?.modelConfig?.deepResearch
-      ? {
-          search_filter: "academic",
-          web_search_options: { search_context_size: "high" },
-        }
-      : { web_search_options: { search_context_size: "low" } };
+    let perplexityModel = "sonar";
+    const academic = data?.modelConfig?.academic;
+    const deepResearch = data?.modelConfig?.deepResearch;
+    const search = data?.modelConfig?.search;
 
-    if (data?.modelConfig?.search) {
-      extraConfigs.web_search_options.search_context_size = "high";
+    let extraConfigs = {
+      web_search_options: { search_context_size: "low" },
+    };
+    // search_filter: "academic",
+    if (academic) {
+      extraConfigs["search_filter"] = "academic";
+      perplexityModel = "sonar";
+    }
+    if (search) {
+      extraConfigs["web_search_options"] = { search_context_size: "high" };
+      perplexityModel = "sonar-pro";
+    }
+    if (deepResearch) {
+      perplexityModel = "sonar-deep-research";
     }
     // console.log("PERPLEXITY extraConfigs", extraConfigs);
     // return;
     let search_results_sent = false;
-    if (data?.modelConfig?.deepResearch) {
-      perplexityModel = "sonar-deep-research";
-    } else if (data?.modelConfig?.search) {
-      perplexityModel = "sonar-pro";
-    } else {
-      perplexityModel = "sonar";
-    }
+
     const { convertedMessages, hasImage } = convertToOpenAIFormat(
       data.messages
     );

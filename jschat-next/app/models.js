@@ -49,6 +49,7 @@ export const perplexityModelsWithMeta = [
     reasoning: false,
     hasDeepResearch: true,
     hasSearch: true,
+    hasAcademic: true,
     icon: SearchIcon,
   },
 ];
