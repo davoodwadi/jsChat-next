@@ -1,5 +1,3 @@
-import { MessageCircle } from "lucide-react";
-
 import {
   Sidebar,
   SidebarContent,
@@ -12,20 +10,19 @@ import {
 } from "@/components/ui/sidebar";
 
 import Link from "next/link";
-// import { NavigationEvents } from "@/components/layout/NavigationEvents";
 import NavigationEvents from "@/components/layout/NavigationEvents";
 import { Suspense } from "react";
 import { MultilineSkeleton } from "@/components/ui/skeleton";
 import {
   SidebarProfile,
   SidebarCanvas,
-} from "@/components/layout/sidebarProfile";
-
-// Menu items.
+  NewChatButton,
+} from "@/components/layout/sidebarClientItems";
+import { auth } from "@/auth";
+import { User2, BookOpenText } from "lucide-react";
 
 export async function AppSidebar() {
   // console.log("sidebar rerendered");
-
   return (
     <Sidebar>
       <SidebarContent>
@@ -33,14 +30,9 @@ export async function AppSidebar() {
           <SidebarGroupLabel>Spreed</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem key="1">
-                <SidebarMenuButton asChild>
-                  <Link href="/">
-                    <MessageCircle />
-                    <span>New Chat</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              <Suspense fallback={<MultilineSkeleton lines={1} />}>
+                <NewChatButton />
+              </Suspense>
               <Suspense fallback={<MultilineSkeleton lines={1} />}>
                 <SidebarCanvas />
               </Suspense>
@@ -56,4 +48,12 @@ export async function AppSidebar() {
       </SidebarContent>
     </Sidebar>
   );
+}
+
+export async function SidebarProfileParent() {
+  const session = await auth();
+  //   await wait(10000);
+  if (session) {
+    return <SidebarProfile />;
+  }
 }

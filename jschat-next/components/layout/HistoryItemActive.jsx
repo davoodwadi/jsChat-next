@@ -10,6 +10,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { useSidebar } from "@/components/ui/sidebar";
+
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Star, Trash, MoreHorizontal } from "lucide-react";
@@ -24,7 +26,12 @@ export default function HistoryItemActive({
   const currentChatId = params?.chatid;
   //   console.log("currentChatId", currentChatId);
   const isActive = String(currentChatId) === String(item.chatid);
-
+  const { isMobile, setOpenMobile } = useSidebar();
+  function handleClick() {
+    if (isMobile) {
+      setOpenMobile(false); // ✅ close sidebar on mobile after click
+    }
+  }
   return (
     <SidebarMenuButton asChild isActive={isActive} className="flex-1 min-w-0">
       <Link
@@ -33,6 +40,7 @@ export default function HistoryItemActive({
               flex items-center truncate pr-10
               ${isActive ? "bg-muted text-primary font-medium" : "text-muted-foreground"}
             `}
+        onClick={(e) => handleClick()}
       >
         {bookmarked && (
           <Star className="w-3.5 h-3.5 mr-1 text-yellow-500 fill-current" />
