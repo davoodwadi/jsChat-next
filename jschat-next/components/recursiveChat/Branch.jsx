@@ -46,7 +46,7 @@ export default function Branch({ tm, ...props }) {
     if (isHorizontallyMaxed && thisBotRef.current) {
       thisBotRef.current.scrollIntoView({
         behavior: "smooth",
-        block: "center",
+        block: "start",
         inline: "center", // important for horizontal centering
       });
     }

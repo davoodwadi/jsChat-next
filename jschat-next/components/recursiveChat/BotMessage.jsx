@@ -34,6 +34,7 @@ import { Maximize } from "lucide-react";
 
 let baseBotClass = ` p-4 m-1 relative   
     text-gray-900 rounded-xl  
+    border-2 border-gray-100
     focus:ring-blue-500 focus:border-blue-500 
      dark:border-gray-600 dark:placeholder-gray-400 
      dark:text-white 

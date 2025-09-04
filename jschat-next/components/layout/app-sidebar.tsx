@@ -12,7 +12,8 @@ import {
 } from "@/components/ui/sidebar";
 
 import Link from "next/link";
-import { NavigationEvents } from "@/components/layout/NavigationEvents";
+// import { NavigationEvents } from "@/components/layout/NavigationEvents";
+import NavigationEvents from "@/components/layout/NavigationEvents";
 import { Suspense } from "react";
 import { MultilineSkeleton } from "@/components/ui/skeleton";
 import {
@@ -23,6 +24,8 @@ import {
 // Menu items.
 
 export async function AppSidebar() {
+  // console.log("sidebar rerendered");
+
   return (
     <Sidebar>
       <SidebarContent>

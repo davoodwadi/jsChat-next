@@ -28,7 +28,7 @@ import { test } from "@/lib/test";
 // Disable SSR for the ImageUploader component
 const ImageUploader = dynamic(() => import("./ImageUploader"), {
   ssr: false,
-  loading: () => <p>Loading image uploader...</p>,
+  loading: () => <Skeleton />,
 });
 import {
   openaiModelsWithMeta,
@@ -38,6 +38,7 @@ import {
   xAIModelsWithMeta,
 } from "@/app/models";
 import { allModelsWithoutIcon } from "@/app/models";
+import { Skeleton } from "../ui/skeleton";
 
 export default function UserMessage({
   isStreaming,

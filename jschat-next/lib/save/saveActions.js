@@ -5,10 +5,77 @@ import { connectToDatabase } from "@/lib/db";
 import { ObjectId } from "mongodb";
 import { revalidatePath } from "next/cache";
 
-export async function clearAllChatSessions() {
-  revalidatePath("/chat"); // revalidate the chat page path
-  revalidatePath("/"); // revalidate layout or home path, if relevant
+export async function getBookmarkStatus({ chatId }) {
+  const session = await auth();
+  const chatSessionUserId = session?.user?.chatSessionUserId;
+  // if (!chatSessionUserId) throw new Error("Unauthorized");
+  // console.log("chatSessionUserId", chatSessionUserId);
+  // console.log("chatId", chatId);
+  const client = await connectToDatabase();
+  const sessionsCollection = client.db("chat").collection("sessions");
+  // Find current record
+  const doc = await sessionsCollection.findOne({
+    userId: new ObjectId(chatSessionUserId),
+    chatid: chatId,
+  });
+  // console.log("doc", doc);
+  if (!doc) return false;
 
+  return doc.bookmarked; // toggle flag
+}
+export async function toggleBookmarkChatSession({ chatId }) {
+  const session = await auth();
+  const chatSessionUserId = session?.user?.chatSessionUserId;
+
+  if (!chatSessionUserId) throw new Error("Unauthorized");
+
+  const client = await connectToDatabase();
+  const sessionsCollection = client.db("chat").collection("sessions");
+
+  // Find current record
+  const doc = await sessionsCollection.findOne({
+    userId: new ObjectId(chatSessionUserId),
+    chatid: chatId,
+  });
+  // console.log("doc", doc);
+  if (!doc) throw new Error("Chat not found");
+
+  const newBookmarked = !doc.bookmarked; // toggle flag
+
+  const res = await sessionsCollection.updateOne(
+    { _id: doc._id },
+    { $set: { bookmarked: newBookmarked } }
+  );
+  // console.log("toggleBookmarkChatSession newBookmarked", newBookmarked);
+  // Revalidate the path that contains NavigationEvents/Sidebar
+  revalidatePath("/");
+  revalidatePath(`/chat/${chatId}`);
+  console.log("revalidated", `/chat/${chatId}`);
+  return { success: true, bookmarked: newBookmarked };
+}
+
+export async function deleteChatSession({ chatId }) {
+  const session = await auth();
+  const chatSessionUserId = session?.user?.chatSessionUserId;
+
+  if (!chatSessionUserId) {
+    throw new Error("Unauthorized");
+  }
+
+  const client = await connectToDatabase();
+  const sessionsCollection = client.db("chat").collection("sessions");
+
+  const result = await sessionsCollection.deleteOne({
+    userId: new ObjectId(chatSessionUserId),
+    chatid: chatId,
+  });
+  // Revalidate the path that contains NavigationEvents/Sidebar
+  revalidatePath("/");
+
+  return { success: result.deletedCount > 0 };
+}
+
+export async function clearAllChatSessions() {
   const session = await auth();
   const email = session?.user?.email;
   const chatSessionUserId = session?.user?.chatSessionUserId;
@@ -27,6 +94,9 @@ export async function clearAllChatSessions() {
       },
     }
   );
+  // Revalidate the path that contains NavigationEvents/Sidebar
+  revalidatePath("/");
+
   // console.log("clearAllChatSessions result", result);
 }
 
@@ -48,7 +118,8 @@ export async function loadAllChatSessions() {
       userId: new ObjectId(chatSessionUserId),
       hidden: { $ne: true },
     })
-    .sort({ sortOrder: 1 })
+    // .sort({ sortOrder: 1 })
+    .sort({ updatedAt: -1 }) // sort by most recently updated
     .toArray();
   // console.log("sessions", sessions);
   const serializedSessions = sessions.map((session) =>
@@ -96,7 +167,7 @@ export async function saveChatSession(params) {
   const content = params;
   // console.log("content to be saved", content);
   const chatId = params.chatId || params.canvasId;
-  console.log("chatId", chatId);
+  // console.log("chatId", chatId);
   // return;
   const client = await connectToDatabase();
   const sessionsCollection = client.db("chat").collection("sessions");
@@ -132,9 +203,9 @@ export async function saveChatSession(params) {
     };
   } else {
     // Create new session - need to determine sortOrder
-    const userSessionCount = await sessionsCollection.countDocuments({
-      userId: new ObjectId(chatSessionUserId),
-    });
+    // const userSessionCount = await sessionsCollection.countDocuments({
+    //   userId: new ObjectId(chatSessionUserId),
+    // });
 
     const newSession = {
       _id: chatId,
@@ -143,7 +214,7 @@ export async function saveChatSession(params) {
       chatid: chatId,
       content: content,
       hidden: false,
-      sortOrder: userSessionCount, // Next position in the sequence
+      // sortOrder: userSessionCount, // Next position in the sequence
       createdAt: new Date(),
       updatedAt: new Date(),
       migratedAt: null, // This is a new session, not migrated
@@ -151,6 +222,8 @@ export async function saveChatSession(params) {
     };
 
     const insertResult = await sessionsCollection.insertOne(newSession);
+    // Revalidate the path that contains NavigationEvents/Sidebar
+    revalidatePath("/");
 
     // console.log("New session created:", insertResult.insertedId);
     return {
@@ -178,5 +251,6 @@ function serializeSession(session) {
     updatedAt: session.updatedAt?.toISOString(), // Convert Date to ISO string
     migratedAt: session.migratedAt?.toISOString(), // Convert Date to ISO string
     originalArrayPosition: session.originalArrayPosition,
+    bookmarked: session.bookmarked,
   };
 }

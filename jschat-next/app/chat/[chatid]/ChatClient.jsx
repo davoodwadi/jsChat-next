@@ -5,6 +5,7 @@ import { test } from "@/lib/test";
 
 import dynamic from "next/dynamic";
 import { MultilineSkeleton } from "@/components/ui/skeleton";
+import { Star } from "lucide-react";
 
 const ChatContainer = dynamic(
   () => import("@/components/recursiveChat/RecursiveComponent"),
@@ -16,18 +17,27 @@ const ChatContainer = dynamic(
     ),
   }
 );
-
+import {
+  toggleBookmarkChatSession,
+  getBookmarkStatus,
+} from "@/lib/save/saveActions";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
-import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useState, useRef, useEffect, useTransition } from "react";
+
+import {
+  useParams,
+  useRouter,
+  useSearchParams,
+  usePathname,
+} from "next/navigation";
 
 import {
   perplexityModelsWithMeta,
@@ -55,9 +65,7 @@ const modelMeta = [
 if (test) {
   modelMeta.unshift({ desc: "Test LLMs", models: testModels });
 }
-// let test = false;
-export default function Chat() {
-  // console.log("rendering chat [chatid]");
+export default function ChatClient({ chatId, bookmarked }) {
   const { icon, ...startingModel } = test
     ? testModels[0]
     : openaiModelsWithMeta.find((m) => m.model.includes("chat")) ||
@@ -65,18 +73,20 @@ export default function Chat() {
   const [model, setModel] = useState(startingModel);
   // console.log(model);
   const [systemPrompt, setSystemPrompt] = useState("");
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
 
-  const params = useParams<{ tag: string; item: string; chatid: string }>();
-  const chatId = params?.chatid;
-  // console.log("chatId", chatId);
-
-  // console.log("", models.includes(model));
-  // console.log("model client", model);
-  // return <div>Hello</div>;
   const baseClass =
     "flex flex-row justify-between  px-1 pb-2 items-center border-b hover:cursor-pointer rounded-lg hover:bg-sky-100 hover:dark:bg-sky-950";
   const selectedClass =
     "flex flex-row justify-between  px-1 pb-2 items-center border-b hover:cursor-pointer rounded-lg bg-sky-200 dark:bg-sky-900 ";
+
+  const handleToggleBookmark = () => {
+    startTransition(async () => {
+      const res = await toggleBookmarkChatSession({ chatId: chatId });
+      router.refresh();
+    });
+  };
   return (
     <Suspense
       fallback={
@@ -144,8 +154,8 @@ export default function Chat() {
             </AccordionContent>
           </AccordionItem>
         </Accordion>
-        {/* system prompt */}
 
+        {/* system prompt */}
         <Accordion type="single" collapsible>
           <AccordionItem value="item-2" key="item-2">
             <AccordionTrigger>Additional Settings</AccordionTrigger>
@@ -167,6 +177,19 @@ export default function Chat() {
             </AccordionContent>
           </AccordionItem>
         </Accordion>
+        <div className="flex">
+          <Button
+            variant={"ghost"}
+            className="mx-auto"
+            onClick={handleToggleBookmark}
+          >
+            <Star
+              className={`mr-2 h-4 w-4 ${
+                bookmarked ? "text-yellow-500 fill-current" : ""
+              }`}
+            />
+          </Button>
+        </div>
       </div>
       <ChatContainer
         chatId={chatId}
@@ -174,6 +197,7 @@ export default function Chat() {
         setModel={setModel}
         systemPrompt={systemPrompt}
         setSystemPrompt={setSystemPrompt}
+        bookmarked={bookmarked}
       />
     </Suspense>
   );

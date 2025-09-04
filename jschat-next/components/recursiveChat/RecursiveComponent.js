@@ -16,9 +16,11 @@ import { loadChatSession, saveChatSession } from "@/lib/save/saveActions";
 import { useSidebar } from "@/components/ui/sidebar";
 
 import RecursiveBranch from "./RecursiveBranch";
+import { Button } from "../ui/button";
 
 export function RecursiveChatContainer(props) {
   // console.log("starting RecursiveChatContainer");
+  // console.log("RecursiveChatContainer props", props);
   // console.log("RecursiveChatContainer props", props.systemPrompt);
   // console.log("props.refElementBot.current", props.refElementBot.current);
   // const refChatContainer = useRef(null);
@@ -56,8 +58,8 @@ export function RecursiveChatContainer(props) {
         return;
       }
       if (thisSession?.content?.userMessages) {
-        // console.log(`CLIENT: thisSession?.content`, thisSession?.content);
-
+        // console.log(`CLIENT: thisSession`, thisSession);
+        // props.setIsBookmarked(thisSession?.bookmarked);
         setUserMessages(thisSession?.content?.userMessages);
         setBotMessages(thisSession?.content?.botMessages);
         if (!thisSession?.content?.systemPrompt) {
@@ -83,16 +85,8 @@ export function RecursiveChatContainer(props) {
         systemPrompt: props.systemPrompt,
       });
 
-      // push {status: new} to query params to prompt layout to refetch chatHistory only if botMessages.length===1
       if (botMessages.length === 1) {
-        // console.log("botMessages.length===1", botMessages.length === 1);
-        // console.log("pathname", pathname);
-        // console.log("searchParams", searchParams);
-        const params = new URLSearchParams(searchParams.toString());
-        params.set("status", "new");
-        // console.log("params", params);
-        router.push(pathname + "?" + params.toString(), { scroll: false });
-        // console.log("refElementUser", props.refElementUser);
+        router.refresh();
         // focus to the new userMessage textarea
         // props.refElementUser?.current?.focus();
       }
@@ -112,15 +106,7 @@ export function RecursiveChatContainer(props) {
   }, [globalIdUser]);
   // console.log("branchKeyToMaximize", branchKeyToMaximize);
   // console.log("globalIdUser", globalIdUser);
-  const {
-    state,
-    open,
-    setOpen,
-    openMobile,
-    setOpenMobile,
-    isMobile,
-    toggleSidebar,
-  } = useSidebar();
+  const { open } = useSidebar();
 
   let chatContainerClass =
     "  overflow-y-auto overflow-x-auto h-[70vh] rounded-xl mx-auto"; // flex flex-col overflow-auto
@@ -154,24 +140,26 @@ export function RecursiveChatContainer(props) {
                 </div>
               </>
             ) : (
-              <RecursiveBranch
-                level={0}
-                {...props}
-                userMessages={userMessages}
-                setUserMessages={setUserMessages}
-                botMessages={botMessages}
-                setBotMessages={setBotMessages}
-                globalIdBot={globalIdBot}
-                setGlobalIdBot={setGlobalIdBot}
-                globalIdUser={globalIdUser}
-                setGlobalIdUser={setGlobalIdUser}
-                model={props.model}
-                branchKeyToMaximize={branchKeyToMaximize}
-                setBotMessageFinished={setBotMessageFinished}
-                isStreaming={isStreaming}
-                setIsStreaming={setIsStreaming}
-                abortControllerRef={abortControllerRef}
-              />
+              <>
+                <RecursiveBranch
+                  level={0}
+                  {...props}
+                  userMessages={userMessages}
+                  setUserMessages={setUserMessages}
+                  botMessages={botMessages}
+                  setBotMessages={setBotMessages}
+                  globalIdBot={globalIdBot}
+                  setGlobalIdBot={setGlobalIdBot}
+                  globalIdUser={globalIdUser}
+                  setGlobalIdUser={setGlobalIdUser}
+                  model={props.model}
+                  branchKeyToMaximize={branchKeyToMaximize}
+                  setBotMessageFinished={setBotMessageFinished}
+                  isStreaming={isStreaming}
+                  setIsStreaming={setIsStreaming}
+                  abortControllerRef={abortControllerRef}
+                />
+              </>
             )}
           </Suspense>
         </div>
@@ -216,12 +204,11 @@ export default function ChatContainer(props) {
           }
         >
           <RecursiveChatContainer
-            // setChatContainerKey={setChatContainerKey}
+            {...props}
             refElementUser={refUser}
             refElementBot={refBot}
             setIsDialogOpen={setIsDialogOpen}
             setIsTopupDialogOpen={setIsTopupDialogOpen}
-            {...props}
           />
         </Suspense>
         <AuthDialog
