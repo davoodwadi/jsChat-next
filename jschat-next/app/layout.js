@@ -5,7 +5,8 @@ import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 
 import { ThemeProvider } from "@/components/layout/theme-provider";
-import { Toaster } from "@/components/ui/toaster";
+// import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/sonner";
 
 import { Suspense } from "react";
 import { MultilineSkeleton } from "@/components/ui/skeleton";

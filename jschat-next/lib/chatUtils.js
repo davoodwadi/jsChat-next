@@ -7,6 +7,8 @@ import {
 import { readStreamableValue } from "@/lib/aiRSCUtils";
 import { wait } from "@/lib/actions";
 import { v4 as uuidv4 } from "uuid";
+import { toast } from "sonner";
+
 // import { useTransition } from "react";
 
 export async function handleSubmit({
@@ -177,8 +179,8 @@ export async function handleSubmit({
         // Handle 400/500 responses from the server BEFORE the stream
         const errorData = await data.json();
         // console.log("Error:", errorData.error);
-        rest.toast({
-          title: "Error",
+        toast("Error", {
+          // title: "Error",
           description: errorData.error,
         });
         return;
@@ -242,8 +244,8 @@ export async function handleSubmit({
     } catch (error) {
       if (error.name === "AbortError") {
         console.log("While loop aborted");
-        rest.toast({
-          title: "Stop",
+        toast("Stopped", {
+          // title: "Stop",
           description: "Generation stopped by user",
         });
       } else {
@@ -371,8 +373,8 @@ export async function handleSubmit({
         // Handle 400/500 responses from the server BEFORE the stream
         const errorData = await data.json();
         console.log("Error:", errorData.error);
-        rest.toast({
-          title: "Error",
+        toast("Error", {
+          // title: "Error",
           description: errorData.error,
         });
         return;
@@ -449,8 +451,8 @@ export async function handleSubmit({
     } catch (error) {
       if (error.name === "AbortError") {
         console.log("While loop aborted");
-        rest.toast({
-          title: "Stop",
+        toast("Stopped", {
+          // title: "Stop",
           description: "Generation stopped by user",
         });
       } else {

@@ -1,5 +1,6 @@
 import { useSidebar } from "@/components/ui/sidebar";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
+
 import { handleSubmit, resizeTextarea } from "@/lib/chatUtils";
 import { getMaxGlobalIdUser } from "./RecursiveComponent";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,6 @@ import RecursiveBranch from "./RecursiveBranch";
 
 export default function Branch({ tm, ...props }) {
   const { open } = useSidebar();
-  const { toast } = useToast();
   // const [isHorizontallyMaxed, setIsHorizontallyMaxed] = useState(false);
   const thisBotRef = useRef(null);
   const branchRef = useRef(null);
@@ -60,14 +60,16 @@ export default function Branch({ tm, ...props }) {
   // scroll to latest branch after mount
   useEffect(() => {
     if (toMaximize && branchRef.current) {
+      console.log("useEffect branch fired", props.branchKeyToMaximize);
+      console.log("...for element", branchRef.current);
       // console.log("scrolling to branch with key ", tm.key);
       branchRef.current.scrollIntoView({
         behavior: "smooth",
-        block: "center",
+        block: "start",
         inline: "center", // important for horizontal centering
       });
     }
-  }, [branchRef.current]);
+  }, [branchRef.current, props.branchKeyToMaximize]);
   // console.log("branch tm", tm);
   // console.log("branch props.id", props.id);
   // console.log("branch toMaximize", toMaximize);
@@ -92,7 +94,6 @@ export default function Branch({ tm, ...props }) {
           onRemoveBranchClick({
             ...props,
             event,
-            toast,
             currentGlobalIdUser: tm.globalIdUser,
           })
         }
@@ -144,7 +145,6 @@ export default function Branch({ tm, ...props }) {
               targetId,
               multimediaMessage,
               userMessageModelInfo,
-              toast,
             });
           }}
           refElementUser={props.refElementUser}
@@ -192,12 +192,7 @@ export default function Branch({ tm, ...props }) {
   );
 }
 
-function onRemoveBranchClick({
-  event,
-  toast,
-  currentGlobalIdUser,
-  ...mainProps
-}) {
+function onRemoveBranchClick({ event, currentGlobalIdUser, ...mainProps }) {
   const selectedKey = event.target.id;
   const selectedKeyArr = JSON.parse(selectedKey);
 
@@ -242,8 +237,8 @@ function onRemoveBranchClick({
       },
     ]);
     mainProps.setBotMessages((bms) => []);
-    toast({
-      title: "Branch Removed",
+    toast("Branch Removed", {
+      // title: "Branch Removed",
       // description: "There was a problem with your request.",
     });
     return;
@@ -254,8 +249,8 @@ function onRemoveBranchClick({
     mainProps.setUserMessages((ums) => keptUserMessages);
     mainProps.setBotMessages((bms) => keptBotMessages);
 
-    toast({
-      title: "Branch Removed",
+    toast("Branch Removed", {
+      // title: "Branch Removed",
     });
     return;
   }
@@ -272,8 +267,8 @@ function onRemoveBranchClick({
   ]);
   mainProps.setBotMessages((bms) => keptBotMessages);
 
-  toast({
-    title: "Branch Removed",
+  toast("Branch Removed", {
+    // title: "Branch Removed",
   });
   return;
 }

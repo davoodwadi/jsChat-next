@@ -2,7 +2,7 @@
 
 import { SaveButtonsTooltip } from "@/components/save/SaveButtonsTooltip";
 import { HardDriveUpload, Save, RotateCcw, Star, Settings } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import * as React from "react";
 
 import { saveChatSession, loadChatSession } from "@/lib/save/saveActions";
@@ -27,7 +27,6 @@ export default function SaveItems(props) {
   // console.log("SaveItems botMessages", botMessages);
   // console.log("SaveItems props", props);
   // console.log("SaveItems systemPrompt", systemPrompt);
-  const { toast } = useToast();
   const router = useRouter();
   const [loadingSave, setLoadingSave] = useState(false);
   const [loadingLoad, setLoadingLoad] = useState(false);
@@ -55,17 +54,6 @@ export default function SaveItems(props) {
         setLoadingBookmark(false);
       },
     },
-    // {
-    //   Element: Settings,
-    //   text: "System Prompt",
-    //   loading: loadingSystemPrompt,
-    //   // enabled: props.bookmarked,
-    //   onClickFn: async () => {
-    //     setLoadingBookmark(true);
-    //     await handleToggleBookmark();
-    //     setLoadingBookmark(false);
-    //   },
-    // },
     {
       Element: HardDriveUpload,
       text: "Load",
@@ -76,9 +64,8 @@ export default function SaveItems(props) {
         const thisSession = await loadChatSession({ chatId });
         if (!thisSession) {
           console.log("No session found for chatid");
-          toast({
-            variant: "destructive",
-            title: "Failed to load",
+          toast("Failed to load", {
+            // variant: "destructive",
             description: "No session found for the chat. Please save first.",
           });
           setLoadingLoad(false);
@@ -96,9 +83,9 @@ export default function SaveItems(props) {
           } else {
             props.setSystemPrompt(content.systemPrompt);
           }
-          toast({
-            variant: "default",
-            title: "Successful load",
+          toast("Successfully Loaded", {
+            // variant: "default",
+            // title: "Successfully Loaded",
             description: "Session loaded successfully",
           });
           setLoadingLoad(false);
@@ -114,9 +101,9 @@ export default function SaveItems(props) {
         console.log(`CLIENT: save ${props.chatId}`);
         const saveChatSessionParams = createSaveChatSessionParams(props);
         saveChatSession(saveChatSessionParams);
-        toast({
-          variant: "default",
-          title: "Successful Save",
+        toast("Successful Save", {
+          // variant: "default",
+          // title: "Successful Save",
           description: "Session saved successfully",
         });
         setLoadingSave(false);
@@ -160,7 +147,7 @@ export function SaveItemsCanvas(params) {
   // console.log("SaveItems botMessages", botMessages);
   // console.log("SaveItems props", props);
   // console.log("SaveItems systemPrompt", systemPrompt);
-  const { toast } = useToast();
+  // const { toast } = useToast();
   const router = useRouter();
   const [loadingSave, setLoadingSave] = useState(false);
   const [loadingLoad, setLoadingLoad] = useState(false);
@@ -178,9 +165,9 @@ export function SaveItemsCanvas(params) {
         const thisSession = await loadChatSession({ chatId });
         if (!thisSession) {
           console.log("No session found for chatid");
-          toast({
-            variant: "destructive",
-            title: "Failed to load",
+          toast("Failed to load", {
+            // variant: "destructive",
+            // title: "Failed to load",
             description: "No session found for the chat. Please save first.",
           });
           setLoadingLoad(false);
@@ -202,9 +189,9 @@ export function SaveItemsCanvas(params) {
 
           // params.editableRef.current.innerText = content.canvasText;
           // }
-          toast({
-            variant: "default",
-            title: "Successful load",
+          toast("Successful load", {
+            // variant: "default",
+            // title: "Successful load",
             description: "Session loaded successfully",
           });
           setLoadingLoad(false);
@@ -221,9 +208,9 @@ export function SaveItemsCanvas(params) {
         const saveCanvasSessionParams = createSaveCanvasSessionParams(params);
         // console.log("saveCanvasSessionParams", saveCanvasSessionParams);
         saveChatSession(saveCanvasSessionParams);
-        toast({
-          variant: "default",
-          title: "Successful Save",
+        toast("Successful Save", {
+          // variant: "default",
+          // title: "Successful Save",
           description: "Session saved successfully",
         });
         // reflect the change in history
@@ -245,8 +232,8 @@ export function SaveItemsCanvas(params) {
 
         const newCanvasId = generateCanvasId();
         router.push(`/canvas/${newCanvasId}`);
-        toast({
-          title: "Canvas Reset",
+        toast("Canvas Reset", {
+          // title: "Canvas Reset",
         });
         setLoadingReset(false);
       },

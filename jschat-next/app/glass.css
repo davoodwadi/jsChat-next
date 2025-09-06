@@ -467,11 +467,11 @@
 
 /* Subtle text selection */
 ::selection {
-  background: rgba(0, 0, 0, 0.06);
+  background: rgba(0, 0, 0, 0.338);
 }
 
 .dark ::selection {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(218, 218, 218, 0.674);
 }
 
 /* Smooth transitions */
