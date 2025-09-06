@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { test } from "@/lib/test";
 // let test = false;
@@ -36,105 +36,166 @@ import {
   geminiModelsWithMeta,
   testModels,
 } from "@/app/models";
+// Memoize provider groups
+// const providerGroups = useMemo(() => {
+//   const groups = {
+//     OpenAI: openaiModelsWithMeta,
+//     Anthropic: anthropicModelsWithMeta,
+//     Gemini: geminiModelsWithMeta,
+//     xAI: xAIModelsWithMeta,
+//     Perplexity: perplexityModelsWithMeta,
+//     Groq: groqModelsWithMeta,
+//     DeepInfra: deepinfraModelsWithMeta,
+//   };
 
-export function ModelSelector({ selectedModel, onModelChange, className }) {
+//   if (test) {
+//     groups["Test"] = testModels;
+//   }
+
+//   return groups;
+// }, []);
+const providerGroups = {
+  OpenAI: openaiModelsWithMeta,
+  Anthropic: anthropicModelsWithMeta,
+  Gemini: geminiModelsWithMeta,
+  xAI: xAIModelsWithMeta,
+  Perplexity: perplexityModelsWithMeta,
+  Groq: groqModelsWithMeta,
+  DeepInfra: deepinfraModelsWithMeta,
+};
+
+if (test) {
+  providerGroups["Test"] = testModels;
+}
+
+export function CompactModelSelector({
+  selectedModel,
+  onModelChange,
+  className,
+}) {
   const [open, setOpen] = useState(false);
 
-  // Find the provider for the selected model
-  const getModelProvider = (modelName) => {
-    for (const [providerName, config] of Object.entries(providerConfig)) {
-      const model = config.models.find((m) => m.name === modelName);
-      if (model) return { providerName, model };
-    }
-    return null;
-  };
+  // Memoize default model
+  const defaultModel = useMemo(() => {
+    return (
+      selectedModel ||
+      openaiModelsWithMeta.find((m) => m.model === "gpt-5-chat-latest")
+    );
+  }, [selectedModel]);
 
-  const selectedModelInfo = getModelProvider(selectedModel?.name);
+  // Memoize display name
+  const selectedDisplayName = useMemo(() => {
+    if (!defaultModel?.model) return "Select model...";
+
+    for (const models of Object.values(providerGroups)) {
+      const model = models.find((m) => m.model === defaultModel.model);
+      if (model) return model.name;
+    }
+    return defaultModel.model;
+  }, [defaultModel, providerGroups]);
+
+  const handleModelSelect = (model) => {
+    const { icon, ...rest } = model;
+    onModelChange(rest);
+    setOpen(false);
+    // for (const models of Object.values(providerGroups)) {
+    //   const model = models.find((m) => m.model === selectedModelId);
+    //   if (model) {
+    //     const { icon, ...rest } = model;
+    //     onModelChange(rest);
+    //     setOpen(false);
+    //     break;
+    //   }
+    // }
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
-          variant="outline"
+          variant="ghost"
           role="combobox"
           aria-expanded={open}
-          className={cn("w-48 justify-between text-xs", className)}
+          className={cn(
+            "max-w-32 sm:max-w-48 justify-between text-xs glass-button rounded-full px-3 py-1.5 h-auto",
+            className
+          )}
         >
-          <div className="flex items-center gap-2 min-w-0">
-            {selectedModelInfo &&
-              providerConfig[selectedModelInfo.providerName]?.icon}
-            <span className="truncate">
-              {selectedModel?.name || "Select model..."}
-            </span>
-          </div>
-          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <span className="truncate text-foreground/80 text-left">
+            {selectedDisplayName}
+          </span>
+          <ChevronDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="start">
-        <Command>
-          <CommandInput placeholder="Search models..." className="h-9" />
-          <CommandList>
-            <CommandEmpty>No models found.</CommandEmpty>
-            {Object.entries(providerConfig).map(([providerName, config]) => (
-              <CommandGroup
-                key={providerName}
-                heading={
-                  <div className="flex items-center gap-2">
-                    {config.icon}
-                    <span>{providerName}</span>
-                    <Badge variant="outline" className="ml-auto">
-                      {config.models.length}
+
+      <PopoverContent
+        className="max-w-72 p-0 glass-popover"
+        align="start"
+        sideOffset={4}
+      >
+        <div className="glass-overlay" />
+        <div className="relative z-10">
+          <Command className="glass-command">
+            <div className="px-3 py-2 border-b border-white/10 dark:border-white/5">
+              <CommandInput
+                placeholder="Search models..."
+                className="border-0 bg-transparent px-0 py-1 text-sm focus:ring-0 placeholder:text-muted-foreground/60"
+              />
+            </div>
+
+            <CommandList className="max-h-64 overflow-y-auto p-1">
+              <CommandEmpty className="py-6 text-center text-sm text-muted-foreground/60">
+                No models found.
+              </CommandEmpty>
+
+              {Object.entries(providerGroups).map(([providerName, models]) => (
+                <CommandGroup key={providerName}>
+                  {/* Group header */}
+                  <div className="flex items-center gap-2 px-2 py-2 rounded-md transition-colors sticky top-0  backdrop-blur-sm">
+                    <span className="text-xs font-medium text-foreground/70">
+                      {providerName}
+                    </span>
+                    <Badge
+                      variant="outline"
+                      className="ml-auto glass-badge text-xs h-4 px-1.5"
+                    >
+                      {models.length}
                     </Badge>
                   </div>
-                }
-              >
-                {config.models.map((model) => (
-                  <CommandItem
-                    key={model.name}
-                    value={model.name}
-                    onSelect={() => {
-                      onModelChange(model);
-                      setOpen(false);
-                    }}
-                    className="flex items-center gap-3"
-                  >
-                    <Check
-                      className={cn(
-                        "h-4 w-4",
-                        selectedModel?.name === model.name
-                          ? "opacity-100"
-                          : "opacity-0"
-                      )}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate">{model.name}</div>
-                      <div className="flex items-center gap-2 mt-1">
-                        {model.hasSearch && (
-                          <Badge variant="secondary" className="text-xs">
-                            <SearchIcon className="w-3 h-3 mr-1" />
-                            Search
-                          </Badge>
-                        )}
-                        {model.hasDeepResearch && (
-                          <Badge variant="secondary" className="text-xs">
-                            <Brain className="w-3 h-3 mr-1" />
-                            Research
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            ))}
-          </CommandList>
-        </Command>
+
+                  {/* Models list */}
+                  <div className="space-y-1 pb-2">
+                    {models.map((model) => (
+                      <CommandItem
+                        key={model.model}
+                        value={`${providerName} ${model.name} ${model.model}`}
+                        onSelect={() => handleModelSelect(model)}
+                        className="flex items-center gap-2 py-2 px-2 text-sm rounded-md cursor-pointer hover:bg-white/5 dark:hover:bg-white/5 transition-colors duration-5"
+                      >
+                        <Check
+                          className={cn(
+                            "h-3 w-3 shrink-0",
+                            defaultModel?.model === model.model
+                              ? "opacity-100 text-foreground/80"
+                              : "opacity-0"
+                          )}
+                        />
+                        <span className="truncate text-foreground/90 text-xs">
+                          {model.name}
+                        </span>
+                      </CommandItem>
+                    ))}
+                  </div>
+                </CommandGroup>
+              ))}
+            </CommandList>
+          </Command>
+        </div>
       </PopoverContent>
     </Popover>
   );
 }
-
-export function CompactModelSelector({
+export function CompactModelSelector2({
   selectedModel,
   onModelChange,
   className,
@@ -177,24 +238,24 @@ export function CompactModelSelector({
         }
       }}
       className={cn(
-        "rounded-md border border-input bg-background px-2 py-1.5 text-xs",
-        "ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-        "w-32 sm:w-48",
+        "rounded-full border border-input bg-background px-2 py-1.5 text-xs",
+        "glass-input",
+        // "ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+        // "w-32 sm:w-48",
+
         className
       )}
     >
       {/* <option value="">Select model...</option> */}
       {Object.entries(providerGroups).map(([providerName, models]) => (
         <optgroup
+          className="glass-card"
           key={providerName}
           label={`${providerName} (${models.length})`}
         >
           {models.map((m) => (
-            <option key={m.model} value={m.model}>
+            <option key={m.model} value={m.model} className="glass-card">
               {m.name}
-              {/* {m.new ? " ✨" : ""} */}
-              {/* {m.vision ? " 👁️" : ""} */}
-              {/* {m.reasoning ? " 🧠" : ""} */}
             </option>
           ))}
         </optgroup>

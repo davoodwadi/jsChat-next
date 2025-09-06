@@ -294,20 +294,10 @@ function CustomMarkdown({ children, mode, props }) {
   const style = a11yDark;
   return (
     <Markdown
-      remarkPlugins={[
-        remarkGfm,
-        remarkCustomMath,
-        // [remarkMath, { singleDollarTextMath: false }],
-      ]}
-      rehypePlugins={[
-        rehypeKatex,
-        // rehypeFormat,
-        // rehypeStringify,
-        rehypeRaw,
-      ]}
-      // children={props.children}
-      className={`markdown-body pb-4`}
-      // skipHtml={true}
+      remarkPlugins={[remarkGfm, remarkCustomMath]}
+      rehypePlugins={[rehypeKatex, rehypeRaw]}
+      // prose prose-zinc dark:prose-invert
+      className={` prose prose-zinc dark:prose-invert pb-4 !max-w-none`}
       components={{
         sup(props) {
           const { children, className, node, ...rest } = props;

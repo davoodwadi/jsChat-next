@@ -4,7 +4,7 @@ import { test } from "@/lib/test";
 import dynamic from "next/dynamic";
 import MarkdownComponent from "@/components/MarkdownComponent";
 import CopyText from "@/components/CopyTextComponent";
-
+import { findSingleParent } from "./RecursiveComponent";
 import { ChevronsLeftRight } from "lucide-react";
 import {
   Trash2,
@@ -41,7 +41,7 @@ let baseBotClass = ` p-4 m-1 relative
      dark:focus:ring-blue-500 dark:focus:border-blue-500 `;
 
 export default function BotMessage(props) {
-  // console.log("props", props);
+  // console.log("Bot props", props);
   // console.log("props?.botMessage?.status", props?.botMessage?.status);
   const isLatestBot = props.maxGlobalIdBot === props.globalIdBot;
   const refRenderedText = useRef(null);
@@ -77,11 +77,14 @@ export default function BotMessage(props) {
         </p>
         <div className="flex flex-row gap-0">
           <Button
-            variant={props.isHorizontallyMaxed ? "outline" : "ghost"}
+            variant={
+              props.branchKeyToMaximize === props.id ? "outline" : "ghost"
+            }
             className=""
             onClick={(e) => {
-              props.setIsHorizontallyMaxed((v) => !v);
-              console.log("props.thisBotRef", props.thisBotRef.current);
+              const keyToMax = findSingleParent(props.id, props.userMessages);
+              // console.log("onclick keyToMax", keyToMax);
+              props.setBranchKeyToMaximize(keyToMax);
             }}
           >
             <ChevronsLeftRight size={16} />

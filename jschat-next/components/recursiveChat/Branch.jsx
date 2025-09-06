@@ -1,6 +1,7 @@
 import { useSidebar } from "@/components/ui/sidebar";
 import { useToast } from "@/hooks/use-toast";
 import { handleSubmit, resizeTextarea } from "@/lib/chatUtils";
+import { getMaxGlobalIdUser } from "./RecursiveComponent";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
@@ -11,8 +12,9 @@ import RecursiveBranch from "./RecursiveBranch";
 export default function Branch({ tm, ...props }) {
   const { open } = useSidebar();
   const { toast } = useToast();
-  const [isHorizontallyMaxed, setIsHorizontallyMaxed] = useState(false);
+  // const [isHorizontallyMaxed, setIsHorizontallyMaxed] = useState(false);
   const thisBotRef = useRef(null);
+  const branchRef = useRef(null);
   //   console.log("isHorizontallyMaxed", isHorizontallyMaxed);
   const getBotMessageForKey = (key) => {
     try {
@@ -22,9 +24,12 @@ export default function Branch({ tm, ...props }) {
       return null;
     }
   };
+  const maxUID = getMaxGlobalIdUser(props.userMessages);
 
   const isPenultimateBranch = props.globalIdBot === props.maxGlobalIdBot;
-  //   console.log("Branch props", props);
+  const toMaximize = props.branchKeyToMaximize === tm.key;
+
+  // console.log("Branch props", props);
   let baseClass = "";
   const base = "mx-auto"; //border-2 border-red-300 flex-1
   let w;
@@ -33,24 +38,39 @@ export default function Branch({ tm, ...props }) {
   } else {
     w = " w-[85vw] shrink-0 md:w-[calc(85vw-16rem)] ";
   }
-  if (props.toMaximize || props.maxGlobalIdBot === 0) {
+  if (toMaximize) {
     baseClass = ` ${base} ${w} `;
   } else {
     baseClass = ` ${base} flex-1 `;
   }
-  if (isHorizontallyMaxed) {
-    baseClass = ` ${base} ${w} `;
-  }
+  // if (isHorizontallyMaxed) {
+  //   baseClass = ` ${base} ${w} `;
+  // }
   // Run scroll after the re-render caused by isHorizontallyMaxed change
+  // useEffect(() => {
+  //   if (isHorizontallyMaxed && thisBotRef.current) {
+  //     thisBotRef.current.scrollIntoView({
+  //       behavior: "smooth",
+  //       block: "start",
+  //       inline: "center", // important for horizontal centering
+  //     });
+  //   }
+  // }, [isHorizontallyMaxed]);
+
+  // scroll to latest branch after mount
   useEffect(() => {
-    if (isHorizontallyMaxed && thisBotRef.current) {
-      thisBotRef.current.scrollIntoView({
+    if (toMaximize && branchRef.current) {
+      // console.log("scrolling to branch with key ", tm.key);
+      branchRef.current.scrollIntoView({
         behavior: "smooth",
-        block: "start",
+        block: "center",
         inline: "center", // important for horizontal centering
       });
     }
-  }, [isHorizontallyMaxed]);
+  }, [branchRef.current]);
+  // console.log("branch tm", tm);
+  // console.log("branch props.id", props.id);
+  // console.log("branch toMaximize", toMaximize);
   return (
     <div
       //   className="mx-auto flex-1"
@@ -58,7 +78,8 @@ export default function Branch({ tm, ...props }) {
       id={"branch" + props.id}
       className={baseClass}
       penultimate={isPenultimateBranch ? "true" : "false"}
-      tomaximize={props.toMaximize ? "true" : "false"}
+      tomaximize={String(toMaximize)}
+      ref={branchRef}
     >
       {/* remove branch START */}
       <Button
@@ -80,15 +101,37 @@ export default function Branch({ tm, ...props }) {
       </Button>
       {/* remove branch END */}
 
+      {/* debug start */}
+      {/* <div
+        className={
+          toMaximize
+            ? "mx-auto flex flex-col mb-0 border-2 border-green-700 "
+            : "mx-auto flex flex-col mb-0 border-2 border-red-700 "
+        }
+      >
+        <div className="">
+          tm.key: {tm.key} {typeof tm.key} {typeof props.branchKeyToMaximize}
+        </div>
+        <div className="">
+          props.branchKeyToMaximize: {props.branchKeyToMaximize}
+        </div>
+        <div className="">toMaximize: {String(toMaximize)}</div>
+        <div className="">tm.globalIdUser: {String(tm.globalIdUser)}</div>
+        <div className="">maxUID: {String(maxUID)}</div>
+      </div> */}
+      {/* debug end */}
+
       <div>
         <UserMessage
           {...props}
           {...tm}
+          tm={tm}
           id={tm.key}
           key={tm.key}
+          maxUID={maxUID}
           globalIdUser={tm.globalIdUser}
           maxGlobalIdUser={props.globalIdUser}
-          toMaximize={props.branchKeyToMaximize === tm.key || props.toMaximize}
+          toMaximize={toMaximize}
           handleSubmit={(
             botRef,
             targetId,
@@ -123,14 +166,15 @@ export default function Branch({ tm, ...props }) {
               globalIdBot={getBotMessageForKey(tm.key).globalIdBot}
               maxGlobalIdBot={props.globalIdBot}
               model={getBotMessageForKey(tm.key)?.model}
-              toMaximize={
-                props.branchKeyToMaximize === tm.key || props.toMaximize
-              }
+              toMaximize={toMaximize}
               refElementBot={props.refElementBot}
               botMessage={getBotMessageForKey(tm.key)}
-              isHorizontallyMaxed={isHorizontallyMaxed}
-              setIsHorizontallyMaxed={setIsHorizontallyMaxed}
+              // isHorizontallyMaxed={isHorizontallyMaxed}
+              // setIsHorizontallyMaxed={setIsHorizontallyMaxed}
               thisBotRef={thisBotRef}
+              branchKeyToMaximize={props.branchKeyToMaximize}
+              setBranchKeyToMaximize={props.setBranchKeyToMaximize}
+              userMessages={props.userMessages}
             >
               {getBotMessageForKey(tm.key).content}
             </BotMessage>
@@ -139,9 +183,7 @@ export default function Branch({ tm, ...props }) {
               parentKey={tm.key}
               parent={JSON.stringify(JSON.parse(tm.key)[props.level])}
               level={props.level + 1}
-              toMaximize={
-                props.branchKeyToMaximize === tm.key || props.toMaximize
-              }
+              toMaximize={toMaximize}
             />
           </>
         )}
@@ -156,127 +198,102 @@ function onRemoveBranchClick({
   currentGlobalIdUser,
   ...mainProps
 }) {
-  const arr = JSON.parse(event.target.id);
+  const selectedKey = event.target.id;
+  const selectedKeyArr = JSON.parse(selectedKey);
 
-  // console.log("event.target.id", event.target.id);
+  // console.log("selectedKey", selectedKey);
   // console.log("mainProps", mainProps);
   // console.log("currentGlobalIdUser", currentGlobalIdUser);
   // get parent split branch key
-  const splitParentKey = getBranchSplitKey({
-    currentIdUser: currentGlobalIdUser,
+  const siblingBool = hasSiblings({
+    selectedKey: selectedKey,
     userMessages: mainProps.userMessages,
   });
-  // console.log("splitParentKey", splitParentKey);
+  // console.log("siblingBool", siblingBool);
 
   // 1. remove child branches
   const keptUserMessages = mainProps.userMessages.filter(
-    (subArray) =>
+    (um) =>
       !(
-        JSON.stringify(JSON.parse(subArray.key).slice(0, arr.length)) ===
-        event.target.id
+        JSON.stringify(JSON.parse(um.key).slice(0, selectedKeyArr.length)) ===
+        selectedKey
       )
   );
-  // console.log(
-  //   "splitParentKey === event.target.id",
-  //   splitParentKey === event.target.id
-  // );
-  // console.log("keptUserMessages", keptUserMessages);
-  if (splitParentKey === event.target.id) {
-    // console.log(
-    //   "splitParentKey===event.target.id split Branch",
-    //   splitParentKey === event.target.id
-    // );
-    if (keptUserMessages.length === 0) {
-      // only branch
-      mainProps.setUserMessages(() => [
-        {
-          key: "[1]",
-          content: "",
-          role: "user",
-          globalIdUser: mainProps.globalIdUser,
-        },
-      ]);
-    } else {
-      // split branch -> remove everything
-      mainProps.setUserMessages((um) => [...keptUserMessages]);
-    }
-  } else {
-    // serial child branch -> add empty userMessage with key event.target.id
-    mainProps.setUserMessages((um) => [
-      ...keptUserMessages,
-      {
-        key: event.target.id,
-        content: "",
-        role: "user",
-        globalIdUser: mainProps.globalIdUser,
-      },
-    ]);
-  }
-
   const keptBotMessages = mainProps.botMessages.filter(
-    (subArray) =>
+    (bm) =>
       !(
-        JSON.stringify(JSON.parse(subArray.key).slice(0, arr.length)) ===
-        event.target.id
+        JSON.stringify(JSON.parse(bm.key).slice(0, selectedKeyArr.length)) ===
+        selectedKey
       )
   );
   // console.log("keptBotMessages", keptBotMessages);
-  mainProps.setBotMessages((bm) => keptBotMessages);
+  // return;
+  // console.log("keptUserMessages", keptUserMessages);
+  const maxUID = getMaxGlobalIdUser(mainProps.userMessages);
+
+  if (keptUserMessages.length === 0) {
+    // only branch
+    mainProps.setUserMessages(() => [
+      {
+        key: "[1]",
+        content: "",
+        role: "user",
+        globalIdUser: 1,
+      },
+    ]);
+    mainProps.setBotMessages((bms) => []);
+    toast({
+      title: "Branch Removed",
+      // description: "There was a problem with your request.",
+    });
+    return;
+  }
+  // user messages are left after remove
+  if (siblingBool) {
+    // console.log("removing the whole branch. siblings will cover");
+    mainProps.setUserMessages((ums) => keptUserMessages);
+    mainProps.setBotMessages((bms) => keptBotMessages);
+
+    toast({
+      title: "Branch Removed",
+    });
+    return;
+  }
+  // no sibling to cover for it => it new userMessage to cover
+  // console.log("no sibling to cover for it => add new userMessage to cover");
+  mainProps.setUserMessages((um) => [
+    ...keptUserMessages,
+    {
+      key: selectedKey,
+      content: "",
+      role: "user",
+      globalIdUser: maxUID + 1,
+    },
+  ]);
+  mainProps.setBotMessages((bms) => keptBotMessages);
+
   toast({
     title: "Branch Removed",
-    // description: "There was a problem with your request.",
   });
-  //   console.log("userMessages", mainProps.userMessages);
-  //
-}
-
-//
-export function getBranchSplitKey({ currentIdUser, userMessages }) {
-  // console.log("globalIdUser", globalIdUser);
-  // first user message -> maximize
-  // if (currentIdUser <= 1) {
-  //   return JSON.stringify([1]);
-  // }
-  // find user message with globalIdUser
-  const thisUserMessage = userMessages.find(
-    (userMessage) => userMessage.globalIdUser === currentIdUser
-  );
-  const messageKey = thisUserMessage?.key;
-  const splitBranchKey = checkParentSplit(messageKey, userMessages);
-  // console.log("splitBranchKey", splitBranchKey);
-  if (splitBranchKey) {
-    return splitBranchKey;
-  }
-  // console.log("splitBranchKey NOT FOUND", splitBranchKey);
-
   return;
 }
-//
-function checkParentSplit(key, userMessages) {
-  // console.log("key", key);
-  const array = JSON.parse(key);
-  if (array.length === 1) {
-    // it is root array
-    // console.log("root branch", key);
-    return key;
-  }
-  // console.log("array", array);
-  // check to see how many siblings this branch has
+
+export function hasSiblings({ selectedKey, userMessages }) {
+  // console.log("selectedKey", selectedKey);
+  const selectedKeyArr = JSON.parse(selectedKey);
+  const parentArr = selectedKeyArr.slice(0, -1);
+  const parentString = JSON.stringify(parentArr);
+  // console.log("parentString", parentString);
+  // console.log("userMessages", userMessages);
   const siblings = userMessages.filter(
     (um) =>
-      JSON.parse(um.key).length === JSON.parse(key).length && // same length
-      // same parents
-      JSON.stringify(JSON.parse(um.key).slice(0, -1)) ===
-        JSON.stringify(JSON.parse(key).slice(0, -1))
+      JSON.stringify(JSON.parse(um.key).slice(0, -1)) === parentString &&
+      um.key !== selectedKey
   );
   // console.log("siblings", siblings);
-  if (siblings.length > 1) {
-    // console.log("siblings.length>1", siblings.length);
-
-    return key;
+  if (siblings.length > 0) {
+    return true;
+  } else {
+    return false;
   }
-  let parentArray = array.slice(0, -1);
-  // console.log("parentArray", parentArray);
-  // for instace parentArray [2, 1, 1]
-  return checkParentSplit(JSON.stringify(parentArray), userMessages);
 }

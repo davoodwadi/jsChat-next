@@ -1351,4 +1351,5 @@ sampleTextWithLink.push("The main topics are here...\n");
 sampleTextWithLink.push("<tool>");
 sampleTextWithLink.push("call a tool\n");
 sampleTextWithLink.push("</tool>");
+sampleTextWithLink.push("# Heading\n\n");
 sampleTextWithLink.push("The rest of the text");

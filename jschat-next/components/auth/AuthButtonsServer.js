@@ -1,6 +1,8 @@
 import { auth } from "@/auth";
 import { SignButton } from "@/components/auth/AuthButtonsClient";
 import { signinAction, signoutAction } from "@/components/auth/authActions";
+import { Loader2, LogOut, LogIn } from "lucide-react";
+
 // import { delay } from "@/lib/myTools";
 
 export default async function AuthButton(props) {
@@ -12,13 +14,21 @@ export default async function AuthButton(props) {
   if (session?.user) {
     return (
       <div {...props}>
-        <SignButton authFunction={signoutAction} authText="Sign out" />
+        <SignButton
+          authFunction={signoutAction}
+          authIcon={<LogOut />}
+          authText={"Sign Out"}
+        />
       </div>
     );
   } else {
     return (
       <div {...props}>
-        <SignButton authFunction={signinAction} authText="Sign in" />
+        <SignButton
+          authFunction={signinAction}
+          authIcon={<LogIn />}
+          authText={"Sign In"}
+        />
       </div>
     );
   }

@@ -109,8 +109,8 @@ const ImageUploader = ({ base64Image, setBase64Image, showPreview = true }) => {
     setBase64Image("");
   };
   return (
-    <div className="flex items-center gap-4">
-      <label className=" my-auto mr-6 p-2 rounded cursor-pointer hover:bg-gray-400 dark:hover:bg-gray-800">
+    <div className="flex items-center  glass-button !rounded-full w-8 h-8 p-0 ">
+      <label className="mx-auto cursor-pointer">
         <ImagePlus className={`w-4 h-4 ${isProcessing && "animate-pulse"}`} />
         <input
           type="file"

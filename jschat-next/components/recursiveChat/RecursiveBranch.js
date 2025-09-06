@@ -15,7 +15,6 @@ import Branch from "./Branch";
 
 export default function RecursiveBranch(props) {
   // console.log("RecursiveBranch props", props);
-  // console.log('runtime', typeof globalThis)
 
   // tempMessages should be messages whose length is props.parentKey.length+1
   // and .slice(0,-1) JSON.stringify is equal to parent
@@ -49,10 +48,11 @@ export default function RecursiveBranch(props) {
           {tempUserMessages.map((tm, i) => {
             return (
               <Branch
+                {...props}
                 tm={tm}
                 key={`${props.level} ${i}`}
-                id={`${props.level} ${i}`}
-                {...props}
+                id={tm.key}
+                globalIdUser={props.globalIdUser}
               />
             );
           })}

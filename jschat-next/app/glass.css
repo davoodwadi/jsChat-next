@@ -1,0 +1,554 @@
+/* app/glass.css */
+
+/* Base glass effects */
+.glass {
+  @apply bg-white/5 dark:bg-black/20 backdrop-blur-2xl border border-white/25  dark:border-white/10;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.glass-dark {
+  @apply bg-black/80 dark:bg-white/20 backdrop-blur-2xl border border-black/95  dark:border-black/10;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.glass-hover {
+  @apply hover:bg-white/20 dark:hover:bg-black/30 hover:border-white/30 dark:hover:border-white/20 transition-all duration-300;
+}
+.glass-hover-dark {
+  @apply hover:bg-black/40 dark:hover:bg-white/30 hover:border-white/30 dark:hover:border-white/20 transition-all duration-300;
+}
+
+.glass-subtle {
+  @apply bg-white/5 dark:bg-black/10 backdrop-blur-xl border border-white/10 dark:border-white/10;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.glass-strong {
+  @apply bg-white/65 dark:bg-black/30 backdrop-blur-3xl border border-white/25 dark:border-white/20;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.16);
+}
+
+/* Glass overlays */
+.glass-overlay {
+  @apply absolute inset-0 bg-gradient-to-br from-white/20 via-white/5 to-transparent dark:from-white/10 dark:via-white/5 dark:to-transparent pointer-events-none;
+}
+
+.glass-overlay-top {
+  @apply absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-white/10 dark:to-white/5 pointer-events-none;
+}
+
+/* Specific component glasses */
+.glass-button {
+  @apply glass glass-hover text-foreground/70 hover:text-foreground/90 rounded-xl shadow-md hover:shadow-lg active:scale-95;
+}
+.glass-button-dark {
+  @apply glass-dark glass-hover-dark text-white/90 hover:text-foreground/90 rounded-xl shadow-md hover:shadow-lg active:scale-95;
+}
+
+/* NEW: Base style for the enabled dark glass effect START */
+.glass-yellow {
+  /* --- Light Mode --- */
+  @apply bg-yellow-500/20 border border-yellow-400/30 backdrop-blur-xl;
+
+  /* --- Dark Mode --- */
+  @apply dark:bg-yellow-500/30 dark:border-yellow-400/50;
+
+  /*
+    We use a CSS variable for the shadow to easily switch it for dark mode.
+  */
+  --glow-shadow-color: rgba(234, 179, 8, 0.2); /* Light mode glow */
+  box-shadow: 0 8px 32px var(--glow-shadow-color);
+}
+
+/* This rule applies the stronger glow ONLY when .dark class is on the html tag */
+.dark .glass-yellow {
+  --glow-shadow-color: rgba(
+    234,
+    179,
+    8,
+    0.35
+  ); /* Dark mode glow (more intense) */
+}
+
+/* 
+  NEW & IMPROVED: The complete, theme-aware enabled button.
+*/
+.glass-button-yellow-enabled {
+  /* 1. Apply our new base yellow glass effect */
+  @apply glass-yellow;
+
+  /* 2. Define text/icon color for BOTH modes */
+  @apply text-black/80 fill-current; /* Light mode: dark icon */
+  @apply dark:text-yellow-100 dark:fill-yellow-100; /* Dark mode: bright icon */
+
+  /* 3. Add standard button styles */
+  @apply rounded-xl shadow-md active:scale-95 transition-all duration-300;
+
+  /* 4. Define hover states for BOTH modes */
+  @apply hover:bg-yellow-500/30 hover:border-yellow-400/50; /* Light mode hover */
+  @apply dark:hover:bg-yellow-500/40 dark:hover:border-yellow-400/60; /* Dark mode hover */
+}
+/* NEW: Base style for the enabled dark glass effect END*/
+
+.glass-card {
+  @apply glass rounded-2xl relative;
+}
+
+.glass-dialog {
+  @apply glass-strong rounded-3xl relative;
+}
+
+.glass-input {
+  @apply glass-subtle rounded-xl focus:bg-white/10 dark:focus:bg-black/20 focus:border-white/30 dark:focus:border-white/20 transition-all duration-200;
+}
+
+.glass-floating {
+  @apply glass glass-hover rounded-full shadow-lg hover:shadow-xl;
+}
+
+/* Glass textures */
+.glass-texture {
+  position: relative;
+}
+
+.glass-texture::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.02;
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 2px,
+    rgba(255, 255, 255, 0.1) 2px,
+    rgba(255, 255, 255, 0.1) 4px
+  );
+  pointer-events: none;
+}
+
+/* noise  */
+/* Add subtle noise to existing glass classes */
+.glass-noise {
+  position: relative;
+}
+
+.glass-noise::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.015;
+  background-image:
+    radial-gradient(
+      circle at 20% 80%,
+      rgba(120, 120, 120, 0.3) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 20%,
+      rgba(120, 120, 120, 0.3) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 40% 40%,
+      rgba(120, 120, 120, 0.3) 0%,
+      transparent 50%
+    );
+  background-size:
+    100px 100px,
+    80px 80px,
+    60px 60px;
+  background-position:
+    0 0,
+    40px 60px,
+    130px 270px;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.dark .glass-noise::after {
+  background-image:
+    radial-gradient(
+      circle at 20% 80%,
+      rgba(255, 255, 255, 0.08) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 20%,
+      rgba(255, 255, 255, 0.08) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 40% 40%,
+      rgba(255, 255, 255, 0.08) 0%,
+      transparent 50%
+    );
+}
+
+/* Film grain noise */
+.glass-grain {
+  position: relative;
+}
+
+.glass-grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.03;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.03) 2px,
+      rgba(0, 0, 0, 0.03) 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.03) 2px,
+      rgba(0, 0, 0, 0.03) 4px
+    );
+  background-size:
+    20px 20px,
+    20px 20px;
+  background-position:
+    0 0,
+    10px 10px;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.dark .glass-grain::before {
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(255, 255, 255, 0.02) 2px,
+      rgba(255, 255, 255, 0.02) 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(255, 255, 255, 0.02) 2px,
+      rgba(255, 255, 255, 0.02) 4px
+    );
+}
+/* Frosted glass effect */
+.glass-frosted {
+  position: relative;
+}
+
+.glass-frosted::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.008;
+  background:
+    radial-gradient(circle at 25% 25%, #000 1px, transparent 1px),
+    radial-gradient(circle at 75% 75%, #000 1px, transparent 1px);
+  background-size:
+    15px 15px,
+    15px 15px;
+  background-position:
+    0 0,
+    7px 7px;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.dark .glass-frosted::after {
+  background:
+    radial-gradient(circle at 25% 25%, #fff 0.5px, transparent 0.5px),
+    radial-gradient(circle at 75% 75%, #fff 0.5px, transparent 0.5px);
+}
+
+/* Additional variants */
+.glass-success {
+  @apply glass bg-green-500/10 border-green-400/20 dark:border-green-400/20;
+}
+
+.glass-warning {
+  @apply glass bg-yellow-500/10 border-yellow-400/20 dark:border-yellow-400/20;
+}
+
+.glass-error {
+  @apply glass bg-red-500/10 border-red-400/20 dark:border-red-400/20;
+}
+
+.glass-info {
+  @apply glass bg-blue-500/10 border-blue-400/20 dark:border-blue-400/20;
+}
+
+/* Additional utility classes */
+.glass-navbar {
+  @apply glass backdrop-blur-xl border-b border-white/10 dark:border-white/10;
+}
+
+.glass-sidebar {
+  @apply glass-subtle backdrop-blur-2xl border-r border-white/10 dark:border-white/10;
+}
+
+.glass-tooltip {
+  @apply glass-strong text-sm px-3 py-1 rounded-lg;
+}
+
+/* Glass with subtle noise */
+.glass-subtle-noise {
+  @apply glass glass-noise;
+}
+
+.glass-card-noise {
+  @apply glass-card glass-noise;
+}
+
+.glass-button-noise {
+  @apply glass-button glass-grain;
+}
+
+.glass-dialog-noise {
+  @apply glass-dialog glass-frosted;
+}
+
+/* Layout glassmorphic styles - Very subtle */
+.glass-layout {
+  font-family:
+    var(--font-geist-sans),
+    system-ui,
+    -apple-system,
+    sans-serif;
+  background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+  min-height: 100vh;
+  position: relative;
+  /* overflow-x: hidden; */
+}
+
+/* Dark theme background - Minimal */
+.dark .glass-layout {
+  background: linear-gradient(135deg, #0a0a0a 0%, #111111 100%);
+}
+
+/* Glassmorphic background container */
+.glass-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  /* overflow: hidden; */
+  pointer-events: none;
+}
+
+/* Very subtle animated orbs - barely visible */
+.glass-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.03;
+  animation: float 40s ease-in-out infinite;
+}
+
+.glass-orb-1 {
+  /* width: 400px; */
+  height: 400px;
+  background: linear-gradient(45deg, #f9f9f9, #f5f5f5);
+  top: -200px;
+  left: -200px;
+  animation-delay: 0s;
+}
+
+.glass-orb-2 {
+  /* width: 500px; */
+  height: 500px;
+  background: linear-gradient(45deg, #f7f7f7, #f3f3f3);
+  top: 40%;
+  right: -250px;
+  animation-delay: -15s;
+}
+
+.glass-orb-3 {
+  /* width: 350px; */
+  height: 350px;
+  background: linear-gradient(45deg, #fbfbfb, #f8f8f8);
+  bottom: -175px;
+  left: 25%;
+  animation-delay: -30s;
+}
+
+/* Dark theme orbs - extremely subtle */
+.dark .glass-orb-1 {
+  background: linear-gradient(45deg, #1a1a1a, #151515);
+  opacity: 0.015;
+}
+
+.dark .glass-orb-2 {
+  background: linear-gradient(45deg, #171717, #131313);
+  opacity: 0.015;
+}
+
+.dark .glass-orb-3 {
+  background: linear-gradient(45deg, #1c1c1c, #161616);
+  opacity: 0.015;
+}
+
+/* Very slow, subtle floating animation */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Barely visible grid pattern */
+.glass-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.008;
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.02) 1px, transparent 1px);
+  background-size: 80px 80px;
+}
+
+.dark .glass-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.005) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.005) 1px, transparent 1px);
+}
+
+/* Minimal scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.18);
+}
+
+/* .dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.05);
+} */
+
+/* .dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.08);
+} */
+
+/* Minimal glass toaster styling */
+[data-sonner-toast] {
+  backdrop-filter: blur(12px) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  border-radius: 8px !important;
+}
+
+.dark [data-sonner-toast] {
+  background: rgba(0, 0, 0, 0.9) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Subtle text selection */
+::selection {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.dark ::selection {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Smooth transitions */
+* {
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+/* Add this to your glass.css file */
+
+/* Force dialog positioning - override shadcn defaults */
+[data-radix-dialog-content] {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  max-height: 90vh !important;
+  /* width: 90vw !important; */
+  max-width: 500px !important;
+  margin: 0 !important;
+  z-index: 100 !important;
+}
+
+/* Ensure dialog overlay covers full screen */
+[data-radix-dialog-overlay] {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 99 !important;
+}
+
+/* model selector */
+/* Add to your glass.css */
+
+/* Glass popover */
+.glass-popover {
+  @apply glass-strong border border-white/20 dark:border-white/10 rounded-2xl;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+/* Glass command palette */
+.glass-command {
+  @apply bg-transparent border-none;
+}
+.glass-command-input {
+  @apply glass-input border-0 border-b border-white/10 dark:border-white/10 rounded-none px-4 py-3 text-sm;
+  margin: 0 !important;
+}
+.glass-command [cmdk-input-wrapper] {
+  padding: 8px 12px !important;
+}
+
+.glass-command [cmdk-input] {
+  padding: 8px 12px !important;
+  margin: 0 !important;
+}
+
+.glass-command-item {
+  @apply hover:bg-white/5 dark:hover:bg-white/5 transition-colors duration-150 rounded-lg mx-2 px-3;
+}
+
+.glass-command-group {
+  @apply border-b border-white/5 dark:border-white/5 last:border-b-0 pb-2 mb-2 last:mb-0;
+}
+
+.glass-trigger-button {
+  @apply glass-button border-white/20 dark:border-white/10 hover:border-white/30 dark:hover:border-white/20;
+}
+
+.glass-badge {
+  @apply bg-white/10 dark:bg-white/5 border border-white/20 dark:border-white/10 text-foreground/70;
+}
+
+.glass-badge-secondary {
+  @apply bg-white/5 dark:bg-white/5 border border-white/15 dark:border-white/80 text-foreground/60;
+}

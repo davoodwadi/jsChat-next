@@ -17,6 +17,7 @@ import { useSidebar } from "@/components/ui/sidebar";
 
 import RecursiveBranch from "./RecursiveBranch";
 import { Button } from "../ui/button";
+import { hasSiblings } from "./Branch";
 
 export function RecursiveChatContainer(props) {
   // console.log("starting RecursiveChatContainer");
@@ -47,7 +48,9 @@ export function RecursiveChatContainer(props) {
   // load history if exists
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [botMessageFinished, setBotMessageFinished] = useState(false);
-
+  const [branchKeyToMaximize, setBranchKeyToMaximize] = useState(
+    JSON.stringify([1])
+  );
   useEffect(() => {
     const loadHistory = async () => {
       // console.log("loading history for ", props.chatId);
@@ -62,6 +65,8 @@ export function RecursiveChatContainer(props) {
         // props.setIsBookmarked(thisSession?.bookmarked);
         setUserMessages(thisSession?.content?.userMessages);
         setBotMessages(thisSession?.content?.botMessages);
+        const maxUID = getMaxGlobalIdUser(thisSession.content.userMessages);
+        setGlobalIdUser(maxUID);
         if (!thisSession?.content?.systemPrompt) {
           props.setSystemPrompt("");
         } else {
@@ -93,23 +98,25 @@ export function RecursiveChatContainer(props) {
     }
   }, [botMessages]);
   // console.log("botMessages", botMessages);
-  const [branchKeyToMaximize, setBranchKeyToMaximize] = useState(
-    JSON.stringify([1])
-  );
 
   useEffect(() => {
     const newBranchKeyToMaximize = getBranchKeyToMaximize({
-      globalIdUser,
       userMessages,
     });
+    // console.log(
+    //   "globalIdUser changed to",
+    //   globalIdUser,
+    //   "newBranchKeyToMaximize is",
+    //   newBranchKeyToMaximize
+    // );
     setBranchKeyToMaximize(newBranchKeyToMaximize);
-  }, [globalIdUser]);
+  }, [globalIdUser, userMessages]);
   // console.log("branchKeyToMaximize", branchKeyToMaximize);
   // console.log("globalIdUser", globalIdUser);
   const { open } = useSidebar();
 
   let chatContainerClass =
-    "  overflow-y-auto overflow-x-auto h-[70vh] rounded-xl mx-auto"; // flex flex-col overflow-auto
+    " h-[83vh] rounded-xl mx-auto overflow-y-auto overflow-x-auto"; // flex flex-col overflow-auto
   if (!open) {
     chatContainerClass += " w-[90vw] md:w-[90vw] ";
   } else {
@@ -154,6 +161,7 @@ export function RecursiveChatContainer(props) {
                   setGlobalIdUser={setGlobalIdUser}
                   model={props.model}
                   branchKeyToMaximize={branchKeyToMaximize}
+                  setBranchKeyToMaximize={setBranchKeyToMaximize}
                   setBotMessageFinished={setBotMessageFinished}
                   isStreaming={isStreaming}
                   setIsStreaming={setIsStreaming}
@@ -224,26 +232,46 @@ export default function ChatContainer(props) {
   );
 }
 
+export function findSingleParent(key, userMessages) {
+  // console.log("key", key);
+  const singleParentKey = getBranchToMaxBasedOnSiblings({ key, userMessages });
+  return singleParentKey;
+}
+function getBranchToMaxBasedOnSiblings({ key, userMessages }) {
+  // console.log("key", key);
+  const keyArr = JSON.parse(key);
+  const siblingsBool = hasSiblings({ selectedKey: key, userMessages });
+  // console.log("siblingsBool", siblingsBool);
+  if (siblingsBool) {
+    // console.log("has siblings", "maximize it");
+    return key;
+  } else {
+    // check the parent
+    const parentArr = keyArr.slice(0, -1);
+    const parent = JSON.stringify(parentArr);
+    // console.log("parent", parent);
+    // check parent for root
+    if (parentArr.length === 0) {
+      // console.log("is root", "maximize it");
+      return key;
+    } else {
+      // console.log("checking parent", parent);
+      return getBranchToMaxBasedOnSiblings({ key: parent, userMessages });
+    }
+  }
+}
 //
-export function getBranchKeyToMaximize({ globalIdUser, userMessages }) {
-  // console.log("globalIdUser", globalIdUser);
-  // first user message -> maximize
-  if (globalIdUser <= 1) {
-    return JSON.stringify([1]);
-  }
-  // find user message with globalIdUser
-  const thisUserMessage = userMessages.find(
-    (userMessage) => userMessage.globalIdUser === globalIdUser
+export function getBranchKeyToMaximize({ userMessages }) {
+  const maxUID = getMaxGlobalIdUser(userMessages);
+  // console.log("getBranchKeyToMaximize maxUID", maxUID);
+  const userMessageWithMaxUID = userMessages.find(
+    (um) => um.globalIdUser === maxUID
   );
-  const messageKey = thisUserMessage?.key;
-  const branchToMaxInfo = checkParentBranch(messageKey);
-  // console.log("branchToMaxInfo", branchToMaxInfo);
-  if (branchToMaxInfo.final) {
-    return branchToMaxInfo.key;
-  }
-  console.log("getBranchKeyToMaximize NOT FOUND", branchToMaxInfo.final);
-
-  return;
+  // console.log("userMessageWithMaxUID", userMessageWithMaxUID);
+  const key = userMessageWithMaxUID.key;
+  const keyToMax = findSingleParent(key, userMessages);
+  // console.log("keyToMax", keyToMax);
+  return keyToMax;
 }
 //
 function checkParentBranch(key) {
@@ -272,4 +300,10 @@ function checkParentBranch(key) {
     // for instace parentArray [2, 1, 1]
     return checkParentBranch(JSON.stringify(parentArray));
   }
+}
+
+export function getMaxGlobalIdUser(userMessages) {
+  const maxUID = Math.max(...userMessages.map((m) => m.globalIdUser));
+  // console.log("maxUID", maxUID);
+  return maxUID;
 }

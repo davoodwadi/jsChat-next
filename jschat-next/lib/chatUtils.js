@@ -118,14 +118,14 @@ export async function handleSubmit({
 
     // is old
     newGlobalIdUser = globalIdUser + 1;
-    setGlobalIdUser(newGlobalIdUser);
+    newNewGlobalIdUser = globalIdUser + 2;
+    setGlobalIdUser(newNewGlobalIdUser);
     newUserMessage = {
       key: JSON.stringify(array), // new horizontal branch key
       globalIdUser: newGlobalIdUser,
       content: multimediaMessage,
       role: "user",
     };
-    newNewGlobalIdUser = newGlobalIdUser + 1;
 
     setUserMessages((m) => [...m, newUserMessage]);
 

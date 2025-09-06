@@ -72,13 +72,16 @@
     "resend": "^4.0.1",
     "stripe": "^17.4.0",
     "tailwind-merge": "^2.5.5",
+    "tailwind-scrollbar-hide": "^4.0.0",
     "tailwindcss-animate": "^1.0.7",
+    "tailwindcss-opentype": "^1.1.0",
     "unified": "^11.0.5",
     "unist-util-visit": "^5.0.0",
     "uuid": "^11.0.3",
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@tailwindcss/typography": "^0.5.16",
     "@types/node": "22.10.1",
     "@types/react": "18.3.12",
     "eslint": "^8",

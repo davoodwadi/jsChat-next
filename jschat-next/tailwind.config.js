@@ -114,5 +114,11 @@ module.exports = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    // require("./tailwind-glass-plugin"),
+    require("tailwindcss-animate"),
+    require("@tailwindcss/typography"),
+    // require("tailwind-scrollbar-hide"),
+    require("tailwindcss-opentype"),
+  ],
 };

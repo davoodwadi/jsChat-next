@@ -50,7 +50,7 @@ export default function UserMessage({
   //   console.log("User props.id", props.id);
   // console.log("User props.children", props.children);
   let baseUserClass = "  flex flex-col items-center p-4 m-1 rounded-xl "; //border-2 border-blue-500 min-w-fit
-  baseUserClass += `bg-gray-100 dark:bg-gray-900 `; // bg-sky-50 dark:bg-sky-600
+  baseUserClass += `bg-gray-100 dark:bg-zinc-900 `; // bg-sky-50 dark:bg-sky-600
   const maxTextareHeight = 300;
   const textareaClass = `min-w-40 md:min-w-64 mx-4 p-2.5 
 text-gray-950
@@ -117,6 +117,18 @@ min-h-[2.5rem] overflow-y-auto
   }, [refUser.current]);
   // focus to Textarea on mount END
 
+  // focus to latest textarea on mount
+  // useEffect(() => {
+  //   console.log("refUser.current", refUser.current);
+  //   if (refUser.current) {
+  //     if (props.tm.globalIdUser === props.maxUID) {
+  //       refUser.current.scrollIntoView({
+  //         block: "center",
+  //         inline: "center",
+  //       });
+  //     }
+  //   }
+  // }, [refUser.current]);
   // Create a reusable resize function
   const resizeTextarea = useCallback(
     (textarea) => {
@@ -132,6 +144,12 @@ min-h-[2.5rem] overflow-y-auto
   useLayoutEffect(() => {
     resizeTextarea(refUser.current);
   }, [finalValue, resizeTextarea]);
+  // console.log(userMessageModelInfo.model.name);
+  // console.log("props", props);
+  // console.log("refUser.current", refUser.current);
+  // console.log("props.maxUID", props.maxUID);
+  // console.log("props.tm.globalIdUser", props.tm.globalIdUser);
+  // console.log("props.tm.globalIdUser", props.tm.globalIdUser === props.maxUID);
 
   return (
     <>
@@ -215,11 +233,12 @@ min-h-[2.5rem] overflow-y-auto
           {/* search START */}
           {userMessageModelInfo?.model?.hasSearch && (
             <Button
-              variant={
-                userMessageModelInfo.modelConfig.search ? "default" : "outline"
-              }
               size="sm"
-              className="my-auto "
+              className={
+                userMessageModelInfo.modelConfig.search
+                  ? "glass-button-dark !rounded-full w-8 h-8 p-0 "
+                  : "glass-button !rounded-full w-8 h-8 p-0 "
+              }
               onClick={() => {
                 setUserMessageModelInfo((prev) => {
                   return {
@@ -232,7 +251,7 @@ min-h-[2.5rem] overflow-y-auto
                 });
               }}
             >
-              High Search <Search />
+              <Search />
             </Button>
           )}
           {/* search END */}
@@ -240,11 +259,12 @@ min-h-[2.5rem] overflow-y-auto
           {/* agentic START */}
           {userMessageModelInfo?.model?.hasAgentic && (
             <Button
-              variant={
-                userMessageModelInfo.modelConfig.agentic ? "default" : "outline"
-              }
               size="sm"
-              className="my-auto "
+              className={
+                userMessageModelInfo.modelConfig.agentic
+                  ? "glass-button-dark !rounded-full w-8 h-8 p-0 "
+                  : "glass-button !rounded-full w-8 h-8 p-0 "
+              }
               onClick={() => {
                 setUserMessageModelInfo((prev) => {
                   return {
@@ -257,7 +277,6 @@ min-h-[2.5rem] overflow-y-auto
                 });
               }}
             >
-              Agentic
               <HatGlasses />
             </Button>
           )}
@@ -266,13 +285,12 @@ min-h-[2.5rem] overflow-y-auto
           {/* academic START */}
           {userMessageModelInfo?.model?.hasAcademic && (
             <Button
-              variant={
-                userMessageModelInfo.modelConfig.academic
-                  ? "default"
-                  : "outline"
-              }
               size="sm"
-              className="my-auto "
+              className={
+                userMessageModelInfo.modelConfig.academic
+                  ? "glass-button-dark !rounded-full w-8 h-8 p-0 "
+                  : "glass-button !rounded-full w-8 h-8 p-0 "
+              }
               onClick={() => {
                 setUserMessageModelInfo((prev) => {
                   return {
@@ -285,7 +303,6 @@ min-h-[2.5rem] overflow-y-auto
                 });
               }}
             >
-              Academic
               <GraduationCap />
             </Button>
           )}
@@ -294,13 +311,12 @@ min-h-[2.5rem] overflow-y-auto
           {/* deep research START */}
           {userMessageModelInfo?.model?.hasDeepResearch && (
             <Button
-              variant={
-                userMessageModelInfo.modelConfig.deepResearch
-                  ? "default"
-                  : "outline"
-              }
               size="sm"
-              className="my-auto "
+              className={
+                userMessageModelInfo.modelConfig.deepResearch
+                  ? "glass-button-dark !rounded-full w-8 h-8 p-0 "
+                  : "glass-button !rounded-full w-8 h-8 p-0 "
+              }
               onClick={() => {
                 setUserMessageModelInfo((prev) => {
                   return {
@@ -313,7 +329,7 @@ min-h-[2.5rem] overflow-y-auto
                 });
               }}
             >
-              Deep Research <Microscope />
+              <Microscope />
             </Button>
           )}
           {/* deep research END */}
@@ -332,7 +348,7 @@ min-h-[2.5rem] overflow-y-auto
                 ...v,
                 model: selectedModel,
               }));
-              props.setModel(selectedModel);
+              // props.setModel(selectedModel);
             }}
           />
           {/* model select END */}
@@ -341,7 +357,7 @@ min-h-[2.5rem] overflow-y-auto
           <Button
             variant="ghost"
             size="sm"
-            className="my-auto"
+            className="glass-button !rounded-full w-8 h-8 p-0"
             onClick={() => {
               setFinalValue("");
               setBase64Image("");
@@ -363,6 +379,7 @@ min-h-[2.5rem] overflow-y-auto
 
           {/* send START */}
           <Button
+            className="glass-button-dark !rounded-full w-8 h-8 p-0"
             variant="default"
             size="sm"
             onClick={(e) => {
@@ -395,16 +412,9 @@ min-h-[2.5rem] overflow-y-auto
             }}
           >
             {isStreaming ? (
-              <span className="inline-flex text-sm items-center">
-                <Square className="mx-2" />{" "}
-                <span className="hidden sm:block">Stop</span>&nbsp;
-              </span>
+              <Square className="mx-2  w-4 h-4" />
             ) : (
-              <span className="inline-flex text-sm items-center">
-                <SendHorizontal className="mx-2" />{" "}
-                <span className="hidden sm:block">Send</span>&nbsp;
-                <span className="text-gray-500 hidden md:block"> Ctrl + ↵</span>
-              </span>
+              <SendHorizontal className="mx-2 w-4 h-4" />
             )}
           </Button>
           {/* send END */}

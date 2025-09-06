@@ -1,4 +1,5 @@
 import "./globals.css";
+import "./glass.css";
 
 import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
@@ -35,7 +36,9 @@ export const metadata = {
 export default async function RootLayout({ params, children }) {
   return (
     <html lang="en" suppressHydrationWarning className="light">
-      <body className={`${geistSans.className} antialiased`}>
+      <body
+        className={`${geistSans.className} antialiased glass-layout overflow-x-hidden`}
+      >
         <ThemeProvider
           attribute="class"
           // defaultTheme="dark"

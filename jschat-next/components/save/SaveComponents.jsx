@@ -1,24 +1,27 @@
 "use client";
 
 import { SaveButtonsTooltip } from "@/components/save/SaveButtonsTooltip";
-import { HardDriveUpload, Save, RotateCcw } from "lucide-react";
+import { HardDriveUpload, Save, RotateCcw, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import * as React from "react";
 
 import { saveChatSession, loadChatSession } from "@/lib/save/saveActions";
 import { useRouter } from "next/navigation";
 import { generateChatId, generateCanvasId } from "@/lib/chatUtils";
-import { useState } from "react";
-
+import { useState, useTransition } from "react";
+import {
+  toggleBookmarkChatSession,
+  getBookmarkStatus,
+} from "@/lib/save/saveActions";
 import {
   createSaveChatSessionParams,
-  createSaveCanvasSessionParams,
-  // SaveChatSessionParams,
-  SaveItemParams,
-  SaveItemCanvasParams,
+  //   createSaveCanvasSessionParams,
+  //   // SaveChatSessionParams,
+  //   SaveItemParams,
+  //   SaveItemCanvasParams,
 } from "@/app/types/types";
 
-export default function SaveItems(params: SaveItemParams) {
+export default function SaveItems(props) {
   // console.log("SaveItems userMessages", userMessages);
   // console.log("SaveItems botMessages", botMessages);
   // console.log("SaveItems props", props);
@@ -28,8 +31,28 @@ export default function SaveItems(params: SaveItemParams) {
   const [loadingSave, setLoadingSave] = useState(false);
   const [loadingLoad, setLoadingLoad] = useState(false);
   const [loadingReset, setLoadingReset] = useState(false);
-  const chatId = params.chatId;
+  const [loadingBookmark, setLoadingBookmark] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  const handleToggleBookmark = () => {
+    startTransition(async () => {
+      const res = await toggleBookmarkChatSession({ chatId: chatId });
+      router.refresh();
+    });
+  };
+  const chatId = props.chatId;
   const elements = [
+    {
+      Element: Star,
+      text: "Bookmark",
+      loading: loadingBookmark,
+      enabled: props.bookmarked,
+      onClickFn: async () => {
+        setLoadingBookmark(true);
+        await handleToggleBookmark();
+        setLoadingBookmark(false);
+      },
+    },
     {
       Element: HardDriveUpload,
       text: "Load",
@@ -52,13 +75,13 @@ export default function SaveItems(params: SaveItemParams) {
           const content = thisSession.content;
           // console.log(`CLIENT: content`, content);
 
-          params.setUserMessages(content.userMessages);
-          params.setBotMessages(content.botMessages);
+          props.setUserMessages(content.userMessages);
+          props.setBotMessages(content.botMessages);
           if (!content?.systemPrompt) {
             // console.log("no system prompt", "setting it to empty string");
-            params.setSystemPrompt("");
+            props.setSystemPrompt("");
           } else {
-            params.setSystemPrompt(content.systemPrompt);
+            props.setSystemPrompt(content.systemPrompt);
           }
           toast({
             variant: "default",
@@ -75,8 +98,8 @@ export default function SaveItems(params: SaveItemParams) {
       loading: loadingSave,
       onClickFn: () => {
         setLoadingSave(true);
-        console.log(`CLIENT: save ${params.chatId}`);
-        const saveChatSessionParams = createSaveChatSessionParams(params);
+        console.log(`CLIENT: save ${props.chatId}`);
+        const saveChatSessionParams = createSaveChatSessionParams(props);
         saveChatSession(saveChatSessionParams);
         toast({
           variant: "default",
@@ -103,13 +126,13 @@ export default function SaveItems(params: SaveItemParams) {
     },
   ];
   return (
-    <div className="flex flex-row mx-auto mt-2">
+    <div className="flex flex-row mx-auto mt-2 fixed bottom-6 z-50">
       <SaveButtonsTooltip elements={elements} />
     </div>
   );
 }
 
-export function SaveItemsCanvas(params: SaveItemCanvasParams) {
+export function SaveItemsCanvas(params) {
   // console.log("SaveItems userMessages", userMessages);
   // console.log("SaveItems botMessages", botMessages);
   // console.log("SaveItems props", props);
@@ -207,7 +230,7 @@ export function SaveItemsCanvas(params: SaveItemCanvasParams) {
     },
   ];
   return (
-    <div className="flex flex-row mx-auto mt-2">
+    <div className="flex flex-row mx-auto mt-2 ">
       <SaveButtonsTooltip elements={elements} />
     </div>
   );

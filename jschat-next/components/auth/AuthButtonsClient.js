@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, LogOut } from "lucide-react";
 import { useState } from "react";
 
 export function SignButton(props) {
@@ -24,13 +24,18 @@ export function SignButton(props) {
   };
   return (
     <form className="flex" onSubmit={clientSignAction}>
-      <Button className="mx-auto" type="submit" disabled={loading}>
+      <Button
+        className="mx-auto glass-button !rounded-full w-10 h-10 p-0"
+        type="submit"
+        disabled={loading}
+        title={props.authText}
+      >
         {loading ? (
           <>
-            <Loader2 className="animate-spin" /> {props.authText}
+            <Loader2 className="animate-spin" />
           </>
         ) : (
-          props.authText
+          props.authIcon
         )}
       </Button>
     </form>
