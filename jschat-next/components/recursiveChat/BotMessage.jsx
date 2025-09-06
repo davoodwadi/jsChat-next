@@ -43,7 +43,7 @@ let baseBotClass = ` p-4 m-1 relative
 export default function BotMessage(props) {
   // console.log("Bot props", props);
   // console.log("props?.botMessage?.status", props?.botMessage?.status);
-  const isLatestBot = props.maxGlobalIdBot === props.globalIdBot;
+  const isLatestBot = props.id === props.branchKeyToMaximize;
   const refRenderedText = useRef(null);
   // console.log("refRenderedText.current", refRenderedText.current);
 
@@ -61,13 +61,16 @@ export default function BotMessage(props) {
     }
   }, [refRenderedText.current]);
   useEffect(() => {
+    console.log("useEffect botmessage fired", props.branchKeyToMaximize);
+
     if (isLatestBot && props?.refElementBot.current) {
+      console.log("props.refElementBot.current", props.refElementBot.current);
       props.refElementBot.current.scrollIntoView({
         block: "center",
         inline: "center",
       });
     }
-  }, [isLatestBot, props.refElementBot]);
+  }, [isLatestBot, props.refElementBot, props.branchKeyToMaximize]);
 
   return (
     <div className={botClass} ref={props.thisBotRef}>

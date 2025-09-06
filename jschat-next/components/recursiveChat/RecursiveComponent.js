@@ -103,12 +103,6 @@ export function RecursiveChatContainer(props) {
     const newBranchKeyToMaximize = getBranchKeyToMaximize({
       userMessages,
     });
-    // console.log(
-    //   "globalIdUser changed to",
-    //   globalIdUser,
-    //   "newBranchKeyToMaximize is",
-    //   newBranchKeyToMaximize
-    // );
     setBranchKeyToMaximize(newBranchKeyToMaximize);
   }, [globalIdUser, userMessages]);
   // console.log("branchKeyToMaximize", branchKeyToMaximize);

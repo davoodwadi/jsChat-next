@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Plus, X, Settings, Check } from "lucide-react";
 import { Button } from "./ui/button";
-// import { FloatingSettingsButtonInner } from "@/components/FloatingGear";
 import {
   Dialog,
   DialogContent,
