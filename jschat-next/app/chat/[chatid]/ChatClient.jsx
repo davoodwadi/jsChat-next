@@ -12,7 +12,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { FloatingSettingsButton } from "./FloatingGear";
+// import { FloatingSettingsButton } from "./FloatingGear";
+import { FloatingActionMenu } from "@/components/FloatingActionMenu";
 const ChatContainer = dynamic(
   () => import("@/components/recursiveChat/RecursiveComponent"),
   {
@@ -90,11 +91,10 @@ export default function ChatClient({ chatId, bookmarked }) {
         </div>
       }
     >
-      <FloatingSettingsButton
+      {/* <FloatingSettingsButton
         systemPrompt={systemPrompt}
         setSystemPrompt={setSystemPrompt}
-      />
-
+      /> */}
       <ChatContainer
         chatId={chatId}
         model={model}

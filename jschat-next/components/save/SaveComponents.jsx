@@ -1,7 +1,7 @@
 "use client";
 
 import { SaveButtonsTooltip } from "@/components/save/SaveButtonsTooltip";
-import { HardDriveUpload, Save, RotateCcw, Star } from "lucide-react";
+import { HardDriveUpload, Save, RotateCcw, Star, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import * as React from "react";
 
@@ -20,6 +20,7 @@ import {
   //   SaveItemParams,
   //   SaveItemCanvasParams,
 } from "@/app/types/types";
+import { FloatingActionMenu } from "@/components/FloatingActionMenu";
 
 export default function SaveItems(props) {
   // console.log("SaveItems userMessages", userMessages);
@@ -32,6 +33,7 @@ export default function SaveItems(props) {
   const [loadingLoad, setLoadingLoad] = useState(false);
   const [loadingReset, setLoadingReset] = useState(false);
   const [loadingBookmark, setLoadingBookmark] = useState(false);
+  const [loadingSystemPrompt, setLoadingSystemPrompt] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const handleToggleBookmark = () => {
@@ -53,13 +55,24 @@ export default function SaveItems(props) {
         setLoadingBookmark(false);
       },
     },
+    // {
+    //   Element: Settings,
+    //   text: "System Prompt",
+    //   loading: loadingSystemPrompt,
+    //   // enabled: props.bookmarked,
+    //   onClickFn: async () => {
+    //     setLoadingBookmark(true);
+    //     await handleToggleBookmark();
+    //     setLoadingBookmark(false);
+    //   },
+    // },
     {
       Element: HardDriveUpload,
       text: "Load",
       loading: loadingLoad,
       onClickFn: async () => {
         setLoadingLoad(true);
-        console.log(`CLIENT: load ${params.chatId}`);
+        console.log(`CLIENT: load ${props.chatId}`);
         const thisSession = await loadChatSession({ chatId });
         if (!thisSession) {
           console.log("No session found for chatid");
@@ -125,11 +138,21 @@ export default function SaveItems(props) {
       },
     },
   ];
+  // Position the FAB in the bottom right corner, which is a common and mobile-friendly pattern
   return (
-    <div className="flex flex-row mx-auto mt-2 fixed bottom-6 z-50">
-      <SaveButtonsTooltip elements={elements} />
+    <div className="fixed bottom-6 right-6 z-50">
+      <FloatingActionMenu
+        elements={elements}
+        systemPrompt={props.systemPrompt}
+        setSystemPrompt={props.setSystemPrompt}
+      />
     </div>
   );
+  // return (
+  //   <div className="flex flex-row mx-auto mt-2 fixed bottom-6 z-50">
+  //     <SaveButtonsTooltip elements={elements} />
+  //   </div>
+  // );
 }
 
 export function SaveItemsCanvas(params) {
