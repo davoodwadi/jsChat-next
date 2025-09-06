@@ -104,6 +104,14 @@ module.exports = {
             opacity: "0.5",
           },
         },
+        shimmer: {
+          "0%": {
+            transform: "translateX(-100%)",
+          },
+          "100%": {
+            transform: "translateX(100%)",
+          },
+        },
       },
       animation: {
         "thinking-pulse": "thinking-pulse 1.8s infinite ease-in-out",
@@ -111,6 +119,7 @@ module.exports = {
 
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        shimmer: "shimmer 2s infinite",
       },
     },
   },

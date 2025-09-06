@@ -43,25 +43,12 @@ export default function Branch({ tm, ...props }) {
   } else {
     baseClass = ` ${base} flex-1 `;
   }
-  // if (isHorizontallyMaxed) {
-  //   baseClass = ` ${base} ${w} `;
-  // }
-  // Run scroll after the re-render caused by isHorizontallyMaxed change
-  // useEffect(() => {
-  //   if (isHorizontallyMaxed && thisBotRef.current) {
-  //     thisBotRef.current.scrollIntoView({
-  //       behavior: "smooth",
-  //       block: "start",
-  //       inline: "center", // important for horizontal centering
-  //     });
-  //   }
-  // }, [isHorizontallyMaxed]);
 
   // scroll to latest branch after mount
   useEffect(() => {
     if (toMaximize && branchRef.current) {
-      console.log("useEffect branch fired", props.branchKeyToMaximize);
-      console.log("...for element", branchRef.current);
+      // console.log("useEffect branch fired", props.branchKeyToMaximize);
+      // console.log("...for element", branchRef.current);
       // console.log("scrolling to branch with key ", tm.key);
       branchRef.current.scrollIntoView({
         behavior: "smooth",

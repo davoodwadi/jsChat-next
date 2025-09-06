@@ -8,6 +8,10 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 import { Suspense } from "react";
 import { MultilineSkeleton } from "@/components/ui/skeleton";
+import {
+  MultilineGlassSkeleton,
+  GlassSkeleton,
+} from "@/components/ui/glassSkeleton";
 
 import { AuthDialog, TopupDialog } from "@/components/auth/AuthDialog";
 import SaveItems from "@/components/save/SaveComponents";
@@ -18,6 +22,26 @@ import { useSidebar } from "@/components/ui/sidebar";
 import RecursiveBranch from "./RecursiveBranch";
 import { Button } from "../ui/button";
 import { hasSiblings } from "./Branch";
+import ChatSkeleton from "@/app/chat-skeleton/page";
+
+// const ChatSkeleton = () => {
+//   return (
+//     // <div className="space-y-4">
+//     //   <div className="flex items-center space-x-4">
+//     //     <GlassSkeleton className="h-12 w-12 rounded-full" />
+//     //     <div className="w-full space-y-2">
+//     //       <GlassSkeleton className="h-4 w-4/5" />
+//     //       <GlassSkeleton className="h-4 w-3/5" />
+//     //     </div>
+//     //   </div>
+//     //   <MultilineGlassSkeleton lines={4} />
+//     // </div>
+//     <div className="w-3/4 mx-auto">
+//       <MultilineGlassSkeleton lines={8} />
+//       <MultilineGlassSkeleton lines={4} />
+//     </div>
+//   );
+// };
 
 export function RecursiveChatContainer(props) {
   // console.log("starting RecursiveChatContainer");
@@ -110,7 +134,7 @@ export function RecursiveChatContainer(props) {
   const { open } = useSidebar();
 
   let chatContainerClass =
-    " h-[83vh] rounded-xl mx-auto overflow-y-auto overflow-x-auto"; // flex flex-col overflow-auto
+    " h-[83vh] rounded-xl mx-auto overflow-y-auto overflow-x-auto py-16 "; // flex flex-col overflow-auto
   if (!open) {
     chatContainerClass += " w-[90vw] md:w-[90vw] ";
   } else {
@@ -119,27 +143,11 @@ export function RecursiveChatContainer(props) {
 
   return (
     <>
-      <Suspense
-        fallback={
-          <div className="w-3/4 mx-auto">
-            <MultilineSkeleton lines={4} />
-          </div>
-        }
-      >
-        <div id="chat-container" className={chatContainerClass}>
-          <Suspense
-            fallback={
-              <div className="w-3/4 mx-auto">
-                <MultilineSkeleton lines={4} />
-              </div>
-            }
-          >
+      <Suspense fallback={<ChatSkeleton />}>
+        <div id="recursive-chat-container" className={chatContainerClass}>
+          <Suspense fallback={<ChatSkeleton />}>
             {loadingHistory ? (
-              <>
-                <div className="w-3/4 mx-auto">
-                  <MultilineSkeleton lines={4} />
-                </div>
-              </>
+              <ChatSkeleton />
             ) : (
               <>
                 <RecursiveBranch
@@ -190,21 +198,9 @@ export default function ChatContainer(props) {
   const [isTopupDialogOpen, setIsTopupDialogOpen] = useState(false);
 
   return (
-    <Suspense
-      fallback={
-        <div className="w-3/4 mx-auto">
-          <MultilineSkeleton lines={4} />
-        </div>
-      }
-    >
+    <Suspense fallback={<ChatSkeleton />}>
       <div className="flex flex-col mx-auto justify-center items-center py-2 px-4 md:px-6 ">
-        <Suspense
-          fallback={
-            <div className="w-3/4 mx-auto">
-              <MultilineSkeleton lines={4} />
-            </div>
-          }
-        >
+        <Suspense fallback={<ChatSkeleton />}>
           <RecursiveChatContainer
             {...props}
             refElementUser={refUser}

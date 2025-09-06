@@ -18,7 +18,8 @@ const ChatContainer = dynamic(
   () => import("@/components/recursiveChat/RecursiveComponent"),
   {
     loading: () => (
-      <div className="w-3/4 mx-auto">
+      <div className="w-3/4 mx-auto my-16">
+        <MultilineSkeleton lines={8} />
         <MultilineSkeleton lines={4} />
       </div>
     ),
@@ -86,8 +87,10 @@ export default function ChatClient({ chatId, bookmarked }) {
   return (
     <Suspense
       fallback={
-        <div className="w-3/4 mx-auto">
+        <div className="w-3/4 mx-auto my-16">
+          <MultilineSkeleton lines={8} />
           <MultilineSkeleton lines={4} />
+          chatClient
         </div>
       }
     >

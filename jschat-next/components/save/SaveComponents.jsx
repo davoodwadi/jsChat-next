@@ -118,10 +118,8 @@ export default function SaveItems(props) {
 
         const newChatId = generateChatId();
         router.push(`/chat/${newChatId}`);
-        toast({
-          title: "Chat Reset",
-        });
-        setLoadingReset(false);
+        toast("Chat Reset", {});
+        // setLoadingReset(false);
       },
     },
   ];
@@ -147,7 +145,6 @@ export function SaveItemsCanvas(params) {
   // console.log("SaveItems botMessages", botMessages);
   // console.log("SaveItems props", props);
   // console.log("SaveItems systemPrompt", systemPrompt);
-  // const { toast } = useToast();
   const router = useRouter();
   const [loadingSave, setLoadingSave] = useState(false);
   const [loadingLoad, setLoadingLoad] = useState(false);

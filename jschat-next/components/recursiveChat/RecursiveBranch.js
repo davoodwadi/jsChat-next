@@ -38,7 +38,8 @@ export default function RecursiveBranch(props) {
     tempUserMessages[0] && (
       <Suspense
         fallback={
-          <div className="w-3/4 mx-auto">
+          <div className="w-3/4 mx-auto my-16">
+            <MultilineSkeleton lines={8} />
             <MultilineSkeleton lines={4} />
           </div>
         }

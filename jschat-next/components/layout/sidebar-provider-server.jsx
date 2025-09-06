@@ -30,7 +30,7 @@ export async function SidebarProviderServer({ params, children }) {
               <Suspense
                 fallback={
                   <div className="w-3/4 mx-auto">
-                    <MultilineSkeleton lines={4} />
+                    <MultilineSkeleton lines={1} />
                   </div>
                 }
               >

@@ -67,9 +67,6 @@ export default async function Page({
       <CardContent className="text-center">
         <p>Account information</p>
         <CardDescription className="">
-          {/* <Suspense fallback={<Skeleton className="h-4 w-3/4 mx-auto" />}>
-            <UserCurrentTokens />
-          </Suspense> */}
           <p>Credits remaining</p>
           <Suspense fallback={<Skeleton className="h-4 w-1/2 mx-auto" />}>
             <p>{getCreditsOnly(session_id)}</p>
