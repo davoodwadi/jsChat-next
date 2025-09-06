@@ -12,7 +12,9 @@ import {
 import Link from "next/link";
 import NavigationEvents from "@/components/layout/NavigationEvents";
 import { Suspense } from "react";
-import { MultilineSkeleton } from "@/components/ui/skeleton";
+import { MultilineGlassSkeleton } from "../ui/glassSkeleton";
+import ChatSkeleton from "@/app/chat-skeleton/page";
+
 import {
   SidebarProfile,
   SidebarCanvas,
@@ -30,19 +32,19 @@ export async function AppSidebar() {
           <SidebarGroupLabel>Spreed</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <Suspense fallback={<MultilineSkeleton lines={1} />}>
+              <Suspense fallback={<MultilineGlassSkeleton lines={1} />}>
                 <NewChatButton />
               </Suspense>
-              <Suspense fallback={<MultilineSkeleton lines={1} />}>
+              <Suspense fallback={<MultilineGlassSkeleton lines={1} />}>
                 <SidebarCanvas />
               </Suspense>
-              <Suspense fallback={<MultilineSkeleton lines={1} />}>
+              <Suspense fallback={<MultilineGlassSkeleton lines={1} />}>
                 <SidebarProfile />
               </Suspense>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        <Suspense fallback={<MultilineSkeleton lines={10} />}>
+        <Suspense fallback={<ChatSkeleton />}>
           <NavigationEvents />
         </Suspense>
       </SidebarContent>

@@ -8,7 +8,7 @@ import { Toggle } from "@/components/ui/toggle";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Plus, Search } from "lucide-react";
 
-import { MultilineSkeleton } from "@/components/ui/skeleton";
+import ChatSkeleton from "@/app/chat-skeleton/page";
 import { AuthDialog, TopupDialog } from "@/components/auth/AuthDialog";
 import { useParams } from "next/navigation";
 import { saveChatSession, loadChatSession } from "@/lib/save/saveActions";
@@ -134,7 +134,7 @@ dark:text-gray-100`;
     <>
       {loadingHistory || isLoading ? (
         <div className="mx-16 w-vw">
-          <MultilineSkeleton lines={5} />
+          <ChatSkeleton />
         </div>
       ) : (
         <div className="grid grid-cols-3 gap-4 w-vw mx-16">

@@ -4,7 +4,7 @@ import { delay } from "@/lib/myTools";
 import { Suspense, useState } from "react";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
-import { MultilineSkeleton } from "@/components/ui/skeleton";
+import ChatSkeleton from "@/app/chat-skeleton/page";
 
 import BranchContainer from "./BranchContainer";
 import Branch from "./Branch";
@@ -36,14 +36,7 @@ export default function RecursiveBranch(props) {
   // console.log("tempUserMessages", tempUserMessages);
   return (
     tempUserMessages[0] && (
-      <Suspense
-        fallback={
-          <div className="w-3/4 mx-auto my-16">
-            <MultilineSkeleton lines={8} />
-            <MultilineSkeleton lines={4} />
-          </div>
-        }
-      >
+      <Suspense fallback={<ChatSkeleton />}>
         <BranchContainer id={props.level} key={props.level}>
           {tempUserMessages.map((tm, i) => {
             return (

@@ -113,7 +113,6 @@ export default function BotMessage(props) {
       >
         {/* props.content === "" || props?.botMessage?.status === "pending" */}
         {props?.botMessage?.status === "pending" ? (
-          // <MultilineSkeleton lines={4}>{props.children}</MultilineSkeleton>
           <ThinkingSkeleton>{props.children}</ThinkingSkeleton>
         ) : props?.botMessage?.status === "reading" ? (
           <ThinkingReadingSkeleton>

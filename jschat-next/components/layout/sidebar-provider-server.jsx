@@ -5,7 +5,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { MultilineSkeleton } from "@/components/ui/skeleton";
+import { MultilineGlassSkeleton } from "../ui/glassSkeleton";
 import { Suspense, lazy } from "react";
 
 const AuthButton = lazy(() => import("@/components/auth/AuthButtonsServer"));
@@ -30,7 +30,7 @@ export async function SidebarProviderServer({ params, children }) {
               <Suspense
                 fallback={
                   <div className="w-3/4 mx-auto">
-                    <MultilineSkeleton lines={1} />
+                    <MultilineGlassSkeleton lines={1} />
                   </div>
                 }
               >

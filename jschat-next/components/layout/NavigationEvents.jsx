@@ -9,7 +9,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { MultilineSkeleton } from "@/components/ui/skeleton";
+import { MultilineGlassSkeleton } from "../ui/glassSkeleton";
 import { ClearChatHistoryButton } from "@/components/layout/ClearChatHistoryButton";
 import HistoryItem from "./HistoryItem";
 import { Suspense } from "react";
@@ -34,7 +34,7 @@ export default async function NavigationEvents() {
     <Suspense
       fallback={
         <div className="w-2/4 mx-auto">
-          <MultilineSkeleton lines={10} />
+          <MultilineGlassSkeleton lines={10} />
         </div>
       }
     >

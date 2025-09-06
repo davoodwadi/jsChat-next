@@ -9,7 +9,6 @@ import { ThemeProvider } from "@/components/layout/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 
 import { Suspense } from "react";
-import { MultilineSkeleton } from "@/components/ui/skeleton";
 
 import { SidebarProviderServer } from "@/components/layout/sidebar-provider-server";
 

@@ -4,7 +4,6 @@ import { Suspense } from "react";
 import { test } from "@/lib/test";
 
 import dynamic from "next/dynamic";
-import { MultilineSkeleton } from "@/components/ui/skeleton";
 import { Star, Settings } from "lucide-react";
 import {
   Dialog,
@@ -12,17 +11,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import ChatSkeleton from "@/app/chat-skeleton/page";
+
 // import { FloatingSettingsButton } from "./FloatingGear";
 import { FloatingActionMenu } from "@/components/FloatingActionMenu";
 const ChatContainer = dynamic(
   () => import("@/components/recursiveChat/RecursiveComponent"),
   {
-    loading: () => (
-      <div className="w-3/4 mx-auto my-16">
-        <MultilineSkeleton lines={8} />
-        <MultilineSkeleton lines={4} />
-      </div>
-    ),
+    loading: () => <ChatSkeleton />,
   }
 );
 
@@ -85,15 +81,7 @@ export default function ChatClient({ chatId, bookmarked }) {
     "flex flex-row justify-between  px-1 pb-2 items-center border-b hover:cursor-pointer rounded-lg bg-sky-200 dark:bg-sky-900 ";
 
   return (
-    <Suspense
-      fallback={
-        <div className="w-3/4 mx-auto my-16">
-          <MultilineSkeleton lines={8} />
-          <MultilineSkeleton lines={4} />
-          chatClient
-        </div>
-      }
-    >
+    <Suspense fallback={ChatSkeleton}>
       {/* <FloatingSettingsButton
         systemPrompt={systemPrompt}
         setSystemPrompt={setSystemPrompt}

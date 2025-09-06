@@ -7,12 +7,6 @@ import { useState, useRef, useEffect, useTransition } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 import { Suspense } from "react";
-import { MultilineSkeleton } from "@/components/ui/skeleton";
-import {
-  MultilineGlassSkeleton,
-  GlassSkeleton,
-} from "@/components/ui/glassSkeleton";
-
 import { AuthDialog, TopupDialog } from "@/components/auth/AuthDialog";
 import SaveItems from "@/components/save/SaveComponents";
 import { loadChatSession, saveChatSession } from "@/lib/save/saveActions";

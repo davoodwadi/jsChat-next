@@ -1,6 +1,7 @@
 "use client";
 
-import { MultilineSkeleton } from "@/components/ui/skeleton";
+import ChatSkeleton from "@/app/chat-skeleton/page";
+
 import { generateCanvasId } from "@/lib/chatUtils";
 // import { redirect } from "next/navigation";
 import { useRouter } from "next/navigation";
@@ -20,10 +21,7 @@ export default function Home() {
 
   return (
     <>
-      <div className="w-3/4 mx-auto my-16">
-        <MultilineSkeleton lines={8} />
-        <MultilineSkeleton lines={4} />
-      </div>
+      <ChatSkeleton />
     </>
   );
 }
