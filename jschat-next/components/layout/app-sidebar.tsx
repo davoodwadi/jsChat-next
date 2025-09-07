@@ -13,7 +13,6 @@ import Link from "next/link";
 import NavigationEvents from "@/components/layout/NavigationEvents";
 import { Suspense } from "react";
 import { MultilineGlassSkeleton } from "../ui/glassSkeleton";
-import ChatSkeleton from "@/app/chat-skeleton/page";
 
 import {
   SidebarProfile,
@@ -44,7 +43,13 @@ export async function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        <Suspense fallback={<ChatSkeleton />}>
+        <Suspense
+          fallback={
+            <div className="w-3/4 mx-auto">
+              <MultilineGlassSkeleton lines={10} />
+            </div>
+          }
+        >
           <NavigationEvents />
         </Suspense>
       </SidebarContent>

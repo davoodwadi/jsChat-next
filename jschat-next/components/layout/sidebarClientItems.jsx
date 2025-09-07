@@ -22,12 +22,12 @@ export function NewChatButton() {
   const { isMobile, setOpenMobile } = useSidebar();
   function handleClick() {
     if (isMobile) {
-      setOpenMobile(false); // ✅ close sidebar on mobile after click
+      setOpenMobile(false); // close sidebar on mobile after click
     }
   }
   return (
     <SidebarMenuItem key="1">
-      <SidebarMenuButton asChild>
+      <SidebarMenuButton asChild className="glass-button-noise">
         <Link href="/" onClick={(e) => handleClick()}>
           <MessageCircle />
           <span>New Chat</span>
@@ -46,7 +46,7 @@ export function SidebarCanvas() {
   }
   return (
     <SidebarMenuItem key="canvas">
-      <SidebarMenuButton asChild>
+      <SidebarMenuButton asChild className="glass-button-noise">
         <Link href="/canvas" onClick={(e) => handleClick()}>
           <BookOpenText />
           <span>New Canvas</span>
@@ -65,7 +65,7 @@ export function SidebarProfile() {
   }
   return (
     <SidebarMenuItem key="profile">
-      <SidebarMenuButton asChild>
+      <SidebarMenuButton asChild className="glass-button-noise">
         <Link href="/profile" onClick={(e) => handleClick()}>
           <User2 />
           <span>Profile</span>

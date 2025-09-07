@@ -33,17 +33,24 @@ export default async function NavigationEvents() {
   return (
     <Suspense
       fallback={
-        <div className="w-2/4 mx-auto">
+        <div className="w-3/4 mx-auto">
           <MultilineGlassSkeleton lines={10} />
         </div>
       }
     >
       <>
         <SidebarGroup>
-          <SidebarGroupLabel>History</SidebarGroupLabel>
+          <SidebarGroupLabel className="">
+            <div className="flex flex-row justify-between w-full items-center">
+              <div>History</div>
+              <div>
+                <ClearChatHistoryButton />
+              </div>
+            </div>
+          </SidebarGroupLabel>
           {chatHistoryTrue ? (
             <SidebarGroupContent>
-              <SidebarMenu>
+              <SidebarMenu className="glass-card-noise">
                 {chatHistory.map((item, i) => {
                   // console.log("item", item);
                   const userMessageArray = item?.content?.userMessages;
@@ -80,7 +87,7 @@ export default async function NavigationEvents() {
             <></>
           )}
         </SidebarGroup>
-        {chatHistoryTrue && (
+        {/* {chatHistoryTrue && (
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>
@@ -92,7 +99,7 @@ export default async function NavigationEvents() {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-        )}
+        )} */}
       </>
     </Suspense>
   );
