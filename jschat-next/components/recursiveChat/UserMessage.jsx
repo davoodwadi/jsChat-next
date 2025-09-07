@@ -46,7 +46,7 @@ export default function UserMessage({
   abortControllerRef,
   ...props
 }) {
-  //   console.log("UserMessage props", props);
+  // console.log("UserMessage props", props);
   //   console.log("User props.id", props.id);
   // console.log("User props.children", props.children);
   let baseUserClass = "  flex flex-col items-center p-4 m-1 rounded-xl "; //border-2 border-blue-500 min-w-fit
@@ -68,19 +68,27 @@ min-h-[2.5rem] overflow-y-auto
   const [base64Image, setBase64Image] = useState(
     props.children?.image === "" ? "" : undefined
   );
-  // console.log("props.botMessage", props.botMessage);
+  // console.log("props.globalModelInfo", props.globalModelInfo);
   const [userMessageModelInfo, setUserMessageModelInfo] = useState(() => {
     return {
       modelConfig: {
-        search: props?.botMessage?.modelConfig?.search || false,
-        deepResearch: props?.botMessage?.modelConfig?.deepResearch || false,
-        agentic: props?.botMessage?.modelConfig?.agentic || false,
-        academic: props?.botMessage?.modelConfig?.academic || false,
+        search:
+          props?.botMessage?.modelConfig?.search ||
+          props.globalModelInfo.modelConfig.search,
+        deepResearch:
+          props?.botMessage?.modelConfig?.deepResearch ||
+          props.globalModelInfo.modelConfig.deepResearch,
+        agentic:
+          props?.botMessage?.modelConfig?.agentic ||
+          props.globalModelInfo.modelConfig.agentic,
+        academic:
+          props?.botMessage?.modelConfig?.academic ||
+          props.globalModelInfo.modelConfig.academic,
       },
-      model: props?.botMessage?.model || props.model,
+      model: props?.botMessage?.model || props.globalModelInfo.model,
     };
   });
-
+  // console.log("userMessageModelInfo", userMessageModelInfo);
   const refThisUser = useRef(null);
   const isLatestUser = props.maxGlobalIdUser === props.globalIdUser;
 
@@ -117,18 +125,6 @@ min-h-[2.5rem] overflow-y-auto
   }, [refUser.current]);
   // focus to Textarea on mount END
 
-  // focus to latest textarea on mount
-  // useEffect(() => {
-  //   console.log("refUser.current", refUser.current);
-  //   if (refUser.current) {
-  //     if (props.tm.globalIdUser === props.maxUID) {
-  //       refUser.current.scrollIntoView({
-  //         block: "center",
-  //         inline: "center",
-  //       });
-  //     }
-  //   }
-  // }, [refUser.current]);
   // Create a reusable resize function
   const resizeTextarea = useCallback(
     (textarea) => {
@@ -144,12 +140,8 @@ min-h-[2.5rem] overflow-y-auto
   useLayoutEffect(() => {
     resizeTextarea(refUser.current);
   }, [finalValue, resizeTextarea]);
-  // console.log(userMessageModelInfo.model.name);
-  // console.log("props", props);
-  // console.log("refUser.current", refUser.current);
-  // console.log("props.maxUID", props.maxUID);
-  // console.log("props.tm.globalIdUser", props.tm.globalIdUser);
-  // console.log("props.tm.globalIdUser", props.tm.globalIdUser === props.maxUID);
+  // console.log("userMessageModelInfo", userMessageModelInfo);
+  // console.log("userMessage userMessageModelInfo", userMessageModelInfo);
 
   return (
     <>
@@ -177,6 +169,9 @@ min-h-[2.5rem] overflow-y-auto
                 setFinalValue((v) => props.children?.text);
                 setBase64Image((v) => props.children?.image);
               }
+              // setGlobalModelInfo to the selected model and config
+              props.setGlobalModelInfo(userMessageModelInfo);
+              //
               props.handleSubmit(
                 props.refElementBot,
                 props.id,
@@ -389,6 +384,9 @@ min-h-[2.5rem] overflow-y-auto
                 setFinalValue((v) => props.children?.text);
                 setBase64Image((v) => props.children?.image);
               }
+              // setGlobalModelInfo to the selected model and config
+              props.setGlobalModelInfo(userMessageModelInfo);
+              //
               props.handleSubmit(
                 props.refElementBot,
                 props.id,

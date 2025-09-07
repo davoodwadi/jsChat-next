@@ -103,7 +103,7 @@ export default function BotMessage(props) {
         </div>
       </div>
       <div
-        className=" break-words  focus:outline-none focus:border-none focus:ring-0"
+        className="  focus:outline-none focus:border-none focus:ring-0"
         id={props.id}
         globalidbot={props.globalIdBot}
         maxglobalidbot={props.maxGlobalIdBot}

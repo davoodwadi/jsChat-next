@@ -90,6 +90,9 @@ export function RecursiveChatContainer(props) {
         } else {
           props.setSystemPrompt(thisSession?.content?.systemPrompt);
         }
+        if (thisSession?.content?.globalModelInfo) {
+          props.setGlobalModelInfo(thisSession.content.globalModelInfo);
+        }
       }
       setLoadingHistory(false);
     };
@@ -106,6 +109,7 @@ export function RecursiveChatContainer(props) {
         userMessages: userMessages,
         botMessages: botMessages,
         systemPrompt: props.systemPrompt,
+        globalModelInfo: props.globalModelInfo,
       });
 
       if (botMessages.length === 1) {
@@ -155,7 +159,6 @@ export function RecursiveChatContainer(props) {
                   setGlobalIdBot={setGlobalIdBot}
                   globalIdUser={globalIdUser}
                   setGlobalIdUser={setGlobalIdUser}
-                  model={props.model}
                   branchKeyToMaximize={branchKeyToMaximize}
                   setBranchKeyToMaximize={setBranchKeyToMaximize}
                   setBotMessageFinished={setBotMessageFinished}
@@ -173,7 +176,6 @@ export function RecursiveChatContainer(props) {
           botMessages={botMessages}
           setUserMessages={setUserMessages}
           setBotMessages={setBotMessages}
-          setChatContainerKey={props.setChatContainerKey}
           systemPrompt={props.systemPrompt}
           setSystemPrompt={props.setSystemPrompt}
           {...props}

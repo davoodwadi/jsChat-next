@@ -71,9 +71,18 @@ export default function ChatClient({ chatId, bookmarked }) {
     ? testModels[0]
     : openaiModelsWithMeta.find((m) => m.model.includes("chat")) ||
       openaiModelsWithMeta[0];
-  const [model, setModel] = useState(startingModel);
+  // const [model, setModel] = useState(startingModel);
   // console.log(model);
   const [systemPrompt, setSystemPrompt] = useState("");
+  const [globalModelInfo, setGlobalModelInfo] = useState({
+    model: startingModel,
+    modelConfig: {
+      search: false,
+      deepResearch: false,
+      agentic: false,
+      academic: false,
+    },
+  });
 
   const baseClass =
     "flex flex-row justify-between  px-1 pb-2 items-center border-b hover:cursor-pointer rounded-lg hover:bg-sky-100 hover:dark:bg-sky-950";
@@ -88,11 +97,11 @@ export default function ChatClient({ chatId, bookmarked }) {
       /> */}
       <ChatContainer
         chatId={chatId}
-        model={model}
-        setModel={setModel}
         systemPrompt={systemPrompt}
         setSystemPrompt={setSystemPrompt}
         bookmarked={bookmarked}
+        globalModelInfo={globalModelInfo}
+        setGlobalModelInfo={setGlobalModelInfo}
       />
     </Suspense>
   );

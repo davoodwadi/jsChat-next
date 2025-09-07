@@ -13,13 +13,7 @@ import {
   toggleBookmarkChatSession,
   getBookmarkStatus,
 } from "@/lib/save/saveActions";
-import {
-  createSaveChatSessionParams,
-  //   createSaveCanvasSessionParams,
-  //   // SaveChatSessionParams,
-  //   SaveItemParams,
-  //   SaveItemCanvasParams,
-} from "@/app/types/types";
+import { createSaveChatSessionParams } from "@/lib/save/saveUtils";
 import { FloatingActionMenu } from "@/components/FloatingActionMenu";
 
 export default function SaveItems(props) {
@@ -82,6 +76,9 @@ export default function SaveItems(props) {
             props.setSystemPrompt("");
           } else {
             props.setSystemPrompt(content.systemPrompt);
+          }
+          if (content?.globalModelInfo) {
+            props.setGlobalModelInfo(content.globalModelInfo);
           }
           toast("Successfully Loaded", {
             // variant: "default",

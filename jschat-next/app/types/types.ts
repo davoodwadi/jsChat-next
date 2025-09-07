@@ -55,11 +55,6 @@ export type SaveChatSessionParams = {
   systemPrompt: string;
 };
 
-export function createSaveChatSessionParams(params: SaveItemParams) {
-  const { chatId, userMessages, botMessages, systemPrompt } = params;
-  return { chatId, userMessages, botMessages, systemPrompt };
-}
-
 export function createSaveCanvasSessionParams(params: SaveItemCanvasParams) {
   const { canvasId, canvasText, references, llmInstructions, extraContext } =
     params;

@@ -31,7 +31,7 @@ export default function Branch({ tm, ...props }) {
 
   // console.log("Branch props", props);
   let baseClass = "";
-  const base = "mx-auto"; //border-2 border-red-300 flex-1
+  const base = "mx-auto min-w-72"; //border-2 border-red-300 flex-1
   let w;
   if (!open) {
     w = " w-[85vw] shrink-0 md:w-[85vw] ";
@@ -137,8 +137,6 @@ export default function Branch({ tm, ...props }) {
           refElementUser={props.refElementUser}
           refElementBot={props.refElementBot}
           userMessages={props.userMessages}
-          model={props.model}
-          setModel={props.setModel}
           botModel={getBotMessageForKey(tm.key)?.model}
           botMessage={getBotMessageForKey(tm.key)}
         >
