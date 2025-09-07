@@ -228,7 +228,7 @@ export const openaiModelsWithMeta = [
     vision: true,
     reasoning: false,
     hasDeepResearch: false,
-    hasSearch: true,
+    hasSearch: false,
     hasAgentic: false,
     icon: DetailedIcon,
   },
