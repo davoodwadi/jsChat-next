@@ -18,6 +18,7 @@ import {
   addCitationsToContentInlineSuper,
   addCitationsToContentInlineSuperPerplexity,
 } from "@/components/searchGroundingUtils";
+import SearchResult from "@/components/SearchResult";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import {
   dark,
@@ -571,58 +572,7 @@ function SearchBlock({ children, ...props }) {
           {parsedResults ? (
             parsedResults.length > 0 ? (
               parsedResults.map((r, i) => {
-                let chunks;
-                if (r.content) {
-                  // Split using `[...]` as delimiter
-                  chunks = r.content
-                    .split(/\[\.\.\.\]/g)
-                    .filter((chunk) => chunk.trim() !== "");
-                }
-                return (
-                  <div
-                    key={i}
-                    className="p-4 hover:bg-gray-50 dark:hover:bg-[#2d2d2d] transition-colors rounded-md"
-                  >
-                    {/* Title */}
-                    <a
-                      className="text-base font-semibold text-blue-600 dark:text-blue-400 hover:underline"
-                      // onClick={() => window.open(r.url, "_blank")}
-                      href={r.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {r.title || "Untitled"}
-                    </a>
-                    {/* url */}
-                    {r.url !== undefined && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        {" "}
-                        <span className="font-medium truncate">{r.url}</span>
-                      </p>
-                    )}
-                    {/* Score */}
-                    {r.score !== undefined && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        Relevance Score:{" "}
-                        <span className="font-medium">{r.score}</span>
-                      </p>
-                    )}
-
-                    {/* Content */}
-                    {r.content && (
-                      <div className="mt-2 text-sm leading-relaxed text-gray-700 dark:text-gray-200">
-                        {r.content
-                          .split(/\[\.\.\.\]/g)
-                          .filter((chunk) => chunk.trim() !== "")
-                          .map((chunk, idx) => (
-                            <div key={idx} className="flex flex-col py-2">
-                              {chunk}
-                            </div>
-                          ))}
-                      </div>
-                    )}
-                  </div>
-                );
+                return <SearchResult key={i} result={r} i={i} />;
               })
             ) : (
               <p className="p-4 text-gray-500 dark:text-gray-400 text-sm italic">
