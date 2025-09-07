@@ -33,7 +33,7 @@ export default async function HistoryItem({
         />
 
         {/* Actions menu */}
-        <div className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className=" absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -45,7 +45,10 @@ export default async function HistoryItem({
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent
+              align="end"
+              className="!min-w-0 glass-button-noise"
+            >
               <DropdownMenuItem>
                 {/* Bookmark toggle */}
                 <form
@@ -63,7 +66,7 @@ export default async function HistoryItem({
                     <Star
                       className={` h-4 w-4 ${bookmarked ? "text-yellow-500 fill-current" : ""}`}
                     />
-                    {bookmarked ? "Unbookmark" : "Bookmark"}
+                    {/* {bookmarked ? "Unbookmark" : "Bookmark"} */}
                   </Button>
                 </form>
               </DropdownMenuItem>
@@ -83,7 +86,7 @@ export default async function HistoryItem({
                     className="w-full text-left flex items-center "
                   >
                     <Trash className=" h-4 w-4" />
-                    Delete
+                    {/* Delete */}
                   </Button>
                 </form>
               </DropdownMenuItem>

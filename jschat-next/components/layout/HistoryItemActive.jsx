@@ -33,7 +33,7 @@ export default function HistoryItemActive({
     }
   }
   return (
-    <SidebarMenuButton asChild isActive={isActive} className="flex-1 min-w-0">
+    <SidebarMenuButton asChild isActive={isActive} className="flex-1 min-w-0 ">
       <Link
         href={isCanvas ? `/canvas/${item.chatid}` : `/chat/${item.chatid}`}
         className={`
@@ -43,7 +43,7 @@ export default function HistoryItemActive({
         onClick={(e) => handleClick()}
       >
         {bookmarked && (
-          <Star className="w-3.5 h-3.5 mr-1 text-yellow-500 fill-current" />
+          <Star className="!w-3 !h-3 mr-1 text-yellow-500 fill-current" />
         )}
         <span className="truncate">{snippet.trim()}</span>
       </Link>
