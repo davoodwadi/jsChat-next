@@ -27,7 +27,7 @@ export function NewChatButton() {
   }
   return (
     <SidebarMenuItem key="1">
-      <SidebarMenuButton asChild className="glass-button-noise">
+      <SidebarMenuButton asChild className="">
         <Link href="/" onClick={(e) => handleClick()}>
           <MessageCircle />
           <span>New Chat</span>
@@ -46,7 +46,7 @@ export function SidebarCanvas() {
   }
   return (
     <SidebarMenuItem key="canvas">
-      <SidebarMenuButton asChild className="glass-button-noise">
+      <SidebarMenuButton asChild className="">
         <Link href="/canvas" onClick={(e) => handleClick()}>
           <BookOpenText />
           <span>New Canvas</span>
@@ -65,7 +65,7 @@ export function SidebarProfile() {
   }
   return (
     <SidebarMenuItem key="profile">
-      <SidebarMenuButton asChild className="glass-button-noise">
+      <SidebarMenuButton asChild className="">
         <Link href="/profile" onClick={(e) => handleClick()}>
           <User2 />
           <span>Profile</span>

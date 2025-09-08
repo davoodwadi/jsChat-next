@@ -298,7 +298,7 @@ function CustomMarkdown({ children, mode, props }) {
       remarkPlugins={[remarkGfm, remarkCustomMath]}
       rehypePlugins={[rehypeKatex, rehypeRaw]}
       // prose prose-zinc dark:prose-invert
-      className={` prose prose-zinc dark:prose-invert pb-4 break-words w-full !max-w-none`}
+      className={` prose prose-zinc dark:prose-invert pb-4 break-words !max-w-none`}
       components={{
         sup(props) {
           const { children, className, node, ...rest } = props;

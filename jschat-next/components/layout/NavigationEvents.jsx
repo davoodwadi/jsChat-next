@@ -41,7 +41,7 @@ export default async function NavigationEvents() {
       <>
         <SidebarGroup>
           <SidebarGroupLabel className="">
-            <div className="flex flex-row justify-between w-full items-center">
+            <div className="flex flex-row justify-between w-full items-center pb-8">
               <div>History</div>
               <div>
                 <ClearChatHistoryButton />
