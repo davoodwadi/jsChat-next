@@ -30,7 +30,7 @@ export function NewChatButton() {
       <SidebarMenuButton asChild className="">
         <Link href="/" onClick={(e) => handleClick()}>
           <MessageCircle />
-          <span>New Chat</span>
+          <span className="text-xs">New Chat</span>
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
@@ -49,7 +49,7 @@ export function SidebarCanvas() {
       <SidebarMenuButton asChild className="">
         <Link href="/canvas" onClick={(e) => handleClick()}>
           <BookOpenText />
-          <span>New Canvas</span>
+          <span className="text-xs">New Canvas</span>
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
@@ -68,7 +68,7 @@ export function SidebarProfile() {
       <SidebarMenuButton asChild className="">
         <Link href="/profile" onClick={(e) => handleClick()}>
           <User2 />
-          <span>Profile</span>
+          <span className="text-xs">Profile</span>
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>

@@ -23,8 +23,8 @@ function GlassSkeleton({
       {/* It's an absolutely positioned div that moves across the parent */}
       <div
         className={cn(
-          "absolute inset-0 -translate-x-full animate-shimmer",
-          "bg-gradient-to-r from-transparent via-slate-100/70 to-transparent" // The shimmer gradient
+          "absolute inset-0 -translate-x-full animate-shimmer animate-pulse animate-thinking-shimmer",
+          "bg-gradient-to-r from-transparent via-slate-900/70 to-transparent" // The shimmer gradient
         )}
       />
     </div>

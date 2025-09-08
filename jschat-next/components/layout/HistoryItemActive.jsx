@@ -42,13 +42,11 @@ export default function HistoryItemActive({
         //       ${isActive ? "bg-muted text-primary font-medium" : "text-muted-foreground"}
         //     `}
         className={cn(
-          // Base styles for all items
-          "glass-button glass-grain", // Using your premade button & grain styles
-          "flex w-full text-left p-3 text-sm items-center transition-all duration-200",
-          "text-foreground/70 hover:text-foreground/90", // Subtle text color
-
-          // Conditional style for the ACTIVE item
-          isActive && "glass-active"
+          "glass-sidebar-item",
+          // 2. Add standard layout and text styles
+          "flex w-full text-left p-2.5 rounded-lg text-xs items-center",
+          // 3. Conditionally apply our new active class
+          isActive && "glass-sidebar-item-active"
         )}
         onClick={(e) => handleClick()}
       >
@@ -58,5 +56,30 @@ export default function HistoryItemActive({
         <span className="truncate">{snippet.trim()}</span>
       </Link>
     </SidebarMenuButton>
+  );
+}
+
+export function HistoryItemSkeleton() {
+  return (
+    <div
+      className={cn(
+        // 1. Use the SAME base class as the real item for consistent layout
+        "glass-sidebar-item",
+        "flex w-full text-left p-2.5 rounded-lg text-xs items-center",
+        "glass-skeleton-shimmer"
+      )}
+    >
+      <div
+        className={cn(
+          // For Light Mode: Use a muted gray (like black with low opacity)
+          "bg-black/10",
+          // For Dark Mode: Use a muted white (like white with low opacity)
+          "dark:bg-white/10",
+          // Standard layout styles
+          "h-3 rounded-full animate-pulse" // Added animate-pulse for extra effect
+        )}
+        style={{ width: `${Math.floor(Math.random() * 20) + 80}%` }}
+      ></div>
+    </div>
   );
 }

@@ -565,3 +565,103 @@
 .glass-badge-secondary {
   @apply bg-white/5 dark:bg-white/5 border border-white/15 dark:border-white/80 text-foreground/60;
 }
+
+.glass-sidebar-item {
+  /* 
+    Base State: Almost invisible, relying on blur and text color.
+    - Transparent background and border to start.
+    - No box-shadow for a cleaner look in a list.
+  */
+  @apply bg-transparent border border-transparent backdrop-blur-lg;
+  @apply text-foreground/60 dark:text-foreground/50;
+
+  /* 
+    Hover State: Gently introduce a background and border.
+    - A very slight background appears.
+    - A faint border fades in.
+    - Text becomes more prominent.
+  */
+  @apply hover:bg-white/10 dark:hover:bg-white/5;
+  @apply hover:border-white/15 dark:hover:border-white/10;
+  @apply hover:text-foreground/90 dark:hover:text-foreground/80;
+
+  /* A smooth, quick transition for all properties */
+  @apply transition-all duration-200 ease-in-out;
+}
+
+/* 
+  NEW: Active state for the sidebar item. 
+  This class is ADDED alongside .glass-sidebar-item.
+*/
+.glass-sidebar-item-active {
+  /* A more solid, but still subtle, background */
+  @apply bg-white/20 dark:bg-white/10;
+
+  /* A clearly visible, but soft, border */
+  @apply border-white/20 dark:border-white/15;
+
+  /* Fully prominent text color */
+  @apply text-foreground/95 dark:text-white;
+
+  /* 
+    Subtle inset shadow for a "pressed" or "selected" feel.
+    This is much more refined than a drop-shadow for list items.
+  */
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Dark mode specific inset shadow for the active state */
+.dark .glass-sidebar-item-active {
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.04);
+}
+
+/* NEW: Skeleton Shimmer Animation */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.glass-skeleton-shimmer {
+  position: relative;
+  overflow: hidden; /* Important: keeps the shimmer within the element's bounds */
+}
+
+.glass-skeleton-shimmer::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  /* The shimmer gradient itself */
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    /* Start transparent */ rgba(255, 255, 255, 0.04) 20%,
+    /* Faint white highlight */ rgba(255, 255, 255, 0.08) 50%,
+    /* Peak highlight */ rgba(255, 255, 255, 0.04) 80%,
+    /* Fading highlight */ rgba(255, 255, 255, 0) 100% /* End transparent */
+  );
+
+  /* The animation properties */
+  animation: shimmer 2s infinite;
+  background-size: 2000px 100%; /* Make the gradient very wide to slide across */
+  pointer-events: none; /* Make sure it doesn't interfere with clicks */
+}
+
+/* Slightly different shimmer for dark mode */
+.dark .glass-skeleton-shimmer::after {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.02) 20%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0.02) 80%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}

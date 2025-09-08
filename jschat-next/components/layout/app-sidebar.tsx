@@ -10,9 +10,12 @@ import {
 } from "@/components/ui/sidebar";
 
 import Link from "next/link";
-import NavigationEvents from "@/components/layout/NavigationEvents";
+import NavigationEvents, {
+  NavigationEventsSkeleton,
+} from "@/components/layout/NavigationEvents";
 import { Suspense } from "react";
 import { MultilineGlassSkeleton } from "../ui/glassSkeleton";
+import { HistoryItemSkeleton } from "@/components/layout/HistoryItemActive";
 
 import {
   SidebarProfile,
@@ -43,13 +46,7 @@ export async function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        <Suspense
-          fallback={
-            <div className="w-3/4 mx-auto">
-              <MultilineGlassSkeleton lines={10} />
-            </div>
-          }
-        >
+        <Suspense fallback={<NavigationEventsSkeleton />}>
           <NavigationEvents />
         </Suspense>
       </SidebarContent>
