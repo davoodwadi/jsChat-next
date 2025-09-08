@@ -45,18 +45,18 @@ export default function Branch({ tm, ...props }) {
   }
 
   // scroll to latest branch after mount
-  useEffect(() => {
-    if (toMaximize && branchRef.current) {
-      // console.log("useEffect branch fired", props.branchKeyToMaximize);
-      // console.log("...for element", branchRef.current);
-      // console.log("scrolling to branch with key ", tm.key);
-      branchRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-        inline: "center", // important for horizontal centering
-      });
-    }
-  }, [branchRef.current, props.branchKeyToMaximize]);
+  // useEffect(() => {
+  //   if (toMaximize && branchRef.current) {
+  //     // console.log("useEffect branch fired", props.branchKeyToMaximize);
+  //     // console.log("...for element", branchRef.current);
+  //     // console.log("scrolling to branch with key ", tm.key);
+  //     branchRef.current.scrollIntoView({
+  //       behavior: "smooth",
+  //       block: "start",
+  //       inline: "center", // important for horizontal centering
+  //     });
+  //   }
+  // }, [branchRef.current, props.branchKeyToMaximize]);
   // console.log("branch tm", tm);
   // console.log("branch props.id", props.id);
   // console.log("branch toMaximize", toMaximize);

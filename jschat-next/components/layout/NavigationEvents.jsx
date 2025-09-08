@@ -50,7 +50,7 @@ export default async function NavigationEvents() {
           </SidebarGroupLabel>
           {chatHistoryTrue ? (
             <SidebarGroupContent>
-              <SidebarMenu className="glass-card-noise">
+              <SidebarMenu className="space-y-2 px-2">
                 {chatHistory.map((item, i) => {
                   // console.log("item", item);
                   const userMessageArray = item?.content?.userMessages;
@@ -73,7 +73,7 @@ export default async function NavigationEvents() {
                   }
                   return (
                     <HistoryItem
-                      key={i}
+                      key={item.chatid}
                       item={item}
                       snippet={snippet}
                       isCanvas={isCanvas}

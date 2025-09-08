@@ -17,7 +17,7 @@ export function ClearChatHistoryButton() {
       variant="ghost"
       title="Clear All Chat History"
       className={
-        "group mx-auto flex w-max items-center gap-3 w-5 h-5 rounded-full shadow-lg backdrop-blur-lg transition-all hover:bg-slate-700/70 disabled:cursor-not-allowed disabled:opacity-50"
+        "group mx-auto flex w-max items-center gap-3 w-5 h-5 rounded-full p-3 backdrop-blur-lg transition-all hover:bg-slate-700/70 disabled:cursor-not-allowed disabled:opacity-50"
       }
       disabled={isClearing}
       size="icon"

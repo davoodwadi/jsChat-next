@@ -60,17 +60,17 @@ export default function BotMessage(props) {
       setTextToSpeak(refRenderedText.current.textContent);
     }
   }, [refRenderedText.current]);
-  // useEffect(() => {
-  //   // console.log("useEffect botmessage fired", props.branchKeyToMaximize);
+  useEffect(() => {
+    // console.log("useEffect botmessage fired", props.branchKeyToMaximize);
 
-  //   if (isLatestBot && props?.refElementBot.current) {
-  //     // console.log("props.refElementBot.current", props.refElementBot.current);
-  //     props.refElementBot.current.scrollIntoView({
-  //       block: "center",
-  //       inline: "center",
-  //     });
-  //   }
-  // }, [isLatestBot, props.refElementBot, props.branchKeyToMaximize]);
+    if (isLatestBot && props?.refElementBot.current) {
+      // console.log("props.refElementBot.current", props.refElementBot.current);
+      props.refElementBot.current.scrollIntoView({
+        block: "start",
+        inline: "center",
+      });
+    }
+  }, [isLatestBot, props.refElementBot, props.branchKeyToMaximize]);
 
   return (
     <div className={botClass} ref={props.thisBotRef}>
