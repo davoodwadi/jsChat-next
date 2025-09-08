@@ -115,7 +115,7 @@ function PerplexitySourcesComponent({ children, ...props }) {
   return (
     <div
       {...props}
-      className="mt-8 rounded-xl border bg-gradient-to-br from-muted/40 to-background p-[1px] shadow-md"
+      className=" overflow-x-auto mt-8 rounded-xl border bg-gradient-to-br from-muted/40 to-background p-[1px] shadow-md"
     >
       <div className="rounded-xl bg-card p-6">
         {/* Section heading */}
@@ -133,7 +133,7 @@ function PerplexitySourcesComponent({ children, ...props }) {
             return (
               <li
                 key={idx}
-                className="rounded-lg border bg-muted/30 p-4 text-sm hover:border-primary/40 hover:bg-accent hover:text-accent-foreground transition-colors"
+                className="rounded-lg border bg-muted/30 p-4 text-xs truncate hover:border-primary/40 hover:bg-accent hover:text-accent-foreground transition-colors"
               >
                 <a
                   href={source.url}
@@ -196,7 +196,7 @@ function GeminiSourcesComponent({ children, ...props }) {
     return null; // nothing will render
   }
   return (
-    <div className="mt-8 rounded-xl border bg-gradient-to-br from-muted/40 to-background p-[1px] shadow-md">
+    <div className=" overflow-x-auto mt-8 rounded-xl border bg-gradient-to-br from-muted/40 to-background p-[1px] shadow-md">
       <div className="rounded-xl bg-card p-6">
         {/* Section heading */}
         <div className="mb-5 flex items-center gap-2">
@@ -216,7 +216,7 @@ function GeminiSourcesComponent({ children, ...props }) {
                   href={source.web.uri}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex items-center justify-between rounded-lg border bg-muted/30 p-3 text-sm hover:border-primary/40 hover:bg-accent hover:text-accent-foreground transition-colors"
+                  className="group flex items-center justify-between rounded-lg border bg-muted/30 p-3 text-xs truncate hover:border-primary/40 hover:bg-accent hover:text-accent-foreground transition-colors"
                 >
                   <span className="flex items-center gap-3">
                     {/* Domain Avatar */}
@@ -250,7 +250,7 @@ function OpenAISourcesComponent({ children, ...props }) {
     return null; // nothing will render
   }
   return (
-    <div className="mt-8 rounded-xl border bg-gradient-to-br from-muted/40 to-background p-[1px] shadow-md">
+    <div className=" overflow-x-auto mt-8 rounded-xl border bg-gradient-to-br from-muted/40 to-background p-[1px] shadow-md">
       <div className="rounded-xl bg-card p-6">
         {/* Section heading */}
         <div className="mb-5 flex items-center gap-2">
@@ -269,7 +269,7 @@ function OpenAISourcesComponent({ children, ...props }) {
                   href={source.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex items-center justify-between rounded-lg border bg-muted/30 p-3 text-sm hover:border-primary/40 hover:bg-accent hover:text-accent-foreground transition-colors"
+                  className="group flex items-center justify-between rounded-lg border bg-muted/30 p-3 text-xs truncate hover:border-primary/40 hover:bg-accent hover:text-accent-foreground transition-colors"
                 >
                   {/* Domain chip */}
                   <span className="flex items-center gap-2">
@@ -417,9 +417,9 @@ function CustomMarkdown({ children, mode, props }) {
         query({ node, children, ...props }) {
           return <QueryBlock {...props}>{children}</QueryBlock>;
         },
-        // search({ node, children, ...props }) {
-        //   return <SearchBlock {...props}>{children}</SearchBlock>;
-        // },
+        search({ node, children, ...props }) {
+          return <SearchBlock {...props}>{children}</SearchBlock>;
+        },
         think({ node, children, ...props }) {
           return <ThinkingBlock {...props}>{children}</ThinkingBlock>;
         },
@@ -461,7 +461,7 @@ function ToolBlock({ children, ...props }) {
   return (
     <div
       {...props}
-      className="flex flex-col my-2 p-2 text-sm rounded-md bg-[#2d2d2d] text-gray-100 shadow-md"
+      className="  overflow-x-auto flex flex-col my-2 p-2 text-sm rounded-md bg-[#2d2d2d] text-gray-100 shadow-md"
     >
       {/* Header Row */}
       {/* <div className="flex flex-row justify-between items-center text-xs mb-2 text-gray-300 border-b border-gray-600 pb-1"> */}
@@ -489,13 +489,7 @@ function ToolBlock({ children, ...props }) {
     </div>
   );
 }
-function getDomain(url) {
-  try {
-    return new URL(url).hostname.replace("www.", "");
-  } catch {
-    return url;
-  }
-}
+
 function ThinkingBlock({ children, ...props }) {
   const [isExpanded, setIsExpanded] = useState(true);
   // console.log("ThinkingBlock children:", children);
@@ -503,7 +497,7 @@ function ThinkingBlock({ children, ...props }) {
   // console.log("ThinkingBlock children length:", React.Children.count(children));
 
   return (
-    <div className=" rounded-lg bg-muted/30 mb-8">
+    <div className="  overflow-x-auto rounded-lg bg-muted/30 mb-8">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full flex items-center gap-3 p-4 text-left hover:bg-muted/50 transition-colors"
@@ -550,7 +544,7 @@ function SearchBlock({ children, ...props }) {
   return (
     <div
       {...props}
-      className="flex flex-col my-4 rounded-lg shadow-md bg-white text-gray-900 dark:bg-[#1f1f1f] dark:text-gray-100 border border-gray-200 dark:border-gray-700 transition-colors"
+      className=" overflow-x-auto flex flex-col my-4 rounded-lg shadow-md bg-white text-gray-900 dark:bg-[#1f1f1f] dark:text-gray-100 border border-gray-200 dark:border-gray-700 transition-colors"
     >
       {/* Header Toggle */}
       <button
@@ -598,7 +592,7 @@ function QueryBlock({ children, ...props }) {
   return (
     <div
       {...props}
-      className="flex flex-col my-2 p-2 text-sm rounded-md bg-[#2d2d2d] text-gray-100 shadow-md"
+      className=" overflow-x-auto flex flex-col my-2 p-2 text-sm rounded-md bg-[#2d2d2d] text-gray-100 shadow-md"
     >
       {/* Header Row */}
       {/* <div className="flex flex-row justify-between items-center text-xs mb-2 text-gray-300 border-b border-gray-600 pb-1"> */}
@@ -633,7 +627,7 @@ function OutputBlock({ children, ...props }) {
   return (
     <div
       {...props}
-      className="flex flex-col my-2 px-3 py-2 text-sm rounded-md 
+      className=" overflow-x-auto flex flex-col my-2 px-3 py-2 text-sm rounded-md 
                  bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 
                  border border-gray-300 dark:border-gray-700"
     >
@@ -1041,4 +1035,11 @@ function LinkTooltip({ children, rest }) {
       {...rest}
     />
   );
+}
+function getDomain(url) {
+  try {
+    return new URL(url).hostname.replace("www.", "");
+  } catch {
+    return url;
+  }
 }

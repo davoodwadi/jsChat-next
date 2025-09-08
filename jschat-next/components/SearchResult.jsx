@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ChevronDown, ChevronRight, Brain, ExternalLink } from "lucide-react"; // or your preferred icon library
+import Markdown from "react-markdown";
 
 export default function SearchResult({ result, i }) {
   const [isExpanded, setIsExpanded] = useState(true);
@@ -8,7 +9,7 @@ export default function SearchResult({ result, i }) {
     <>
       <div
         key={i}
-        className="p-4 hover:bg-gray-50 dark:hover:bg-[#2d2d2d] transition-colors rounded-md"
+        className=" overflow-x-auto p-4 hover:bg-gray-50 dark:hover:bg-[#2d2d2d] transition-colors rounded-md"
       >
         {/* Title */}
         <a
@@ -22,9 +23,9 @@ export default function SearchResult({ result, i }) {
         </a>
         {/* url */}
         {result.url !== undefined && (
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 overflow-x-auto">
             {" "}
-            <span className="font-medium truncate">{result.url}</span>
+            <span className="font-medium ">{result.url}</span>
           </p>
         )}
         {/* Score */}
@@ -56,6 +57,7 @@ export default function SearchResult({ result, i }) {
               .filter((chunk) => chunk.trim() !== "")
               .map((chunk, idx) => (
                 <div key={idx} className="flex flex-col py-2">
+                  {/* <Markdown>{chunk}</Markdown> */}
                   {chunk}
                 </div>
               ))}

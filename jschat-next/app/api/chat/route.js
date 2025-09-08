@@ -980,13 +980,20 @@ async function getOpenAIResponse({
       controller.enqueue(
         encoder.encode(
           JSON.stringify({
-            text:
-              "\n\n<query>\n\n" +
-              chunk?.item?.action?.query +
-              "\n\n</query>\n\n",
+            text: "\n```query\n" + chunk?.item?.action?.query + "\n```\n",
           }) + "\n"
         )
       );
+      // controller.enqueue(
+      //   encoder.encode(
+      //     JSON.stringify({
+      //       text:
+      //         "\n\n<query>\n\n" +
+      //         chunk?.item?.action?.query +
+      //         "\n\n</query>\n\n",
+      //     }) + "\n"
+      //   )
+      // );
       // console.log("chunk", chunk);
     }
     if (
@@ -1350,8 +1357,8 @@ sampleTextWithLink.push(" Quantitative data, samples.</think>");
 sampleTextWithLink.push(
   "The main topics are here...klsfjsdlkfjsadfkjsadfksad;fkjasdfklsjadfl;ksadjfl;ksadjflkslkdfjsdklghdfjnvmcxvsadfjsfsdfhgksdjfs;dfjsadkfsad;lkfjsdl;fksajf;lksdjflskdfjsdlkfjsdflksdjf;lsdkfjsdlkfsdjflksdj\n"
 );
-sampleTextWithLink.push("<tool>");
+sampleTextWithLink.push("\n```tool\n");
 sampleTextWithLink.push("call a tool\n");
-sampleTextWithLink.push("</tool>");
+sampleTextWithLink.push("\n```");
 sampleTextWithLink.push("# Heading\n\n");
 sampleTextWithLink.push("The rest of the text");
