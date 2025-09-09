@@ -121,7 +121,7 @@ export const NavigationEventsSkeleton = () => {
                 "dark:bg-white/10",
                 // Standard layout styles
                 "h-3 rounded-full animate-pulse", // Added animate-pulse for extra effect
-                "w-6"
+                "w-10"
               )}
             ></div>
             <div>

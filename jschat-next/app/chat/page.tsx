@@ -11,7 +11,7 @@ export default function Home({}: {}) {
   // console.log("loading ChatContainer");
   const router = useRouter();
   const chatId = generateChatId();
-  console.log("chatId ", chatId);
+  // console.log("chatId ", chatId);
   // redirect(`/chat/${chatId}`); // redirect throws client side exception
 
   useEffect(() => {

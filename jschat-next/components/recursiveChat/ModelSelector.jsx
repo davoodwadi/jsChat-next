@@ -55,11 +55,11 @@ import {
 //   return groups;
 // }, []);
 const providerGroups = {
-  OpenAI: openaiModelsWithMeta,
-  Anthropic: anthropicModelsWithMeta,
   Gemini: geminiModelsWithMeta,
   xAI: xAIModelsWithMeta,
+  OpenAI: openaiModelsWithMeta,
   Perplexity: perplexityModelsWithMeta,
+  Anthropic: anthropicModelsWithMeta,
   Groq: groqModelsWithMeta,
   DeepInfra: deepinfraModelsWithMeta,
 };
@@ -79,7 +79,7 @@ export function CompactModelSelector({
   const defaultModel = useMemo(() => {
     return (
       selectedModel ||
-      openaiModelsWithMeta.find((m) => m.model === "gpt-5-chat-latest")
+      geminiModelsWithMeta.find((m) => m.model === "gemini-2.5-pro")
     );
   }, [selectedModel]);
 
@@ -98,15 +98,6 @@ export function CompactModelSelector({
     const { icon, ...rest } = model;
     onModelChange(rest);
     setOpen(false);
-    // for (const models of Object.values(providerGroups)) {
-    //   const model = models.find((m) => m.model === selectedModelId);
-    //   if (model) {
-    //     const { icon, ...rest } = model;
-    //     onModelChange(rest);
-    //     setOpen(false);
-    //     break;
-    //   }
-    // }
   };
 
   return (

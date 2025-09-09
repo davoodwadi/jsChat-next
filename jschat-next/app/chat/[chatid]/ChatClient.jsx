@@ -1,7 +1,6 @@
 "use client";
 
 import { Suspense } from "react";
-import { test } from "@/lib/test";
 
 import dynamic from "next/dynamic";
 import { Star, Settings } from "lucide-react";
@@ -51,6 +50,8 @@ import {
   testModels,
 } from "@/app/models";
 
+import { test } from "@/lib/test";
+// const test = false;
 const modelMeta = [
   {
     desc: "Perplexity Models (Closed-source)",
@@ -69,8 +70,8 @@ if (test) {
 export default function ChatClient({ chatId, bookmarked }) {
   const { icon, ...startingModel } = test
     ? testModels[0]
-    : openaiModelsWithMeta.find((m) => m.model.includes("chat")) ||
-      openaiModelsWithMeta[0];
+    : geminiModelsWithMeta.find((m) => m.model.includes("gemini-2.5-pro")) ||
+      geminiModelsWithMeta[0];
   // const [model, setModel] = useState(startingModel);
   // console.log(model);
   const [systemPrompt, setSystemPrompt] = useState("");
