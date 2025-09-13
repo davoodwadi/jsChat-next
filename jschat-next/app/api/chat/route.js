@@ -343,8 +343,9 @@ export async function POST(req) {
           const encoder = new TextEncoder();
 
           console.log("openai", data.model.model);
-          const agentic = data?.modelConfig?.agentic;
-
+          const agentic = data?.modelConfig?.agentic && data.model.hasAgentic;
+          const search = data?.modelConfig?.search && data.model.hasSearch;
+          let reasoning = {};
           // console.log("key", process.env["OPENAI_KEY"]);
           const { convertedMessages, hasImage } =
             convertToOpenAIResponsesFormat({
@@ -352,16 +353,15 @@ export async function POST(req) {
               agentic,
             });
           // const legacyMessages = convertToOpenAIFormat(data.messages);
-          // console.log("convertedMessages", convertedMessages);
+          console.log("data.model", data.model);
+
           // return;
-          const reasoning =
-            data.model.model.includes("o3-mini") ||
-            data.model.model.includes("o4-mini")
-              ? { reasoning: { effort: "high" } }
-              : {};
+          if (data.model.reasoning) {
+            reasoning = { reasoning: { effort: "high" } };
+          }
 
           let extraConfigs = { tools: [] };
-          if (data?.modelConfig?.search) {
+          if (search) {
             extraConfigs["tools"].push({
               type: "web_search",
               search_context_size: "high",
@@ -381,7 +381,7 @@ export async function POST(req) {
             model: data.model.model,
             reasoning,
             extraConfigs,
-            search: data?.modelConfig?.search,
+            search,
             agentic,
             searchCost,
             mutables: mutables,
@@ -1073,7 +1073,7 @@ async function getOpenAIResponse({
       model: model,
       reasoning,
       extraConfigs,
-      search: search,
+      search,
       agentic,
       searchCost,
       mutables: mutables,

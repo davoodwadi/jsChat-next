@@ -380,10 +380,11 @@ export const testModels = [
     model: "test-llm",
     meta: "LLM for testing",
     new: true,
-    vision: false,
+    vision: true,
     reasoning: true,
     hasDeepResearch: true,
     hasSearch: true,
+    hasAgentic: true,
     icon: SearchIcon,
   },
 ];
