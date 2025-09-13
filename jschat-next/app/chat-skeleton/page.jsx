@@ -48,7 +48,7 @@ function ItemSkeleton() {
       className={cn(
         // 1. Use the SAME base class as the real item for consistent layout
         "glass-sidebar-item",
-        "flex w-full text-left p-2 rounded-lg text-xs items-center",
+        "flex w-full text-left p-2 rounded-lg text-xs justify-center items-center",
         "glass-skeleton-shimmer"
       )}
     >

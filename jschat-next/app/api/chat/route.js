@@ -547,6 +547,8 @@ export async function POST(req) {
     const { history, newUserMessage, system } = convertToGoogleFormat(
       data.messages
     );
+    // console.log("newUserMessage", newUserMessage);
+    // return;
     let streamConfig = {
       config: {
         systemInstruction: system?.content ? system.content : null,
@@ -1258,11 +1260,16 @@ function convertToGoogleFormat(messages) {
       if (m.role === "user") {
         const userM = {
           role: "user",
-          parts: [{ text: m.content.text ? m.content.text : "" }],
+          parts: [],
         };
-        // if (m.content.image) {
-        //   userM.content.push(formatBase64ImageAnthropic(m.content.image));
-        // }
+        if (m.content.image) {
+          userM.parts.push(formatBase64ImageGoogle(m.content.image));
+        }
+        userM.parts.push({ text: m.content.text ? m.content.text : "" });
+        // const userM = {
+        //   role: "user",
+        //   parts: [{ text: m.content.text ? m.content.text : "" }],
+        // };
         return userM;
       } else if (m.role === "assistant") {
         return {
@@ -1303,6 +1310,23 @@ function convertToAnthropicFormat(messages) {
     });
   const system = messages.find((m) => m.role === "system");
   return { convertedMessages, system };
+}
+
+function formatBase64ImageGoogle(base64String) {
+  const matches = base64String.match(/^data:(image\/[a-zA-Z]+);base64,(.+)$/);
+
+  if (!matches || matches.length !== 3) {
+    throw new Error("Invalid base64 image string");
+  }
+
+  const mediaType = matches[1]; // e.g., image/jpeg
+  const base64Data = matches[2]; // the actual base64 string
+  return {
+    inlineData: {
+      mimeType: mediaType,
+      data: base64Data,
+    },
+  };
 }
 
 function formatBase64ImageAnthropic(base64String) {
