@@ -1,11 +1,8 @@
 import { SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
 import { Star, Trash, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
+// import { useEffect, useState } from "react";
 
-import {
-  toggleBookmarkChatSession,
-  deleteChatSession,
-} from "@/lib/save/saveActions";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,15 +10,8 @@ import {
   DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
-import HistoryItemActive from "./HistoryItemActive";
+import { HistoryItemText, HistoryItemActions } from "./HistoryItemClient";
 
 export default async function HistoryItem({
   item,
@@ -33,68 +23,13 @@ export default async function HistoryItem({
     <SidebarMenuItem>
       {/* Use TooltipProvider at a higher level if you have many tooltips */}
       <div className="relative flex items-center group/item">
-        <HistoryItemActive
+        <HistoryItemText
           isCanvas={isCanvas}
           snippet={snippet}
           item={item}
           bookmarked={bookmarked}
         />
-
-        {/* Direct Actions Container */}
-        <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover/item:opacity-100 transition-opacity">
-          {/* Bookmark Action */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <form
-                action={async () => {
-                  "use server";
-                  await toggleBookmarkChatSession({ chatId: item.chatid });
-                }}
-              >
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  type="submit"
-                  className={cn(
-                    "h-5 w-5 glass-button",
-                    bookmarked && "glass-button-yellow-enabled"
-                  )}
-                >
-                  <Star className="h-4 w-4" />
-                </Button>
-              </form>
-            </TooltipTrigger>
-            <TooltipContent className="glass-tooltip text-zinc-800 dark:text-zinc-200">
-              <p>{bookmarked ? "Unbookmark" : "Bookmark"}</p>
-            </TooltipContent>
-          </Tooltip>
-
-          {/* Delete Action */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <form
-                action={async () => {
-                  "use server";
-                  console.log("deleting");
-                  await deleteChatSession({ chatId: item.chatid });
-                  console.log("DONE deleting");
-                }}
-              >
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  type="submit"
-                  className="h-5 w-5 glass-button hover:!bg-red-500/20 hover:text-red-500"
-                >
-                  <Trash className="h-4 w-4" />
-                </Button>
-              </form>
-            </TooltipTrigger>
-            <TooltipContent className="glass-tooltip  text-zinc-800 dark:text-zinc-200">
-              <p>Delete</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
+        <HistoryItemActions bookmarked={bookmarked} chatId={item.chatid} />
       </div>
     </SidebarMenuItem>
   );

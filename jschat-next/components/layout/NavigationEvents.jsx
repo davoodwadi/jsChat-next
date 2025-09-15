@@ -16,7 +16,7 @@ import { ClearChatHistoryButton } from "@/components/layout/ClearChatHistoryButt
 import { cn } from "@/lib/utils";
 
 import { Suspense } from "react";
-import { HistoryItemSkeleton } from "@/components/layout/HistoryItemActive";
+import { HistoryItemSkeleton } from "@/components/layout/HistoryItemClient";
 import HistoryItem from "./HistoryItem";
 
 const getChatHistory = async () => {

@@ -48,7 +48,7 @@ export default async function RootLayout({ params, children }) {
       <body
         className={`${geistSans.className} antialiased glass-layout overflow-x-hidden`}
       >
-        <TooltipProvider delayDuration={1}>
+        <TooltipProvider delayDuration={200}>
           <ThemeProvider
             attribute="class"
             // defaultTheme="dark"
