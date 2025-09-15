@@ -3,7 +3,7 @@
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
+  // TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
@@ -19,23 +19,23 @@ export function SaveButtonsTooltip({ elements }) {
           ? baseStyle + "glass-button-yellow-enabled"
           : baseStyle + "glass-button-dark";
         return (
-          <TooltipProvider key={index}>
-            <Tooltip key={index}>
-              <TooltipTrigger asChild key={index}>
-                <Button
-                  onClick={onClickFn}
-                  disabled={loading}
-                  className={finalStyle}
-                  size="sm"
-                >
-                  <Element />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{text}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          // <TooltipProvider key={index}>
+          <Tooltip key={index}>
+            <TooltipTrigger asChild key={index}>
+              <Button
+                onClick={onClickFn}
+                disabled={loading}
+                className={finalStyle}
+                size="sm"
+              >
+                <Element />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{text}</p>
+            </TooltipContent>
+          </Tooltip>
+          // </TooltipProvider>
         );
       })}
     </>

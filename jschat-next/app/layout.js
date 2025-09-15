@@ -13,7 +13,7 @@ import { ThemeProvider } from "@/components/layout/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 
 import { Suspense } from "react";
-
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarProviderServer } from "@/components/layout/sidebar-provider-server";
 
 import localFont from "next/font/local";
@@ -48,15 +48,17 @@ export default async function RootLayout({ params, children }) {
       <body
         className={`${geistSans.className} antialiased glass-layout overflow-x-hidden`}
       >
-        <ThemeProvider
-          attribute="class"
-          // defaultTheme="dark"
-          // themes={["dark", "light"]}
-          enableSystem={false}
-          disableTransitionOnChange
-        >
-          <SidebarProviderServer>{children}</SidebarProviderServer>
-        </ThemeProvider>
+        <TooltipProvider delayDuration={1}>
+          <ThemeProvider
+            attribute="class"
+            // defaultTheme="dark"
+            // themes={["dark", "light"]}
+            enableSystem={false}
+            disableTransitionOnChange
+          >
+            <SidebarProviderServer>{children}</SidebarProviderServer>
+          </ThemeProvider>
+        </TooltipProvider>
         <Toaster />
       </body>
     </html>

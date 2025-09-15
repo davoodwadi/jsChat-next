@@ -29,6 +29,7 @@ const getChatHistory = async () => {
   }
 };
 let chatHistoryTrue = false;
+
 export default async function NavigationEvents() {
   const chatHistory = await getChatHistory();
   chatHistoryTrue =
@@ -133,7 +134,7 @@ export const NavigationEventsSkeleton = () => {
                   "dark:bg-white/10",
                   // Standard layout styles
                   "h-3 rounded-full animate-pulse", // Added animate-pulse for extra effect
-                  "w-4"
+                  "w-6"
                 )}
               ></div>
             </div>

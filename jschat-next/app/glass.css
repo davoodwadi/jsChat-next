@@ -625,6 +625,17 @@
   }
 }
 
+.glass-dropdown-item {
+  @apply relative flex cursor-pointer select-none items-center rounded-md px-2 py-1.5 text-sm outline-none transition-colors;
+  @apply text-foreground/70 dark:text-foreground/60;
+
+  /* Hover and Focus States */
+  @apply hover:bg-white/10 dark:hover:bg-white/5;
+  @apply focus:bg-white/10 dark:focus:bg-white/5;
+  @apply hover:text-foreground/95 dark:hover:text-foreground/80;
+  @apply focus:text-foreground/95 dark:focus:text-foreground/80;
+}
+
 .glass-skeleton-shimmer {
   position: relative;
   overflow: hidden; /* Important: keeps the shimmer within the element's bounds */
