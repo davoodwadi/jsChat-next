@@ -15,7 +15,7 @@ import NavigationEvents, {
 } from "@/components/layout/NavigationEvents";
 import { Suspense } from "react";
 import { MultilineGlassSkeleton } from "../ui/glassSkeleton";
-import { HistoryItemSkeleton } from "@/components/layout/HistoryItemActive";
+import { HistoryItemSkeleton } from "@/components/layout/HistoryItemClient";
 
 import {
   SidebarProfile,
