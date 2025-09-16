@@ -30,8 +30,9 @@ export default function Branch({ tm, ...props }) {
   const toMaximize = props.branchKeyToMaximize === tm.key;
 
   // console.log("Branch props", props);
-  let baseClass = "";
-  const base = "mx-auto min-w-72"; //border-2 border-red-300 flex-1
+  let baseClass;
+  // const base = " flex-1 min-w-72"; //border-2 border-red-300 flex-1
+  const base = " "; //border-2 border-red-300 flex-1
   let w;
   if (!open) {
     w = " w-[85vw] shrink-0 md:w-[85vw] ";
@@ -41,7 +42,7 @@ export default function Branch({ tm, ...props }) {
   if (toMaximize) {
     baseClass = ` ${base} ${w} `;
   } else {
-    baseClass = ` ${base} flex-1 `;
+    baseClass = ` ${base} flex-1  `;
   }
 
   // scroll to latest branch after mount
