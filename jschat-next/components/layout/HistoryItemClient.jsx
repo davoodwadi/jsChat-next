@@ -47,15 +47,9 @@ export function HistoryItemText({ item, isCanvas, bookmarked, snippet }) {
     <SidebarMenuButton asChild isActive={isActive} className="flex-1 min-w-0 ">
       <Link
         href={isCanvas ? `/canvas/${item.chatid}` : `/chat/${item.chatid}`}
-        // className={`
-        //       flex items-center truncate pr-10
-        //       ${isActive ? "bg-muted text-primary font-medium" : "text-muted-foreground"}
-        //     `}
         className={cn(
           "glass-sidebar-item",
-          // 2. Add standard layout and text styles
           "flex w-full text-left p-2.5 rounded-lg text-xs items-center",
-          // 3. Conditionally apply our new active class
           isActive && "glass-sidebar-item-active"
         )}
         onClick={(e) => handleClick()}
@@ -73,11 +67,9 @@ export function HistoryItemActions({ bookmarked, chatId }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  // We'll manage the bookmarked state optimistically for instant UI feedback
   const [optimisticBookmarked, setOptimisticBookmarked] = useState(bookmarked);
 
   const handleBookmarkToggle = async () => {
-    // Optimistically update the UI immediately
     setOptimisticBookmarked(!optimisticBookmarked);
 
     startTransition(async () => {

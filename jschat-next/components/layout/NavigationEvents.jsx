@@ -1,4 +1,3 @@
-import { loadAllChatSessions } from "@/lib/save/saveActions";
 import Link from "next/link";
 
 import {
@@ -11,83 +10,22 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import HistoryButton from "./HistoryButton";
 import { MultilineGlassSkeleton } from "../ui/glassSkeleton";
-import { ClearChatHistoryButton } from "@/components/layout/ClearChatHistoryButton";
 import { cn } from "@/lib/utils";
 
 import { Suspense } from "react";
 import { HistoryItemSkeleton } from "@/components/layout/HistoryItemClient";
-import HistoryItem from "./HistoryItem";
-
-const getChatHistory = async () => {
-  // console.log("ChatHistory loading");
-  const result = await loadAllChatSessions();
-  if (result) {
-    return result;
-  } else {
-    return null;
-  }
-};
-let chatHistoryTrue = false;
+import ChatHistory from "./ChatHistory";
 
 export default async function NavigationEvents() {
-  const chatHistory = await getChatHistory();
-  chatHistoryTrue =
-    chatHistory !== undefined &&
-    Array.isArray(chatHistory) &&
-    chatHistory.length > 0;
-
   // console.log("NavigationEvents rerendered");
   return (
     <>
       <SidebarGroup>
-        <SidebarGroupLabel className="">
-          <div className="flex flex-row justify-between w-full items-center pb-8">
-            <div>History</div>
-            <div>
-              <ClearChatHistoryButton />
-            </div>
-          </div>
-        </SidebarGroupLabel>
+        <HistoryButton />
         <Suspense fallback={<HistoryItemsSkeleton />}>
-          {chatHistoryTrue ? (
-            <SidebarGroupContent>
-              <SidebarMenu className="">
-                {chatHistory.map((item, i) => {
-                  // console.log("item", item);
-                  const userMessageArray = item?.content?.userMessages;
-                  const bookmarked = item?.bookmarked;
-                  const isCanvas = !Array.isArray(userMessageArray);
-
-                  let snippet;
-
-                  if (!isCanvas) {
-                    const snippetArray = userMessageArray.map((m) =>
-                      typeof m.content === "string"
-                        ? m.content
-                        : m.content?.text
-                          ? m.content?.text
-                          : null
-                    );
-                    snippet = snippetArray.join("...");
-                  } else {
-                    snippet = item?.content?.canvasText;
-                  }
-                  return (
-                    <HistoryItem
-                      key={item.chatid}
-                      item={item}
-                      snippet={snippet}
-                      isCanvas={isCanvas}
-                      bookmarked={bookmarked}
-                    />
-                  );
-                })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          ) : (
-            <></>
-          )}
+          <ChatHistory />
         </Suspense>
       </SidebarGroup>
     </>

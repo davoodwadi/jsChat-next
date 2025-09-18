@@ -1,5 +1,6 @@
 import { useSidebar } from "@/components/ui/sidebar";
 import { toast } from "sonner";
+import { saveChatSession } from "@/lib/save/saveActions";
 
 import { handleSubmit, resizeTextarea } from "@/lib/chatUtils";
 import { getMaxGlobalIdUser } from "./RecursiveComponent";
@@ -227,6 +228,13 @@ function onRemoveBranchClick({ event, currentGlobalIdUser, ...mainProps }) {
       // title: "Branch Removed",
       // description: "There was a problem with your request.",
     });
+    saveChatSession({
+      chatId: mainProps.chatId,
+      userMessages: mainProps.userMessages,
+      botMessages: mainProps.botMessages,
+      systemPrompt: mainProps.systemPrompt,
+      globalModelInfo: mainProps.globalModelInfo,
+    });
     return;
   }
   // user messages are left after remove
@@ -237,6 +245,13 @@ function onRemoveBranchClick({ event, currentGlobalIdUser, ...mainProps }) {
 
     toast("Branch Removed", {
       // title: "Branch Removed",
+    });
+    saveChatSession({
+      chatId: mainProps.chatId,
+      userMessages: mainProps.userMessages,
+      botMessages: mainProps.botMessages,
+      systemPrompt: mainProps.systemPrompt,
+      globalModelInfo: mainProps.globalModelInfo,
     });
     return;
   }
@@ -255,6 +270,13 @@ function onRemoveBranchClick({ event, currentGlobalIdUser, ...mainProps }) {
 
   toast("Branch Removed", {
     // title: "Branch Removed",
+  });
+  saveChatSession({
+    chatId: mainProps.chatId,
+    userMessages: mainProps.userMessages,
+    botMessages: mainProps.botMessages,
+    systemPrompt: mainProps.systemPrompt,
+    globalModelInfo: mainProps.globalModelInfo,
   });
   return;
 }

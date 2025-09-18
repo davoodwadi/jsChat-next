@@ -113,14 +113,33 @@ export async function loadAllChatSessions() {
   // const sessionsCollection = client.db("chat").collection("sessions");
   // Start aggregation from PLANS collection, not sessions
   const sessionsCollection = client.db("chat").collection("sessions");
+
   const sessions = await sessionsCollection
-    .find({
-      userId: new ObjectId(chatSessionUserId),
-      hidden: { $ne: true },
-    })
-    // .sort({ sortOrder: 1 })
-    .sort({ updatedAt: -1 }) // sort by most recently updated
+    .find(
+      {
+        userId: new ObjectId(chatSessionUserId),
+        // userEmail: email,
+        // hidden: { $ne: true },
+        hidden: false,
+      },
+      {
+        projection: {
+          _id: 1, // exclude Mongo’s internal _id
+          chatid: 1,
+          userEmail: 1,
+          updatedAt: 1,
+          userId: 1,
+          bookmarked: 1,
+          snippet: 1,
+          // "content.userMessages": 1,
+          // "content.canvasText": 1,
+        },
+      }
+    )
+    .sort({ updatedAt: -1 })
+    .limit(50) // ✅ only the 50 most recent
     .toArray();
+
   // console.log("sessions", sessions);
   const serializedSessions = sessions.map((session) =>
     serializeSession(session)
@@ -133,6 +152,53 @@ export async function loadAllChatSessions() {
 
   return serializedSessions || [];
 }
+
+// async function backfillSnippets() {
+//   const client = await connectToDatabase();
+//   const sessionsCollection = client.db("chat").collection("sessions");
+
+//   const cursor = sessionsCollection.find(
+//     { snippet: { $exists: false } }, // only update if snippet missing
+//     {
+//       projection: {
+//         chatid: 1,
+//         "content.userMessages": 1,
+//         "content.canvasText": 1,
+//       },
+//     }
+//   );
+
+//   let updated = 0;
+//   while (await cursor.hasNext()) {
+//     const doc = await cursor.next();
+//     if (!doc) continue;
+
+//     const userMessages = doc?.content?.userMessages;
+//     console.log(`doc.chatid`, doc.chatid);
+
+//     let snippet = null;
+
+//     if (Array.isArray(userMessages)) {
+//       const snippetArray = userMessages.map((m) =>
+//         typeof m.content === "string" ? m.content : (m.content?.text ?? null)
+//       );
+//       snippet = snippetArray.filter(Boolean).join("...");
+//     } else {
+//       snippet = doc?.content?.canvasText ?? null;
+//     }
+
+//     if (snippet) {
+//       await sessionsCollection.updateOne(
+//         { chatid: doc.chatid },
+//         { $set: { snippet } }
+//       );
+//       updated++;
+//     }
+//   }
+
+//   console.log(`✅ Backfilled ${updated} snippets`);
+//   await client.close();
+// }
 
 export async function loadChatSession({ chatId }) {
   // console.log("SERVER ACTION load", chatId);
@@ -150,12 +216,13 @@ export async function loadChatSession({ chatId }) {
     // console.log("results.sessions null");
     return;
   } else {
-    const serializedSession = serializeSession(results);
+    const serializedSession = serializeOneSession(results);
     return serializedSession;
   }
 }
 
 export async function saveChatSession(params) {
+  // await backfillSnippets();
   // console.log("SERVER ACTION save params", params);
   // console.log("SERVER ACTION save systemPrompt", params.systemPrompt);
   const session = await auth();
@@ -174,6 +241,23 @@ export async function saveChatSession(params) {
   // Check if session already exists (update) or is new (create)
   const existingSession = await sessionsCollection.findOne({ chatid: chatId });
 
+  // get userMessages array and form the snippet
+  const userMessages = params?.userMessages;
+  let snippet;
+
+  if (!params.canvasId && userMessages) {
+    const snippetArray = userMessages.map((m) =>
+      typeof m.content === "string"
+        ? m.content
+        : m.content?.text
+          ? m.content?.text
+          : null
+    );
+    snippet = snippetArray.join("...");
+  } else {
+    snippet = params?.canvasText;
+  }
+
   if (existingSession) {
     // Update existing session
     const updateResult = await sessionsCollection.findOneAndUpdate(
@@ -185,6 +269,8 @@ export async function saveChatSession(params) {
           // Ensure user ownership
           userId: new ObjectId(chatSessionUserId),
           userEmail: email,
+          hidden: false,
+          snippet,
         },
       },
       {
@@ -219,6 +305,7 @@ export async function saveChatSession(params) {
       updatedAt: new Date(),
       migratedAt: null, // This is a new session, not migrated
       originalArrayPosition: null,
+      snippet,
     };
 
     const insertResult = await sessionsCollection.insertOne(newSession);
@@ -236,21 +323,40 @@ export async function saveChatSession(params) {
 
   // console.log("results", results);
 }
+function serializeOneSession(session) {
+  // Convert MongoDB objects to plain objects
+  return {
+    _id: session?._id.toString(), // Convert ObjectId to string
+    userId: session?.userId.toString(), // Convert ObjectId to string
+    userEmail: session?.userEmail,
+    chatid: session?.chatid,
+    snippet: session?.snippet,
+    content: session?.content,
+    // hidden: session?.hidden,
+    // sortOrder: session?.sortOrder,
+    // createdAt: session?.createdAt?.toISOString(), // Convert Date to ISO string
+    updatedAt: session?.updatedAt?.toISOString(), // Convert Date to ISO string
+    // migratedAt: session?.migratedAt?.toISOString(), // Convert Date to ISO string
+    // originalArrayPosition: session?.originalArrayPosition,
+    bookmarked: session?.bookmarked,
+  };
+}
 
 function serializeSession(session) {
   // Convert MongoDB objects to plain objects
   return {
-    _id: session._id.toString(), // Convert ObjectId to string
-    userId: session.userId.toString(), // Convert ObjectId to string
-    userEmail: session.userEmail,
-    chatid: session.chatid,
-    content: session.content,
-    hidden: session.hidden,
-    sortOrder: session.sortOrder,
-    createdAt: session.createdAt?.toISOString(), // Convert Date to ISO string
-    updatedAt: session.updatedAt?.toISOString(), // Convert Date to ISO string
-    migratedAt: session.migratedAt?.toISOString(), // Convert Date to ISO string
-    originalArrayPosition: session.originalArrayPosition,
-    bookmarked: session.bookmarked,
+    _id: session?._id.toString(), // Convert ObjectId to string
+    userId: session?.userId.toString(), // Convert ObjectId to string
+    userEmail: session?.userEmail,
+    chatid: session?.chatid,
+    snippet: session?.snippet,
+    // content: session?.content,
+    // hidden: session?.hidden,
+    // sortOrder: session?.sortOrder,
+    // createdAt: session?.createdAt?.toISOString(), // Convert Date to ISO string
+    updatedAt: session?.updatedAt?.toISOString(), // Convert Date to ISO string
+    // migratedAt: session?.migratedAt?.toISOString(), // Convert Date to ISO string
+    // originalArrayPosition: session?.originalArrayPosition,
+    bookmarked: session?.bookmarked,
   };
 }
