@@ -111,18 +111,16 @@ export const addCitationsToContentInline = (
       .join(", ");
 
     const citationTextBrackets = `[ ${citationText} ]`;
-    console.log("citationTextBrackets", citationTextBrackets);
+    // console.log("citationTextBrackets", citationTextBrackets);
 
     // Insert citations at the end of the segment
     const { text } = segment;
     const { startIndex, endIndex } = findTextPositions(result, text);
     result =
       result.slice(0, endIndex) + citationTextBrackets + result.slice(endIndex);
-    // console.log("result", result);
   });
   return result;
 };
-
 export const addCitationsToContentInlineSuper = (
   content,
   groundingChunks,
@@ -141,24 +139,71 @@ export const addCitationsToContentInlineSuper = (
     const { segment, groundingChunkIndices } = support;
 
     // Generate citation markers for this segment
-    const citationText = groundingChunkIndices
+    const citationLinks = groundingChunkIndices
       .map((chunkIndex) => {
+        const citationNumber = chunkIndex + 1;
         const chunk = groundingChunks[chunkIndex];
-        // return `[${chunk.web.title}](${chunk.web.uri})`;
-        return `[${chunk.web.title}](${chunk.web.uri})`;
+        // Safely access data and provide fallbacks
+        const url = chunk?.web?.uri || "";
+        const title = chunk?.web?.title || "";
+        const snippet = chunk?.snippet || "";
+        // Escape attributes to ensure the HTML is valid
+        const escapedUrl = escapeHtmlAttr(url);
+        const escapedTitle = escapeHtmlAttr(title);
+        const escapedSnippet = escapeHtmlAttr(snippet);
+        // Build the final HTML <a> tag string using a template literal for readability
+        const linkHtml = `<a href="${escapedUrl}" target="_blank" rel="noopener noreferrer" title="${escapedTitle}" class="citation-link" data-snippet="${escapedSnippet}">${citationNumber}</a>`;
+        return linkHtml;
+      })
+      .join(" ");
+
+    if (!citationLinks) {
+      return;
+    }
+
+    const citationHtml = `<sup> ${citationLinks} </sup>`;
+
+    // // Insert citations at the end of the segment
+    const { text } = segment;
+    const { startIndex, endIndex } = findTextPositions(result, text);
+    result = result.slice(0, endIndex) + citationHtml + result.slice(endIndex);
+  });
+  return result;
+};
+export const _addCitationsToContentInlineSuper = (
+  content,
+  groundingChunks,
+  groundingSupports
+) => {
+  let result = content;
+
+  // Sort supports by endIndex in descending order to avoid changing indices
+  // when we insert content
+  const sortedSupports = [...groundingSupports].sort(
+    (a, b) => b.segment.endIndex - a.segment.endIndex
+  );
+  // console.log("sortedSupports", sortedSupports);
+  // Process each support
+  sortedSupports.forEach((support) => {
+    const { segment, groundingChunkIndices } = support;
+
+    // Generate citation markers for this segment
+    const citationText = groundingChunkIndices
+      .map((i, chunkIndex) => {
+        // console.log("i", i);
+        const chunk = groundingChunks[chunkIndex];
+        const escapedTitle = escapeHtmlAttr(chunk.web.title || "");
+        const escapedUrl = escapeHtmlAttr(chunk.web.uri || "");
+        return `[${escapedTitle}](${escapedUrl})`;
       })
       .join(", ");
-    // console.log("citationText", citationText);
-
     const citationTextBrackets = `<sup> ${citationText} </sup>`;
-    // console.log("citationTextBrackets", citationTextBrackets);
 
-    // Insert citations at the end of the segment
+    // // Insert citations at the end of the segment
     const { text } = segment;
     const { startIndex, endIndex } = findTextPositions(result, text);
     result =
       result.slice(0, endIndex) + citationTextBrackets + result.slice(endIndex);
-    // console.log("result", result);
   });
   return result;
 };

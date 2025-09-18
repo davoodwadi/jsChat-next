@@ -52,6 +52,7 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
       props?.groundingSupports
     );
     finalContent = contentWithCitations;
+    // console.log("contentWithCitations", contentWithCitations);
   }
 
   if (props?.search_results) {
@@ -115,7 +116,7 @@ function PerplexitySourcesComponent({ children, ...props }) {
   return (
     <div
       {...props}
-      className=" overflow-x-auto mt-8 rounded-xl border bg-gradient-to-br from-muted/40 to-background p-[1px] shadow-md"
+      className=" mt-8 rounded-xl border bg-gradient-to-br from-muted/40 to-background p-[1px] shadow-md"
     >
       <div className="rounded-xl bg-card p-6">
         {/* Section heading */}
@@ -126,7 +127,7 @@ function PerplexitySourcesComponent({ children, ...props }) {
           <div className="h-px flex-1 bg-gradient-to-r from-primary/40 to-transparent" />
         </div>
 
-        <ul className="grid gap-4 sm:grid-cols-2">
+        <ul className=" overflow-x-auto  grid gap-4 sm:grid-cols-2">
           {sources.map((source, idx) => {
             const domain = getDomain(source.url);
 
@@ -196,7 +197,7 @@ function GeminiSourcesComponent({ children, ...props }) {
     return null; // nothing will render
   }
   return (
-    <div className=" overflow-x-auto mt-8 rounded-xl border bg-gradient-to-br from-muted/40 to-background p-[1px] shadow-md">
+    <div className="  mt-8 rounded-xl border bg-gradient-to-br from-muted/40 to-background p-[1px] shadow-md">
       <div className="rounded-xl bg-card p-6">
         {/* Section heading */}
         <div className="mb-5 flex items-center gap-2">
@@ -206,36 +207,37 @@ function GeminiSourcesComponent({ children, ...props }) {
           <div className="h-px flex-1 bg-gradient-to-r from-primary/40 to-transparent" />
         </div>
 
-        <ul className="grid gap-3 sm:grid-cols-2">
+        <ul className=" overflow-x-auto grid gap-3 sm:grid-cols-2">
           {children.map((source, idx) => {
-            const domain = getDomain(source.web.uri);
+            const itemUrl = source.web.uri;
+            const itemTitle = source.web.title || domain;
+            const domain = getDomain(itemUrl);
 
             return (
               <li key={idx}>
-                <a
-                  href={source.web.uri}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex items-center justify-between rounded-lg border bg-muted/30 p-3 text-xs truncate hover:border-primary/40 hover:bg-accent hover:text-accent-foreground transition-colors"
-                >
-                  <span className="flex items-center gap-3">
-                    {/* Domain Avatar */}
+                <div className="group flex items-center justify-between rounded-lg border bg-muted/30 p-3 text-xs hover:border-primary/40 hover:bg-accent hover:text-accent-foreground transition-colors">
+                  <div className="flex flex-1 items-center gap-3">
                     <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-bold">
                       {domain[0]?.toUpperCase()}
                     </span>
 
-                    {/* Title + Domain */}
                     <div className="flex flex-col">
-                      <span className="line-clamp-1 text-sm font-medium">
-                        {source.web.title || domain}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
+                      <p className="text-ellipsis overflow-hidden text-sm font-medium">
+                        {itemTitle}
+                      </p>
+                      <a
+                        href={itemUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
                         {domain}
-                      </span>
+                      </a>
                     </div>
-                  </span>
-                  <ExternalLink className="h-4 w-4 flex-shrink-0 opacity-60 group-hover:opacity-100" />
-                </a>
+                  </div>
+                  <a href={itemUrl} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-4 w-4 flex-shrink-0 opacity-60 group-hover:opacity-100" />
+                  </a>
+                </div>
               </li>
             );
           })}
@@ -250,7 +252,7 @@ function OpenAISourcesComponent({ children, ...props }) {
     return null; // nothing will render
   }
   return (
-    <div className=" overflow-x-auto mt-8 rounded-xl border bg-gradient-to-br from-muted/40 to-background p-[1px] shadow-md">
+    <div className="  mt-8 rounded-xl border bg-gradient-to-br from-muted/40 to-background p-[1px] shadow-md">
       <div className="rounded-xl bg-card p-6">
         {/* Section heading */}
         <div className="mb-5 flex items-center gap-2">
@@ -260,26 +262,36 @@ function OpenAISourcesComponent({ children, ...props }) {
           <div className="h-px flex-1 bg-gradient-to-r from-primary/40 to-transparent" />
         </div>
 
-        <ul className="grid gap-3 sm:grid-cols-2">
+        <ul className=" overflow-x-auto grid gap-3 sm:grid-cols-2">
           {children.map((source, idx) => {
+            const itemUrl = source.url;
             const domain = getDomain(source.url);
+            const itemTitle = domain;
             return (
               <li key={idx}>
-                <a
-                  href={source.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex items-center justify-between rounded-lg border bg-muted/30 p-3 text-xs truncate hover:border-primary/40 hover:bg-accent hover:text-accent-foreground transition-colors"
-                >
-                  {/* Domain chip */}
-                  <span className="flex items-center gap-2">
-                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">
-                      {domain[0].toUpperCase()}
+                <div className="group flex items-center justify-between rounded-lg border bg-muted/30 p-3 text-xs hover:border-primary/40 hover:bg-accent hover:text-accent-foreground transition-colors">
+                  <div className="flex flex-1 items-center gap-3">
+                    <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-bold">
+                      {domain[0]?.toUpperCase()}
                     </span>
-                    <span className="truncate">{domain}</span>
-                  </span>
-                  <ExternalLink className="h-4 w-4 opacity-60 group-hover:opacity-100" />
-                </a>
+
+                    <div className="flex flex-col">
+                      {/* <p className="text-ellipsis overflow-hidden text-sm font-medium">
+                        {itemTitle}
+                      </p> */}
+                      <a
+                        href={itemUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {domain}
+                      </a>
+                    </div>
+                  </div>
+                  <a href={itemUrl} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-4 w-4 flex-shrink-0 opacity-60 group-hover:opacity-100" />
+                  </a>
+                </div>
               </li>
             );
           })}
@@ -288,6 +300,15 @@ function OpenAISourcesComponent({ children, ...props }) {
     </div>
   );
 }
+
+const getTextContent = (children) => {
+  if (typeof children === "string") return children;
+  if (Array.isArray(children)) return children.map(getTextContent).join("");
+  if (React.isValidElement(children) && children.props.children) {
+    return getTextContent(children.props.children);
+  }
+  return "";
+};
 
 function CustomMarkdown({ children, mode, props }) {
   const problematicTags = ["div", "pre", "tool", "output", "think"];
@@ -298,12 +319,17 @@ function CustomMarkdown({ children, mode, props }) {
       remarkPlugins={[remarkGfm, remarkCustomMath]}
       rehypePlugins={[rehypeKatex, rehypeRaw]}
       // prose prose-zinc dark:prose-invert
-      className={` prose prose-zinc dark:prose-invert pb-4 break-words !max-w-none`}
+      className={`  prose prose-zinc dark:prose-invert pb-4 break-words !max-w-none`}
       components={{
         sup(props) {
-          const { children, className, node, ...rest } = props;
-          // console.log("children", children);
-          return <sup style={{ marginLeft: "0.3em" }}>{children}</sup>;
+          const { children } = props;
+          // const fullText = getTextContent(children);
+          // console.log("fullText", fullText);
+          return (
+            <sup className="" style={{ marginLeft: "0.3em" }}>
+              {children}
+            </sup>
+          );
         },
         a(props) {
           const { children, className, node, ...rest } = props;
@@ -645,23 +671,6 @@ function OutputBlock({ children, ...props }) {
       <div className="font-mono whitespace-pre-wrap">{children}</div>
     </div>
   );
-}
-function getFirstWord(str) {
-  try {
-    if (typeof str !== "string") return "";
-
-    // Remove non-alphanumeric characters except whitespace
-    const cleaned = str.replace(/[^\w\s]/g, "");
-
-    // Trim and split by one or more whitespace characters
-    const words = cleaned.trim().split(/\s+/);
-
-    // Return first word or empty string if none exists
-    return words[0] || "";
-  } catch (error) {
-    // console.error("Error in getFirstWord:", error.message);
-    return "";
-  }
 }
 
 function getTextFromChildren(children) {
