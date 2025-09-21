@@ -39,11 +39,19 @@ import React, {
   useCallback,
   forwardRef,
 } from "react";
-import { ChevronDown, ChevronRight, Brain, ExternalLink } from "lucide-react"; // or your preferred icon library
+import {
+  ChevronDown,
+  ChevronRight,
+  Brain,
+  ExternalLink,
+  Search,
+  TerminalSquare,
+  ClipboardList,
+} from "lucide-react"; // or your preferred icon library
 import { createPortal } from "react-dom";
 
 const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
-  // console.log("props", props);
+  // console.log("props.children", props.children);
   let finalContent = props.children;
   // console.log(props);
   if (Array.isArray(props?.annotations) && props.annotations.length > 0) {
@@ -137,14 +145,14 @@ function TavilySourcesComponent({ children, ...props }) {
   return (
     <div
       {...props}
-      className=" overflow-x-auto flex flex-col my-4 rounded-lg shadow-md bg-white text-gray-900 dark:bg-[#1f1f1f] dark:text-gray-100 border border-gray-200 dark:border-gray-700 transition-colors"
+      className="glass glass-card-noise overflow-hidden flex flex-col my-4 rounded-lg text-black/80 dark:text-white/80"
     >
       {/* Header Toggle */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center px-4 py-3 text-xs font-semibold uppercase tracking-wider transition-colors hover:bg-gray-100 dark:hover:bg-[#2a2a2a]"
+        className="w-full flex items-center px-4 py-3 text-xs font-semibold uppercase tracking-wider transition-colors glass-hover"
       >
-        <span>Search Results</span>
+        <span className="opacity-70">Search Results</span>
         <div className="flex-1" />
         {isExpanded ? (
           <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
@@ -155,10 +163,16 @@ function TavilySourcesComponent({ children, ...props }) {
 
       {/* Results */}
       {isExpanded && (
-        <div className="overflow-x-auto divide-y divide-gray-200 dark:divide-gray-700">
+        <div
+          // --- CHANGES START HERE ---
+          className="overflow-x-auto divide-y divide-white/20 dark:divide-white/10"
+          // --- CHANGES END HERE ---
+        >
           {parsedResults ? (
             parsedResults.length > 0 ? (
               parsedResults.map((r, i) => {
+                // IMPORTANT: You'll need to style the SearchResult component too.
+                // See suggestions below.
                 return <SearchResult key={i} result={r} i={i} />;
               })
             ) : (
@@ -167,7 +181,11 @@ function TavilySourcesComponent({ children, ...props }) {
               </p>
             )
           ) : (
-            <pre className="m-4 whitespace-pre-wrap text-xs text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-[#2a2a2a] rounded-md p-3 overflow-auto">
+            <pre
+              // --- CHANGES START HERE ---
+              className="m-4 whitespace-pre-wrap text-xs text-black/70 dark:text-white/70 bg-black/5 dark:bg-white/5 rounded-md p-3 overflow-auto"
+              // --- CHANGES END HERE ---
+            >
               {typeof children === "string"
                 ? children
                 : JSON.stringify(children, null, 2)}
@@ -572,31 +590,44 @@ function ToolBlock({ children, ...props }) {
   return (
     <div
       {...props}
-      className="  overflow-x-auto flex flex-col my-2 p-2 text-sm rounded-md bg-[#2d2d2d] text-gray-100 shadow-md"
+      // --- CHANGES START HERE ---
+      // Using glass-noise for a slightly different, but related, texture
+      className="glass-subtle glass-noise flex flex-col my-2 rounded-lg text-black/80 dark:text-white/80"
+      // --- CHANGES END HERE ---
     >
-      {/* Header Row */}
-      {/* <div className="flex flex-row justify-between items-center text-xs mb-2 text-gray-300 border-b border-gray-600 pb-1"> */}
-      {/* <div className="uppercase tracking-wide font-semibold">Tool Call</div> */}
+      {/* Header Toggle Button */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center p-2 text-xs text-left transition-colors"
+        // --- CHANGES START HERE ---
+        className="w-full flex items-center gap-3 p-3 text-xs text-left transition-colors glass-hover focus:outline-none focus:ring-2 focus:ring-white/30 rounded-t-lg"
+        // --- CHANGES END HERE ---
       >
-        {/* <Brain className="h-4 w-4 text-muted-foreground shrink-0" /> */}
-        {/* <span className="text-xs font-medium text-muted-foreground">
-            Thought Tokens
-          </span> */}
-        <div className="uppercase tracking-wide font-semibold">Tool Call</div>
+        <TerminalSquare className="h-4 w-4 text-black/50 dark:text-white/50 shrink-0" />
+
+        <div className="uppercase tracking-wide font-semibold text-black/70 dark:text-white/70">
+          Tool Call
+        </div>
+
         <div className="flex-1" />
+
         {isExpanded ? (
-          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          <ChevronDown className="h-4 w-4 text-black/50 dark:text-white/50" />
         ) : (
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          <ChevronRight className="h-4 w-4 text-black/50 dark:text-white/50" />
         )}
       </button>
-      {/* </div> */}
 
-      {/* Tool content (rendered markdown/code/etc) */}
-      {isExpanded && <div className="overflow-x-auto m-2">{children}</div>}
+      {/* Tool content */}
+      {isExpanded && (
+        // --- CHANGES START HERE ---
+        // Using padding and an inset container for a clean look
+        <div className="overflow-x-auto px-3 pb-3 pt-1 text-sm">
+          <div className="bg-zinc-500/5 dark:bg-white/5 p-3 rounded-md font-mono text-xs">
+            {children}
+          </div>
+        </div>
+        // --- CHANGES END HERE ---
+      )}
     </div>
   );
 }
@@ -703,33 +734,44 @@ function QueryBlock({ children, ...props }) {
   return (
     <div
       {...props}
-      className=" overflow-x-auto flex flex-col my-2 p-2 text-sm rounded-md bg-[#2d2d2d] text-gray-100 shadow-md"
+      // --- CHANGES START HERE ---
+      className="glass-subtle glass-frosted flex flex-col my-6 rounded-lg text-black/80 dark:text-white/80"
+      // --- CHANGES END HERE ---
     >
-      {/* Header Row */}
-      {/* <div className="flex flex-row justify-between items-center text-xs mb-2 text-gray-300 border-b border-gray-600 pb-1"> */}
-      {/* <div className="uppercase tracking-wide font-semibold">Tool Call</div> */}
+      {/* Header Toggle Button */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center p-2 text-xs text-left transition-colors"
+        // --- CHANGES START HERE ---
+        className="w-full flex items-center gap-3 p-3 text-xs text-left transition-colors glass-hover focus:outline-none focus:ring-2 focus:ring-white/30 rounded-t-lg"
+        // --- CHANGES END HERE ---
       >
-        {/* <Brain className="h-4 w-4 text-muted-foreground shrink-0" /> */}
-        {/* <span className="text-xs font-medium text-muted-foreground">
-            Thought Tokens
-          </span> */}
-        <div className="uppercase tracking-wide font-semibold">
+        {/* BONUS: Added a thematic icon for clarity */}
+        <Search className="h-4 w-4 text-black/50 dark:text-white/50 shrink-0" />
+
+        <div className="uppercase tracking-wide font-semibold text-black/70 dark:text-white/70">
           Search Query
         </div>
+
         <div className="flex-1" />
+
         {isExpanded ? (
-          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          <ChevronDown className="h-4 w-4 text-black/50 dark:text-white/50" />
         ) : (
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          <ChevronRight className="h-4 w-4 text-black/50 dark:text-white/50" />
         )}
       </button>
-      {/* </div> */}
 
-      {/* Tool content (rendered markdown/code/etc) */}
-      {isExpanded && <div className="overflow-x-auto m-2">{children}</div>}
+      {/* Query content */}
+      {isExpanded && (
+        // --- CHANGES START HERE ---
+        // Added padding for a cleaner, flush look instead of margin
+        <div className="overflow-x-auto px-3 pb-3 pt-1 text-sm">
+          <div className="bg-zinc-500/5 dark:bg-white/5 p-3 rounded-md">
+            {children}
+          </div>
+        </div>
+        // --- CHANGES END HERE ---
+      )}
     </div>
   );
 }
@@ -738,22 +780,36 @@ function OutputBlock({ children, ...props }) {
   return (
     <div
       {...props}
-      className=" overflow-x-auto flex flex-col my-2 px-3 py-2 text-sm rounded-md 
-                 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 
-                 border border-gray-300 dark:border-gray-700"
+      // --- CHANGES START HERE ---
+      // Using the primary 'glass' class for more prominence, with 'grain' texture
+      className="glass glass-grain flex flex-col my-2 rounded-lg text-black/80 dark:text-white/80"
+      // --- CHANGES END HERE ---
     >
       {/* Header Row */}
       <div
-        className="flex flex-row justify-between items-center text-xs mb-2 
-                      text-gray-600 dark:text-gray-400 border-b border-gray-300 
-                      dark:border-gray-700 pb-1"
+        // --- CHANGES START HERE ---
+        // Swapping opaque borders and colors for semi-transparent ones
+        className="flex flex-row items-center gap-3 p-3 text-xs 
+                   border-b border-white/20 dark:border-white/10"
+        // --- CHANGES END HERE ---
       >
-        <div className="uppercase tracking-wide font-medium">Output</div>
+        <ClipboardList className="h-4 w-4 text-black/50 dark:text-white/50 shrink-0" />
+        <div className="uppercase tracking-wide font-medium text-black/70 dark:text-white/70">
+          Output
+        </div>
+        <div className="flex-1" />
         <CopyText text={children} />
       </div>
-
       {/* Main Output Content */}
-      <div className="font-mono whitespace-pre-wrap">{children}</div>
+      <div
+        // --- CHANGES START HERE ---
+        // Adding padding to the wrapper for a consistent look
+        className="p-3"
+      >
+        <div className="font-mono whitespace-pre-wrap bg-black/5 dark:bg-white/5 p-3 rounded-md text-sm">
+          {children}
+        </div>
+      </div>
     </div>
   );
 }
