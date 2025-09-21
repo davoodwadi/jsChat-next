@@ -60,7 +60,7 @@ export async function handleSubmit({
   let chain;
   let streamIterator;
   let tempChunks = "";
-  const extraContent = {};
+  const extraContent = { annotations: [], queries: [], results: [] };
 
   const array = JSON.parse(targetId);
 
@@ -214,6 +214,15 @@ export async function handleSubmit({
             if (parsedData?.openai_search_results) {
               extraContent.openai_search_results =
                 parsedData.openai_search_results;
+            }
+            if (parsedData?.annotation_item) {
+              extraContent.annotations.push(parsedData.annotation_item);
+            }
+            if (parsedData?.query) {
+              extraContent.queries.push(parsedData.query);
+            }
+            if (parsedData?.search) {
+              extraContent.results.push(parsedData.search);
             }
             // console.log(
             //   "parsedData?.openai_search_results",
@@ -426,6 +435,15 @@ export async function handleSubmit({
             if (parsedData?.openai_search_results) {
               extraContent.openai_search_results =
                 parsedData.openai_search_results;
+            }
+            if (parsedData?.annotation_item) {
+              extraContent.annotations.push(parsedData.annotation_item);
+            }
+            if (parsedData?.query) {
+              extraContent.queries.push(parsedData.query);
+            }
+            if (parsedData?.search) {
+              extraContent.results.push(parsedData.search);
             }
             newBotEntry = {
               key: JSON.stringify(array),

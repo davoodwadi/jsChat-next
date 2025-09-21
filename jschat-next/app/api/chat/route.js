@@ -53,7 +53,7 @@ export async function POST(req) {
   console.log("server search", data.modelConfig?.search);
   // return;
 
-  const mutables = { total_tokens: 0, citationNumber: 1 };
+  const mutables = { total_tokens: 0 };
   const searchCost = 20000;
   if (anthropicModels.includes(data.model.model)) {
     const { convertedMessages, system } = convertToAnthropicFormat(
@@ -353,7 +353,7 @@ export async function POST(req) {
               agentic,
             });
           // const legacyMessages = convertToOpenAIFormat(data.messages);
-          console.log("data.model", data.model);
+          // console.log("data.model", data.model);
 
           // return;
           if (data.model.reasoning) {
@@ -979,24 +979,20 @@ async function getOpenAIResponse({
       chunk.type === "response.output_item.done" &&
       chunk?.item?.action?.query
     ) {
-      controller.enqueue(
-        encoder.encode(
-          JSON.stringify({
-            text: "\n```query\n" + chunk?.item?.action?.query + "\n```\n",
-          }) + "\n"
-        )
-      );
       // controller.enqueue(
       //   encoder.encode(
       //     JSON.stringify({
-      //       text:
-      //         "\n\n<query>\n\n" +
-      //         chunk?.item?.action?.query +
-      //         "\n\n</query>\n\n",
+      //       text: "\n```query\n" + chunk?.item?.action?.query + "\n```\n",
       //     }) + "\n"
       //   )
       // );
-      // console.log("chunk", chunk);
+      controller.enqueue(
+        encoder.encode(
+          JSON.stringify({
+            query: chunk?.item?.action?.query,
+          }) + "\n"
+        )
+      );
     }
     if (
       chunk.type === "response.output_item.done" &&
@@ -1014,22 +1010,11 @@ async function getOpenAIResponse({
       // console.log("chunk", chunk);
     }
     if (chunk.type == "response.output_text.annotation.added") {
-      const citationElement =
-        '<sup><a href="' +
-        chunk?.annotation?.url +
-        '" target="_blank" rel="noopener noreferrer" ' +
-        'title="' +
-        chunk?.annotation?.title +
-        '" ' +
-        'class="citation-link" ' +
-        ">" +
-        mutables.citationNumber +
-        "</a></sup>";
-      mutables.citationNumber += 1;
+      // console.log("annotation chunk:", chunk);
       controller.enqueue(
         encoder.encode(
           JSON.stringify({
-            text: citationElement,
+            annotation_item: chunk,
           }) + "\n"
         )
       );
@@ -1108,7 +1093,7 @@ async function callTheTools({
       controller.enqueue(
         encoder.encode(
           JSON.stringify({
-            text: "\n```query\n" + JSON.stringify(query) + "\n```\n",
+            query: query,
           }) + "\n"
         )
       );
@@ -1143,7 +1128,7 @@ async function callTool({ toolCall, controller, encoder }) {
     controller.enqueue(
       encoder.encode(
         JSON.stringify({
-          text: "\n```search\n" + JSON.stringify(minimalResults) + "\n```\n",
+          search: JSON.stringify(minimalResults),
         }) + "\n"
       )
     );

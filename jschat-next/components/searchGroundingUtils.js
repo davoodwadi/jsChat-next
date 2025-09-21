@@ -1,3 +1,56 @@
+export function addCitationsToContentInlineOpenAI(content, annotations) {
+  // 1. Filter for only the 'url_citation' annotations, as other types might exist.
+  // console.log("content", content);
+  // console.log("addCitationsToContentInlineOpenAI", annotations);
+  const citationAnnotations = annotations.filter(
+    (ann) => ann.annotation && ann.annotation.type === "url_citation"
+  );
+  // console.log("citationAnnotations", citationAnnotations);
+
+  // 2. Sort annotations by their start index. This is CRUCIAL to process the
+  //    string in the correct order from beginning to end.
+  citationAnnotations.sort(
+    (a, b) => a.annotation.start_index - b.annotation.start_index
+  );
+
+  let resultParts = [];
+  let lastIndex = 0;
+  let citationNumber = 1;
+
+  // 3. Loop through the sorted annotations to build the new string.
+  citationAnnotations.forEach((ann) => {
+    const { start_index, end_index, url, title } = ann.annotation;
+
+    // Add the chunk of text *before* this annotation's cited text
+    resultParts.push(content.slice(lastIndex, start_index));
+
+    // Add the original text that is being cited
+    const citedText = content.slice(start_index, end_index);
+    resultParts.push(citedText);
+
+    // Escape the URL and title to prevent HTML injection or malformed attributes
+    const escapedUrl = escapeHtmlAttr(url);
+    const escapedTitle = escapeHtmlAttr(title);
+
+    // Create the citation link HTML
+    const citationLink = `<sup><a href="${escapedUrl}" target="_blank" rel="noopener noreferrer" title="${escapedTitle}" class="citation-link">${citationNumber}</a></sup>`;
+
+    // Add the citation link
+    resultParts.push(citationLink);
+
+    // Update our position in the original string
+    lastIndex = end_index;
+
+    // Increment the citation number for the next one
+    citationNumber++;
+  });
+
+  // 4. After the loop, add any remaining text from the end of the original string.
+  resultParts.push(content.slice(lastIndex));
+
+  // 5. Join all the parts together into a single string and return.
+  return resultParts.join("");
+}
 export function addCitationsToContentInlineSuperPerplexity(
   content,
   search_results

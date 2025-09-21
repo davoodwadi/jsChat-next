@@ -17,6 +17,7 @@ import {
   // addCitationsToContentInline,
   addCitationsToContentInlineSuper,
   addCitationsToContentInlineSuperPerplexity,
+  addCitationsToContentInlineOpenAI,
 } from "@/components/searchGroundingUtils";
 import SearchResult from "@/components/SearchResult";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -45,6 +46,13 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
   // console.log("props", props);
   let finalContent = props.children;
   // console.log(props);
+  if (Array.isArray(props?.annotations) && props.annotations.length > 0) {
+    const contentWithCitations = addCitationsToContentInlineOpenAI(
+      finalContent,
+      props.annotations
+    );
+    finalContent = contentWithCitations;
+  }
   if (props?.groundingChunks && props?.groundingSupports) {
     const contentWithCitations = addCitationsToContentInlineSuper(
       finalContent,
@@ -63,6 +71,12 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
     );
     finalContent = contentWithCitations;
   }
+  // console.log("props?.queries", props?.queries);
+  // console.log("props?.results", props?.results);
+  // console.log("props.children", props.children);
+  // console.log("props.content", props.content);
+  // console.log("props?.openai_search_results", props?.openai_search_results);
+  // console.log("props?.annotations", props?.annotations);
 
   const processedText = preprocessMarkdown(finalContent);
   const mathProcessedText = preprocessLatexMath(processedText);
@@ -73,6 +87,9 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
   return (
     <div ref={ref}>
       {/* {think && <ThinkingSection content={think} props={props} />} */}
+      {Array.isArray(props?.queries) && props.queries.length > 0 && (
+        <QueryBlock>{props.queries}</QueryBlock>
+      )}
       <CustomMarkdown props={props}>{finalContent}</CustomMarkdown>
       {props?.openai_search_results && (
         <OpenAISourcesComponent props={props}>
@@ -89,11 +106,78 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
           {props.search_results}
         </PerplexitySourcesComponent>
       )}
+      {Array.isArray(props?.results) &&
+        props.results.length > 0 &&
+        props.results.map((res) => (
+          <TavilySourcesComponent>{res}</TavilySourcesComponent>
+        ))}
     </div>
   );
 });
 
 export default MarkdownComponent;
+
+function TavilySourcesComponent({ children, ...props }) {
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  let parsedResults = null;
+  try {
+    if (typeof children === "string") {
+      const json = JSON.parse(children);
+      parsedResults = Array.isArray(json) ? json : json.results || [];
+    } else if (typeof children === "object" && children !== null) {
+      parsedResults = Array.isArray(children)
+        ? children
+        : children.results || [];
+    }
+  } catch (e) {
+    console.warn("Failed to parse children JSON", e);
+  }
+  // console.log("parsedResults", parsedResults);
+  return (
+    <div
+      {...props}
+      className=" overflow-x-auto flex flex-col my-4 rounded-lg shadow-md bg-white text-gray-900 dark:bg-[#1f1f1f] dark:text-gray-100 border border-gray-200 dark:border-gray-700 transition-colors"
+    >
+      {/* Header Toggle */}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center px-4 py-3 text-xs font-semibold uppercase tracking-wider transition-colors hover:bg-gray-100 dark:hover:bg-[#2a2a2a]"
+      >
+        <span>Search Results</span>
+        <div className="flex-1" />
+        {isExpanded ? (
+          <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+        ) : (
+          <ChevronRight className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+        )}
+      </button>
+
+      {/* Results */}
+      {isExpanded && (
+        <div className="overflow-x-auto divide-y divide-gray-200 dark:divide-gray-700">
+          {parsedResults ? (
+            parsedResults.length > 0 ? (
+              parsedResults.map((r, i) => {
+                return <SearchResult key={i} result={r} i={i} />;
+              })
+            ) : (
+              <p className="p-4 text-gray-500 dark:text-gray-400 text-sm italic">
+                No results found.
+              </p>
+            )
+          ) : (
+            <pre className="m-4 whitespace-pre-wrap text-xs text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-[#2a2a2a] rounded-md p-3 overflow-auto">
+              {typeof children === "string"
+                ? children
+                : JSON.stringify(children, null, 2)}
+            </pre>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function PerplexitySourcesComponent({ children, ...props }) {
   let sources = [];
@@ -248,6 +332,7 @@ function GeminiSourcesComponent({ children, ...props }) {
 }
 
 function OpenAISourcesComponent({ children, ...props }) {
+  // console.log("OpenAISourcesComponent");
   if (!Array.isArray(children)) {
     return null; // nothing will render
   }
