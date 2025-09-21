@@ -108,8 +108,8 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
       )}
       {Array.isArray(props?.results) &&
         props.results.length > 0 &&
-        props.results.map((res) => (
-          <TavilySourcesComponent>{res}</TavilySourcesComponent>
+        props.results.map((res, i) => (
+          <TavilySourcesComponent key={i}>{res}</TavilySourcesComponent>
         ))}
     </div>
   );
