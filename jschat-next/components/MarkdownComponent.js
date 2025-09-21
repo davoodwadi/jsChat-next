@@ -84,7 +84,8 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
   // console.log("props.children", props.children);
   // console.log("props.content", props.content);
   // console.log("props?.openai_search_results", props?.openai_search_results);
-  // console.log("props?.annotations", props?.annotations);
+  console.log("props?.groundingChunks", props?.groundingChunks);
+  console.log("props?.groundingSupports", props?.groundingSupports);
 
   const processedText = preprocessMarkdown(finalContent);
   const mathProcessedText = preprocessLatexMath(processedText);
@@ -295,55 +296,68 @@ function PerplexitySourcesComponent({ children, ...props }) {
 }
 
 function GeminiSourcesComponent({ children, ...props }) {
+  const [isExpanded, setIsExpanded] = useState(true);
+  // console.log("children", children);
   if (!Array.isArray(children)) {
     return null; // nothing will render
   }
   return (
     <div className="  mt-8 rounded-xl border bg-gradient-to-br from-muted/40 to-background p-[1px] shadow-md">
-      <div className="rounded-xl bg-card p-6">
-        {/* Section heading */}
-        <div className="mb-5 flex items-center gap-2">
-          <span className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
-            Sources
-          </span>
-          <div className="h-px flex-1 bg-gradient-to-r from-primary/40 to-transparent" />
+      <div className="rounded-xl bg-card p-4">
+        {/* Header Toggle */}
+        <div className=" flex items-center gap-2">
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="w-full flex items-center px-4 py-3 text-xs font-semibold uppercase tracking-wider transition-colors hover:bg-gray-100 dark:hover:bg-[#2a2a2a]"
+          >
+            <span className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
+              Sources
+            </span>
+            <div className="h-px flex-1 bg-gradient-to-r from-primary/40 to-transparent" />
+            {isExpanded ? (
+              <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+            ) : (
+              <ChevronRight className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+            )}
+          </button>
         </div>
+        {/* Results */}
+        {isExpanded && (
+          <ul className=" overflow-x-auto grid gap-3 sm:grid-cols-2 !px-6 mt-5">
+            {children.map((source, idx) => {
+              const itemUrl = source.web.uri;
+              const domain = getDomain(itemUrl);
+              const itemTitle = source.web.title || domain;
+              return (
+                <li key={idx}>
+                  <div className="group flex h-full items-center justify-between rounded-lg border bg-muted/30 p-3 text-xs hover:border-primary/40 hover:bg-accent hover:text-accent-foreground transition-colors">
+                    <div className="flex flex-1 items-center gap-3">
+                      <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-bold">
+                        {domain[0]?.toUpperCase()}
+                      </span>
 
-        <ul className=" overflow-x-auto grid gap-3 sm:grid-cols-2">
-          {children.map((source, idx) => {
-            const itemUrl = source.web.uri;
-            const itemTitle = source.web.title || domain;
-            const domain = getDomain(itemUrl);
-
-            return (
-              <li key={idx}>
-                <div className="group flex items-center justify-between rounded-lg border bg-muted/30 p-3 text-xs hover:border-primary/40 hover:bg-accent hover:text-accent-foreground transition-colors">
-                  <div className="flex flex-1 items-center gap-3">
-                    <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-bold">
-                      {domain[0]?.toUpperCase()}
-                    </span>
-
-                    <div className="flex flex-col">
-                      <p className="text-ellipsis overflow-hidden text-sm font-medium">
-                        {itemTitle}
-                      </p>
-                      <a
-                        href={itemUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {domain}
-                      </a>
+                      <div className="flex flex-col">
+                        <p className="text-ellipsis overflow-hidden text-sm font-medium">
+                          {itemTitle}
+                        </p>
+                        <a
+                          href={itemUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {domain}
+                        </a>
+                      </div>
                     </div>
+                    <a href={itemUrl} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-4 w-4 flex-shrink-0 opacity-60 group-hover:opacity-100" />
+                    </a>
                   </div>
-                  <a href={itemUrl} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="h-4 w-4 flex-shrink-0 opacity-60 group-hover:opacity-100" />
-                  </a>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </div>
     </div>
   );
@@ -351,54 +365,68 @@ function GeminiSourcesComponent({ children, ...props }) {
 
 function OpenAISourcesComponent({ children, ...props }) {
   // console.log("OpenAISourcesComponent");
+  const [isExpanded, setIsExpanded] = useState(true);
+
   if (!Array.isArray(children)) {
     return null; // nothing will render
   }
   return (
     <div className="  mt-8 rounded-xl border bg-gradient-to-br from-muted/40 to-background p-[1px] shadow-md">
-      <div className="rounded-xl bg-card p-6">
-        {/* Section heading */}
-        <div className="mb-5 flex items-center gap-2">
-          <span className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
-            Sources
-          </span>
-          <div className="h-px flex-1 bg-gradient-to-r from-primary/40 to-transparent" />
+      <div className="rounded-xl bg-card p-4">
+        {/* Header Toggle */}
+        <div className=" flex items-center gap-2">
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="w-full flex items-center px-4 py-3 text-xs font-semibold uppercase tracking-wider transition-colors hover:bg-gray-100 dark:hover:bg-[#2a2a2a]"
+          >
+            <span className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
+              Sources
+            </span>
+            <div className="h-px flex-1 bg-gradient-to-r from-primary/40 to-transparent" />
+            {isExpanded ? (
+              <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+            ) : (
+              <ChevronRight className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+            )}
+          </button>
         </div>
+        {/* Results */}
+        {isExpanded && (
+          <ul className=" overflow-x-auto grid gap-3 sm:grid-cols-2 !px-6 mt-5">
+            {children.map((source, idx) => {
+              const itemUrl = source.url;
+              const domain = getDomain(source.url);
+              const itemTitle = domain;
+              return (
+                <li key={idx}>
+                  <div className="group flex h-full items-center justify-between rounded-lg border bg-muted/30 p-3 text-xs hover:border-primary/40 hover:bg-accent hover:text-accent-foreground transition-colors">
+                    <div className="flex flex-1 items-center gap-3">
+                      <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-bold">
+                        {domain[0]?.toUpperCase()}
+                      </span>
 
-        <ul className=" overflow-x-auto grid gap-3 sm:grid-cols-2">
-          {children.map((source, idx) => {
-            const itemUrl = source.url;
-            const domain = getDomain(source.url);
-            const itemTitle = domain;
-            return (
-              <li key={idx}>
-                <div className="group flex items-center justify-between rounded-lg border bg-muted/30 p-3 text-xs hover:border-primary/40 hover:bg-accent hover:text-accent-foreground transition-colors">
-                  <div className="flex flex-1 items-center gap-3">
-                    <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-bold">
-                      {domain[0]?.toUpperCase()}
-                    </span>
-
-                    <div className="flex flex-col">
-                      {/* <p className="text-ellipsis overflow-hidden text-sm font-medium">
-                        {itemTitle}
-                      </p> */}
-                      <a
-                        href={itemUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {domain}
-                      </a>
+                      <div className="flex flex-col">
+                        <p className="text-ellipsis overflow-hidden text-sm font-medium">
+                          {itemTitle}
+                        </p>
+                        <a
+                          href={itemUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {domain}
+                        </a>
+                      </div>
                     </div>
+                    <a href={itemUrl} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-4 w-4 flex-shrink-0 opacity-60 group-hover:opacity-100" />
+                    </a>
                   </div>
-                  <a href={itemUrl} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="h-4 w-4 flex-shrink-0 opacity-60 group-hover:opacity-100" />
-                  </a>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </div>
     </div>
   );
