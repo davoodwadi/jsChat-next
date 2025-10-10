@@ -202,6 +202,14 @@ export async function handleSubmit({
             if (parsedData?.text) {
               tempChunks += parsedData?.text;
             }
+            if (parsedData?.think) {
+              // console.log("parsedData?.think", parsedData?.think);
+              extraContent.think =
+                (extraContent?.think === null) |
+                (extraContent?.think === undefined)
+                  ? parsedData.think
+                  : extraContent.think + parsedData.think;
+            }
             if (parsedData?.groundingChunks) {
               extraContent.groundingChunks = parsedData.groundingChunks;
             }
@@ -422,7 +430,14 @@ export async function handleSubmit({
               // console.log("parsedData?.text", parsedData?.text);
               tempChunks += parsedData?.text;
             }
-
+            if (parsedData?.think) {
+              // console.log("parsedData?.think", parsedData?.think);
+              extraContent.think =
+                (extraContent?.think === null) |
+                (extraContent?.think === undefined)
+                  ? parsedData.think
+                  : extraContent.think + parsedData.think;
+            }
             if (parsedData?.groundingChunks) {
               extraContent.groundingChunks = parsedData.groundingChunks;
             }

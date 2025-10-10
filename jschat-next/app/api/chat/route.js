@@ -27,6 +27,12 @@ const perplexityClient = new OpenAI({
   baseURL: "https://api.perplexity.ai",
 });
 
+const alibabaClient = new OpenAI({
+  // If environment variables are not configured, replace the following line with: apiKey: "sk-xxx",
+  apiKey: process.env.DASHSCOPE_API_KEY,
+  baseURL: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+});
+
 import {
   groqModels,
   openaiModels,
@@ -35,7 +41,9 @@ import {
   xAIModels,
   geminiModels,
   perplexityModels,
+  alibabaModels,
 } from "@/app/models";
+
 import { updateGroundingChunksWithActualLinksAndTitles } from "@/components/searchGroundingUtils";
 import { allModelsWithoutIcon } from "@/app/models";
 import { basic_search } from "@/lib/sample";
@@ -46,11 +54,11 @@ export const runtime = "edge";
 export async function POST(req) {
   const data = await req.json();
 
-  console.log("route runtime", process.env.NEXT_RUNTIME);
+  // console.log("route runtime", process.env.NEXT_RUNTIME);
   // revalidatePath("/", "layout");
-  console.log("model server", data.model.model);
-  console.log("server deepResearch", data?.modelConfig?.deepResearch);
-  console.log("server search", data.modelConfig?.search);
+  // console.log("model server", data.model.model);
+  // console.log("server deepResearch", data?.modelConfig?.deepResearch);
+  // console.log("server search", data.modelConfig?.search);
   // return;
 
   const mutables = { total_tokens: 0 };
@@ -64,10 +72,13 @@ export async function POST(req) {
         try {
           const encoder = new TextEncoder();
           // console.log("Anthropic Model", data.model);
-
-          const thinking = data.model.model.includes("claude-sonnet-4")
+          // console.log("Anthropic Model", data.model.reasoning);
+          // return;
+          const thinking = data.model.reasoning
             ? { thinking: { type: "enabled", budget_tokens: 8000 } }
             : {};
+
+          // console.log("thinking", thinking);
 
           // console.log("messages", messages);
           // console.log("system", system);
@@ -100,22 +111,22 @@ export async function POST(req) {
               mutables.total_tokens += messageStreamEvent.usage.output_tokens;
             } else if (messageStreamEvent?.content_block?.type === "thinking") {
               // controller.enqueue(encoder.encode("<think>\n"));
-              controller.enqueue(
-                encoder.encode(
-                  JSON.stringify({
-                    text: "<think>\n",
-                  }) + "\n"
-                )
-              );
+              // controller.enqueue(
+              //   encoder.encode(
+              //     JSON.stringify({
+              //       text: "<think>\n",
+              //     }) + "\n"
+              //   )
+              // );
             } else if (messageStreamEvent?.delta?.type === "signature_delta") {
               // controller.enqueue(encoder.encode("\n\n</think>\n\n"));
-              controller.enqueue(
-                encoder.encode(
-                  JSON.stringify({
-                    text: "\n\n</think>\n\n",
-                  }) + "\n"
-                )
-              );
+              // controller.enqueue(
+              //   encoder.encode(
+              //     JSON.stringify({
+              //       text: "\n\n</think>\n\n",
+              //     }) + "\n"
+              //   )
+              // );
             } else if (messageStreamEvent.type === "content_block_delta") {
               // messageStreamEvent.delta.text
               if (messageStreamEvent?.delta?.type === "thinking_delta") {
@@ -125,7 +136,7 @@ export async function POST(req) {
                 controller.enqueue(
                   encoder.encode(
                     JSON.stringify({
-                      text: messageStreamEvent?.delta?.thinking,
+                      think: messageStreamEvent?.delta?.thinking,
                     }) + "\n"
                   )
                 );
@@ -772,6 +783,105 @@ export async function POST(req) {
           if (deepResearch) {
             mutables.total_tokens += searchCost * 5;
           }
+          console.log("mutables.total_tokens", mutables.total_tokens);
+          // UPDATE TOKENS HERE START
+          // update usage
+          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              amount: mutables.total_tokens,
+              email: data.email,
+            }),
+          });
+          //
+          // UPDATE TOKENS HERE END
+        }
+      },
+    });
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  } else if (alibabaModels.includes(data.model.model)) {
+    console.log("alibaba cloud", data.model.model);
+
+    // let extraConfigs = {
+    //   web_search_options: { search_context_size: "low" },
+    // };
+    const extraConfigs = data.model.reasoning ? { enable_thinking: true } : {};
+    // console.log("extraConfigs", extraConfigs);
+    // console.log("data.model", data.model);
+
+    // console.log("data.model.model", data.model.model);
+    // return;
+
+    const { convertedMessages, hasImage } = convertToOpenAIFormat(
+      data.messages
+    );
+    let usage;
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          const encoder = new TextEncoder();
+          const stream = await alibabaClient.chat.completions.create({
+            model: data.model.model,
+            messages: convertedMessages,
+            stream: true,
+            stream_options: { include_usage: true },
+            ...extraConfigs,
+          });
+
+          for await (const chunk of stream) {
+            // console.log("chunk", chunk);
+            // await wait(2000);
+            const content = chunk.choices?.[0]?.delta?.content;
+            const reasoning_content =
+              chunk.choices?.[0]?.delta?.reasoning_content;
+            if (reasoning_content) {
+              controller.enqueue(
+                encoder.encode(
+                  JSON.stringify({
+                    think: reasoning_content,
+                  }) + "\n"
+                )
+              );
+            }
+            if (content) {
+              controller.enqueue(
+                encoder.encode(
+                  JSON.stringify({
+                    text: content,
+                  }) + "\n"
+                )
+              );
+            }
+            if (chunk?.usage) {
+              usage = chunk.usage;
+              // console.log("usage", usage);
+            }
+          }
+          controller.close(); // Close the stream
+        } catch (err) {
+          if (err.code === "ECONNRESET" || err.name === "AbortError") {
+            console.log("🔌 Client disconnected / aborted");
+          } else if (err.code === "ERR_INVALID_STATE") {
+            console.log("⚠️ Tried writing to closed stream, ignoring");
+          } else {
+            console.error("❌ Unexpected streaming error:", err);
+          }
+          try {
+            controller.close();
+          } catch {}
+        } finally {
+          console.log("UPDATING TOKEN USAGE");
+          if (usage?.total_tokens) {
+            mutables.total_tokens += usage.total_tokens;
+          }
+
           console.log("mutables.total_tokens", mutables.total_tokens);
           // UPDATE TOKENS HERE START
           // update usage

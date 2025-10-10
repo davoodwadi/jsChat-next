@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
+  alibabaModelsWithMeta,
   perplexityModelsWithMeta,
   openaiModelsWithMeta,
   groqModelsWithMeta,
@@ -36,28 +37,12 @@ import {
   geminiModelsWithMeta,
   testModels,
 } from "@/app/models";
-// Memoize provider groups
-// const providerGroups = useMemo(() => {
-//   const groups = {
-//     OpenAI: openaiModelsWithMeta,
-//     Anthropic: anthropicModelsWithMeta,
-//     Gemini: geminiModelsWithMeta,
-//     xAI: xAIModelsWithMeta,
-//     Perplexity: perplexityModelsWithMeta,
-//     Groq: groqModelsWithMeta,
-//     DeepInfra: deepinfraModelsWithMeta,
-//   };
 
-//   if (test) {
-//     groups["Test"] = testModels;
-//   }
-
-//   return groups;
-// }, []);
 const providerGroups = {
   Gemini: geminiModelsWithMeta,
   xAI: xAIModelsWithMeta,
   OpenAI: openaiModelsWithMeta,
+  AlibabaCloud: alibabaModelsWithMeta,
   Perplexity: perplexityModelsWithMeta,
   Anthropic: anthropicModelsWithMeta,
   Groq: groqModelsWithMeta,
@@ -192,15 +177,16 @@ export function CompactModelSelector2({
   className,
 }) {
   // Build provider groups
-  const providerGroups = {
-    Perplexity: perplexityModelsWithMeta,
-    OpenAI: openaiModelsWithMeta,
-    Gemini: geminiModelsWithMeta,
-    xAI: xAIModelsWithMeta,
-    Anthropic: anthropicModelsWithMeta,
-    Groq: groqModelsWithMeta,
-    DeepInfra: deepinfraModelsWithMeta,
-  };
+  // const providerGroups = {
+  //   AlibabaCloud: alibabaModelsWithMeta,
+  //   Perplexity: perplexityModelsWithMeta,
+  //   OpenAI: openaiModelsWithMeta,
+  //   Gemini: geminiModelsWithMeta,
+  //   xAI: xAIModelsWithMeta,
+  //   Anthropic: anthropicModelsWithMeta,
+  //   Groq: groqModelsWithMeta,
+  //   DeepInfra: deepinfraModelsWithMeta,
+  // };
 
   // Only include test models if the test flag is true
   if (test) {

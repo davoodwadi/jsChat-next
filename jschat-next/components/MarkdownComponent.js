@@ -84,22 +84,27 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
   // console.log("props.children", props.children);
   // console.log("props.content", props.content);
   // console.log("props?.openai_search_results", props?.openai_search_results);
-  console.log("props?.groundingChunks", props?.groundingChunks);
-  console.log("props?.groundingSupports", props?.groundingSupports);
+  // console.log("props?.groundingChunks", props?.groundingChunks);
+  // console.log("props?.groundingSupports", props?.groundingSupports);
 
   const processedText = preprocessMarkdown(finalContent);
   const mathProcessedText = preprocessLatexMath(processedText);
   // console.log("mathProcessedText", mathProcessedText);
   finalContent = mathProcessedText;
   // console.log("finalContent", finalContent);
+  console.log("props?.think", props?.think);
 
   return (
     <div ref={ref}>
-      {/* {think && <ThinkingSection content={think} props={props} />} */}
       {Array.isArray(props?.queries) && props.queries.length > 0 && (
         <QueryBlock>{props.queries}</QueryBlock>
       )}
+      {props?.think && (
+        <ThinkingBlock props={props}>{props.think}</ThinkingBlock>
+      )}
+
       <CustomMarkdown props={props}>{finalContent}</CustomMarkdown>
+
       {props?.openai_search_results && (
         <OpenAISourcesComponent props={props}>
           {props?.openai_search_results}

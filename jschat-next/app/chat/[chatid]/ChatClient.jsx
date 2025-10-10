@@ -40,6 +40,7 @@ import {
 } from "next/navigation";
 
 import {
+  alibabaModelsWithMeta,
   perplexityModelsWithMeta,
   openaiModelsWithMeta,
   groqModelsWithMeta,
@@ -53,6 +54,10 @@ import {
 import { test } from "@/lib/test";
 // const test = false;
 const modelMeta = [
+  {
+    desc: "AlibabaCloud Models (Closed-source)",
+    models: alibabaModelsWithMeta,
+  },
   {
     desc: "Perplexity Models (Closed-source)",
     models: perplexityModelsWithMeta,

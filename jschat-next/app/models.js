@@ -383,6 +383,43 @@ export const geminiModelsWithMeta = [
     icon: BrainIcon,
   },
 ];
+
+export const alibabaModelsWithMeta = [
+  {
+    name: "Qwen3 Max",
+    model: "qwen3-max-preview",
+    meta: "The Qwen 3 series Max model has undergone specialized upgrades in agent programming and tool invocation compared to the preview version. The officially released model this time has achieved state-of-the-art (SOTA) performance in its field and is better suited to meet the demands of agents operating in more complex scenarios.",
+    new: true,
+    vision: false,
+    reasoning: false,
+    hasDeepResearch: false,
+    hasSearch: false,
+    icon: DetailedIcon,
+  },
+  {
+    name: "Qwen3 Flash",
+    model: "qwen-flash",
+    meta: "The Qwen3 Flash model offers a powerful fusion of thinking and non-thinking modes with dynamic in-conversation switching, excelling in complex reasoning while showing significant gains in instruction following and text comprehension. It supports a 1M context length and is billed on a tiered model corresponding to context usage.",
+    new: true,
+    vision: false,
+    reasoning: true,
+    hasDeepResearch: false,
+    hasSearch: false,
+    icon: DetailedIcon,
+  },
+  {
+    name: "Qwen3 Coder Plus",
+    model: "qwen3-coder-plus",
+    meta: "Powered by Qwen3, this is a powerful Coding Agent that excels in tool calling and environment interaction to achieve autonomous programming. It combines outstanding coding proficiency with versatile general-purpose abilities.",
+    new: true,
+    vision: false,
+    reasoning: false,
+    hasDeepResearch: false,
+    hasSearch: false,
+    icon: DetailedIcon,
+  },
+];
+
 export const testModels = [
   {
     name: "test llm",
@@ -398,6 +435,7 @@ export const testModels = [
   },
 ];
 const allModels = [
+  ...alibabaModelsWithMeta,
   ...perplexityModelsWithMeta,
   ...openaiModelsWithMeta,
   ...groqModelsWithMeta,
@@ -414,6 +452,7 @@ export const allModelsWithoutIcon = allModels.map(
   ({ icon, ...model }) => model
 );
 
+export const alibabaModels = alibabaModelsWithMeta.map((m) => m.model);
 export const perplexityModels = perplexityModelsWithMeta.map((m) => m.model);
 export const groqModels = groqModelsWithMeta.map((m) => m.model);
 export const deepinfraModels = deepinfraModelsWithMeta.map((m) => m.model);
