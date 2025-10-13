@@ -43,7 +43,7 @@ export default function Branch({ tm, ...props }) {
   if (toMaximize) {
     baseClass = ` ${base} ${w} `;
   } else {
-    baseClass = ` ${base} flex-1  `;
+    baseClass = ` ${base} flex-1 w-full min-w-0 `;
   }
 
   // scroll to latest branch after mount

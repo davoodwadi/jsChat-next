@@ -49,6 +49,7 @@ import {
   ClipboardList,
 } from "lucide-react"; // or your preferred icon library
 import { createPortal } from "react-dom";
+import { cn } from "@/lib/utils";
 
 const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
   // console.log("props.children", props.children);
@@ -92,7 +93,7 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
   // console.log("mathProcessedText", mathProcessedText);
   finalContent = mathProcessedText;
   // console.log("finalContent", finalContent);
-  console.log("props?.think", props?.think);
+  // console.log("props?.think", props?.think);
 
   return (
     <div ref={ref}>
@@ -454,8 +455,8 @@ function CustomMarkdown({ children, mode, props }) {
     <Markdown
       remarkPlugins={[remarkGfm, remarkCustomMath]}
       rehypePlugins={[rehypeKatex, rehypeRaw]}
-      // prose prose-zinc dark:prose-invert
-      className={`  prose prose-zinc dark:prose-invert pb-4 break-words !max-w-none`}
+      // prose prose-zinc dark:prose-invert !max-w-none
+      className={` pb-4 break-words prose prose-zinc dark:prose-invert`}
       components={{
         sup(props) {
           const { children } = props;
@@ -475,6 +476,7 @@ function CustomMarkdown({ children, mode, props }) {
             return <LinkTooltip rest={rest}>{children}</LinkTooltip>;
           }
         },
+        table: TableWrapper,
         pre({ node, children, ...props }) {
           // If the only child is "code" with `language-search`, skip wrapping in <pre>
           if (
@@ -510,9 +512,13 @@ function CustomMarkdown({ children, mode, props }) {
             // known code block
             function CustomPreTag({ children, ...rest }) {
               // console.log("children", children)
-              // console.log("rest", rest)
+              // console.log("rest", rest);
+              // console.log(cn(className, "overflow-x-auto w-full  min-w-0"));
               return (
-                <div {...rest} className="flex flex-col ">
+                <div
+                  {...rest}
+                  className="flex flex-col overflow-x-auto w-full  min-w-0"
+                >
                   <div className="flex flex-row justify-between text-xs mb-4">
                     <div>{language}</div>
                     <CopyText text={text} />
@@ -524,28 +530,40 @@ function CustomMarkdown({ children, mode, props }) {
             // console.log("children", typeof children);
             if (language === "search") {
               return (
-                <SearchBlock {...rest} className={className}>
+                <SearchBlock
+                  {...rest}
+                  className={cn(className, "overflow-x-auto w-full  min-w-0")}
+                >
                   {children}
                 </SearchBlock>
               );
             }
             if (language === "tool") {
               return (
-                <ToolBlock {...rest} className={className}>
+                <ToolBlock
+                  {...rest}
+                  className={cn(className, "overflow-x-auto w-full  min-w-0")}
+                >
                   {children}
                 </ToolBlock>
               );
             }
             if (language === "query") {
               return (
-                <QueryBlock {...rest} className={className}>
+                <QueryBlock
+                  {...rest}
+                  className={cn(className, "overflow-x-auto w-full  min-w-0")}
+                >
                   {children}
                 </QueryBlock>
               );
             }
             if (language === "output") {
               return (
-                <OutputBlock {...rest} className={className}>
+                <OutputBlock
+                  {...rest}
+                  className={cn(className, "overflow-x-auto w-full  min-w-0")}
+                >
                   {children}
                 </OutputBlock>
               );
@@ -564,7 +582,10 @@ function CustomMarkdown({ children, mode, props }) {
             );
           } else {
             return (
-              <code {...rest} className={className}>
+              <code
+                {...rest}
+                className={cn(className, "overflow-x-auto w-full  min-w-0")}
+              >
                 {children}
               </code>
             );
@@ -617,6 +638,16 @@ function CustomMarkdown({ children, mode, props }) {
     </Markdown>
   );
 }
+
+function TableWrapper({ node, ...props }) {
+  // `props` will include any children, like <thead>, <tbody>, etc.
+  return (
+    <div className="overflow-x-auto my-4  w-full  min-w-0 ">
+      <table {...props} className="w-full text-sm " />
+    </div>
+  );
+}
+
 function ToolBlock({ children, ...props }) {
   const [isExpanded, setIsExpanded] = useState(true);
 

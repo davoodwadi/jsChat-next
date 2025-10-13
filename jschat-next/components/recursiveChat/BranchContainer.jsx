@@ -5,7 +5,7 @@ export default function BranchContainer(props) {
     <div
       id={"branch-container-" + props.id}
       // className="inline-flex flex-row" //border-4 border-green-300 overflow-scroll flex-nowrap justify-between
-      className="flex flex-row" //border-4 border-green-300 overflow-scroll flex-nowrap justify-between
+      className="flex flex-row w-full min-w-0" //border-4 border-green-300 overflow-scroll flex-nowrap justify-between
     >
       {props.children}
     </div>
