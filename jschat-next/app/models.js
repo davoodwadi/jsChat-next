@@ -6,6 +6,7 @@ import {
   TextSearch,
   OctagonAlert,
   Search,
+  Code,
 } from "lucide-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -26,6 +27,7 @@ const FastIcon = () => (
 const DetailedIcon = () => (
   <TextSearch size={16} className="relative top-[4px]" />
 );
+const CodeIcon = () => <Code size={16} className="relative top-[4px]" />;
 
 const SearchIcon = () => <Search size={16} className="relative top-[4px]" />;
 
@@ -327,9 +329,36 @@ export const xAIModelsWithMeta = [
     model: "grok-4-latest",
     meta: "xAI's Flagship LLM",
     new: true,
-    vision: false,
+    vision: true,
     reasoning: false,
     icon: BrainIcon,
+  },
+  {
+    name: "Grok 4 Fast (Reasoning)",
+    model: "grok-4-fast-reasoning",
+    meta: "xAI's latest advancement in cost-efficient reasoning models.",
+    new: true,
+    vision: true,
+    reasoning: true,
+    icon: BrainIcon,
+  },
+  {
+    name: "Grok 4 Fast (Non-Reasoning)",
+    model: "grok-4-fast-non-reasoning",
+    meta: "xAI's latest advancement in cost-efficient models.",
+    new: true,
+    vision: true,
+    reasoning: false,
+    icon: DetailedIcon,
+  },
+  {
+    name: "Grok Code Fast",
+    model: "grok-code-fast",
+    meta: "xAI's speedy and economical reasoning model that excels at agentic coding",
+    new: true,
+    vision: false,
+    reasoning: true,
+    icon: CodeIcon,
   },
   // {
   //   name: "Grok 3",
@@ -349,15 +378,6 @@ export const xAIModelsWithMeta = [
     reasoning: true,
     icon: BrainIcon,
   },
-  // {
-  //   name: "Grok 2",
-  //   model: "grok-2-latest",
-  //   meta: "xAI's LLM",
-  //   new: false,
-  //   vision: false,
-  //   reasoning: false,
-  //   icon: DifferentIcon,
-  // },
 ];
 export const geminiModelsWithMeta = [
   {
@@ -416,7 +436,7 @@ export const alibabaModelsWithMeta = [
     reasoning: false,
     hasDeepResearch: false,
     hasSearch: false,
-    icon: DetailedIcon,
+    icon: CodeIcon,
   },
 ];
 

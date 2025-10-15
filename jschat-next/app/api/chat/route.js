@@ -7,6 +7,7 @@ const openai = new OpenAI({
 const xAI = new OpenAI({
   apiKey: process.env["XAI_API_KEY"],
   baseURL: "https://api.x.ai/v1",
+  timeout: 360000, // Override default timeout with longer timeout for reasoning models
 });
 import { createDeepInfra } from "@ai-sdk/deepinfra";
 const deepinfra = createDeepInfra({
@@ -435,13 +436,17 @@ export async function POST(req) {
     });
   } else if (xAIModels.includes(data.model.model)) {
     console.log("xAI");
-    const reasoning = data.model.model.includes("grok-3-mini-latest")
-      ? { reasoning_effort: "high" }
-      : {};
-    const isReasoning = data.model.model.includes("grok-3-mini-latest");
-    const { convertedMessages, hasImage } = convertToOpenAIFormat(
-      data.messages
-    );
+    const isReasoning = data.model.reasoning;
+    const reasoning = isReasoning ? { reasoning_effort: "high" } : {};
+
+    // const { convertedMessages, hasImage } = convertToOpenAIFormat(
+    //   data.messages
+    // );
+    const { convertedMessages, hasImage } = convertToOpenAIResponsesFormatXAI({
+      messages: data.messages,
+      agentic: false,
+    });
+
     const modelMeta = allModelsWithoutIcon.find(
       (m) => m.model === data.model.model
     );
@@ -454,63 +459,44 @@ export async function POST(req) {
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
+    // console.log("convertedMessages", convertedMessages);
+
+    // return;
     const stream = new ReadableStream({
       async start(controller) {
         try {
           const encoder = new TextEncoder();
 
-          const streamResponse = await xAI.chat.completions.create({
-            messages: convertedMessages,
+          const streamResponse = await xAI.responses.create({
             model: data.model.model,
+            input: convertedMessages,
             stream: true,
-            stream_options: { include_usage: true },
-            max_completion_tokens: 16384,
             ...reasoning,
+            // include: ["reasoning.encrypted_content"],
           });
-          let firstDelta = true;
-          if (isReasoning || data.model.model.includes("grok-4")) {
-            // console.log("reasoning xai -> added think token");
-            controller.enqueue(
-              encoder.encode(
-                JSON.stringify({
-                  text: "<think>",
-                }) + "\n"
-              )
-            );
-          }
+
           for await (const chunk of streamResponse) {
             console.log("chunk", chunk);
-            if (chunk.choices[0]?.delta?.reasoning_content) {
+            if (chunk.type === "response.reasoning_summary_text.delta") {
               controller.enqueue(
                 encoder.encode(
                   JSON.stringify({
-                    text: chunk.choices[0]?.delta?.reasoning_content,
+                    think: chunk?.delta,
                   }) + "\n"
                 )
               );
-            } else if (chunk.choices[0]?.delta?.content) {
-              if (
-                firstDelta &&
-                (isReasoning || data.model.model.includes("grok-4"))
-              ) {
-                firstDelta = false;
-                controller.enqueue(
-                  encoder.encode(
-                    JSON.stringify({
-                      text: "</think>",
-                    }) + "\n"
-                  )
-                );
-              }
+            }
+            if (chunk.type === "response.output_text.delta") {
               controller.enqueue(
                 encoder.encode(
                   JSON.stringify({
-                    text: chunk.choices[0]?.delta?.content,
+                    text: chunk?.delta,
                   }) + "\n"
                 )
               );
-            } else if (chunk?.usage?.total_tokens) {
-              mutables.total_tokens += chunk?.usage?.total_tokens;
+            }
+            if (chunk.type === "response.completed") {
+              mutables.total_tokens += chunk?.response?.usage?.total_tokens;
             }
           }
           controller.close(); // Close the stream
@@ -1302,6 +1288,56 @@ function convertToOpenAIResponsesFormat({ agentic, messages }) {
   }
 }
 
+function convertToOpenAIResponsesFormatXAI({ agentic, messages }) {
+  let hasImage = false;
+  let hasDeveloper = false;
+  const converted = messages.map((m) => {
+    if (m.role === "user") {
+      const userM = {
+        role: "user",
+        content: [
+          { type: "input_text", text: m.content.text ? m.content.text : "" },
+        ],
+      };
+      if (m.content.image) {
+        userM.content.push({
+          type: "input_image",
+          image_url: m.content.image,
+        });
+        hasImage = true;
+      }
+      return userM;
+    } else if (agentic) {
+      const currentDate = new Date().toISOString();
+      if (m.role === "developer") {
+        const devM = {
+          content: "Current date: " + currentDate + "\n" + m.content,
+          role: "developer",
+        };
+        hasDeveloper = true;
+        return devM;
+      }
+    }
+    {
+      return m;
+    }
+  });
+  if (agentic && !hasDeveloper) {
+    const currentDate = new Date().toISOString();
+    return {
+      convertedMessages: [
+        {
+          content: "Current date: " + currentDate,
+          role: "developer",
+        },
+        ...converted,
+      ],
+      hasImage: hasImage,
+    };
+  } else {
+    return { convertedMessages: converted, hasImage: hasImage };
+  }
+}
 function convertToOpenAIFormat(messages) {
   let hasImage = false;
   const converted = messages.map((m) => {
