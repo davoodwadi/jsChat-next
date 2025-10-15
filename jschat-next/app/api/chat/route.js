@@ -439,9 +439,6 @@ export async function POST(req) {
     const isReasoning = data.model.reasoning;
     const reasoning = isReasoning ? { reasoning_effort: "high" } : {};
 
-    // const { convertedMessages, hasImage } = convertToOpenAIFormat(
-    //   data.messages
-    // );
     const { convertedMessages, hasImage } = convertToOpenAIResponsesFormatXAI({
       messages: data.messages,
       agentic: false,
@@ -459,7 +456,6 @@ export async function POST(req) {
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
-    // console.log("convertedMessages", convertedMessages);
 
     // return;
     const stream = new ReadableStream({
@@ -476,7 +472,7 @@ export async function POST(req) {
           });
 
           for await (const chunk of streamResponse) {
-            console.log("chunk", chunk);
+            // console.log("chunk", chunk);
             if (chunk.type === "response.reasoning_summary_text.delta") {
               controller.enqueue(
                 encoder.encode(
