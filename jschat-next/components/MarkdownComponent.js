@@ -509,10 +509,9 @@ function CustomMarkdown({ children, mode, props }) {
           // --- HANDLE INLINE CODE (` ... `) ---
           // This is inline code because it does NOT have a `language-*` class.
           // Check if the text matches our special inline math prefix.
-          if (text.startsWith("math-inline:")) {
+          if (text && text.startsWith("math-inline:")) {
             const math = text.slice("math-inline:".length);
-            console.log("math", math);
-            // return <InlineMath math={math} />;
+            // console.log("math", math);
             return <InlineMath>{math}</InlineMath>;
           }
           //
@@ -539,7 +538,7 @@ function CustomMarkdown({ children, mode, props }) {
               );
             }
             // console.log("children", typeof children);
-            console.log("language", language);
+            // console.log("language", language);
             if (language === "search") {
               return (
                 <SearchBlock
