@@ -1,7 +1,12 @@
 "use client";
 
 import Markdown from "react-markdown";
-import { remarkCustomMath } from "./remark-latex-style-math";
+import { InlineMath, BlockMath } from "react-katex";
+// import {
+//   remarkCustomMath,
+//   remarkCustomLatexMath,
+// } from "./remark-latex-style-math";
+// import { remarkLLMLatexMath, debugAfterRemarkMath } from "./remark-math-latex";
 // import remarkParse from "remark-parse";
 // import remarkRehype from "remark-rehype";
 import remarkGfm from "remark-gfm";
@@ -11,10 +16,7 @@ import rehypeKatex from "rehype-katex";
 // import rehypeStringify from "rehype-stringify";
 import remarkMath from "remark-math";
 import rehypeFormat from "rehype-format";
-// import { visit } from "unist-util-visit";
 import {
-  // addCitationsToContent,
-  // addCitationsToContentInline,
   addCitationsToContentInlineSuper,
   addCitationsToContentInlineSuperPerplexity,
   addCitationsToContentInlineOpenAI,
@@ -27,10 +29,8 @@ import {
   twilight,
   a11yDark,
 } from "react-syntax-highlighter/dist/esm/styles/prism";
-import "katex/dist/katex.min.css"; // `rehype-katex` does not import the CSS for you
-// import { Inter } from "next/font/google";
+import "katex/dist/katex.min.css"; // `rehype-katex` does not import the CSS
 import CopyText from "@/components/CopyTextComponent";
-// import "@/node_modules/github-markdown-css/github-markdown.css";
 import "@/styles/markdown.css";
 import React, {
   useState,
@@ -52,9 +52,7 @@ import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 
 const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
-  // console.log("props.children", props.children);
   let finalContent = props.children;
-  // console.log(props);
   if (Array.isArray(props?.annotations) && props.annotations.length > 0) {
     const contentWithCitations = addCitationsToContentInlineOpenAI(
       finalContent,
@@ -69,7 +67,6 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
       props?.groundingSupports
     );
     finalContent = contentWithCitations;
-    // console.log("contentWithCitations", contentWithCitations);
   }
 
   if (props?.search_results) {
@@ -80,18 +77,12 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
     );
     finalContent = contentWithCitations;
   }
-  // console.log("props?.queries", props?.queries);
-  // console.log("props?.results", props?.results);
-  // console.log("props.children", props.children);
-  // console.log("props.content", props.content);
-  // console.log("props?.openai_search_results", props?.openai_search_results);
-  // console.log("props?.groundingChunks", props?.groundingChunks);
-  // console.log("props?.groundingSupports", props?.groundingSupports);
 
   const processedText = preprocessMarkdown(finalContent);
   const mathProcessedText = preprocessLatexMath(processedText);
   // console.log("mathProcessedText", mathProcessedText);
   finalContent = mathProcessedText;
+  // finalContent = processedText;
   // console.log("finalContent", finalContent);
   // console.log("props?.think", props?.think);
 
@@ -453,7 +444,13 @@ function CustomMarkdown({ children, mode, props }) {
   const style = a11yDark;
   return (
     <Markdown
-      remarkPlugins={[remarkGfm, remarkCustomMath]}
+      remarkPlugins={[
+        // remarkLLMLatexMath,
+        // debugAfterRemarkMath,
+        remarkMath,
+        // debugAfterRemarkMath,
+        remarkGfm,
+      ]}
       rehypePlugins={[rehypeKatex, rehypeRaw]}
       // prose prose-zinc dark:prose-invert !max-w-none
       className={` pb-4 break-words prose prose-zinc dark:prose-invert !max-w-none`}
@@ -504,7 +501,21 @@ function CustomMarkdown({ children, mode, props }) {
         code(props) {
           const { children, className, node, ...rest } = props;
           const text = children;
+          // console.log("node", node);
+          // console.log("className", className);
+          // console.log("rest", rest);
+          // console.log("children", children);
 
+          // --- HANDLE INLINE CODE (` ... `) ---
+          // This is inline code because it does NOT have a `language-*` class.
+          // Check if the text matches our special inline math prefix.
+          if (text.startsWith("math-inline:")) {
+            const math = text.slice("math-inline:".length);
+            console.log("math", math);
+            // return <InlineMath math={math} />;
+            return <InlineMath>{math}</InlineMath>;
+          }
+          //
           const match = /language-(\w+)/.exec(className || "");
           if (match) {
             // set language
@@ -528,6 +539,7 @@ function CustomMarkdown({ children, mode, props }) {
               );
             }
             // console.log("children", typeof children);
+            console.log("language", language);
             if (language === "search") {
               return (
                 <SearchBlock
@@ -924,18 +936,19 @@ const preprocessMarkdown = (text) => {
   // );
   return processedTexts;
 };
-function preprocessLatexMath(content) {
-  if (!content) return content;
 
+// Use safe tokens that won't conflict with regular text
+export function preprocessLatexMath(markdown) {
   return (
-    content
-      // Block math: \[...\] → %%%BLOCK_MATH%%%...%%%/BLOCK_MATH%%%
-      .replace(/\\\[([\s\S]*?)\\\]/g, (match, mathContent) => {
-        return `\n%%%BLOCK_MATH%%%${mathContent.trim()}%%%/BLOCK_MATH%%%\n`;
+    markdown
+      // For block math, use a fenced code block with the language "math"
+      .replace(/\\\[([\s\S]*?)\\\]/g, (match, content) => {
+        return `\n\`\`\`math\n${content.trim()}\n\`\`\`\n`;
       })
-      // Inline math: \(...\) → %%%INLINE_MATH%%%...%%%/INLINE_MATH%%%
-      .replace(/\\\((.*?)\\\)/g, (match, mathContent) => {
-        return `%%%INLINE_MATH%%%${mathContent}%%%/INLINE_MATH%%%`;
+      // For inline math, use an inline code span with a "math-inline:" prefix
+      .replace(/\\\((.*?)\\\)/g, (match, content) => {
+        return `\`math-inline:${content.trim()}\``;
+        // return `{math}\`${content.trim()}\``;
       })
   );
 }
