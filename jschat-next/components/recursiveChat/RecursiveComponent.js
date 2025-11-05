@@ -86,13 +86,15 @@ export function RecursiveChatContainer(props) {
           props.setGlobalModelInfo(thisSession.content.globalModelInfo);
         }
       }
+      setLoadingHistory(false);
     };
 
-    if (isNew === "false") {
+    if (!isNew | (isNew === "false")) {
       console.log("loadHistory");
       loadHistory();
+    } else {
+      setLoadingHistory(false);
     }
-    setLoadingHistory(false);
   }, [props.chatId]);
 
   // save chat session on finish: botMessages
