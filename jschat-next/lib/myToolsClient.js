@@ -1,6 +1,8 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useCallback } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
+
 export function useTraceUpdate(props) {
   const prev = useRef(props);
   useEffect(() => {
@@ -16,3 +18,14 @@ export function useTraceUpdate(props) {
     prev.current = props;
   });
 }
+
+// const searchParams = useSearchParams();
+
+// export const createQueryString = useCallback(
+//   (name, value) => {
+//     const params = new URLSearchParams(searchParams.toString());
+//     params.set(name, value);
+//     return params.toString();
+//   },
+//   [searchParams]
+// );

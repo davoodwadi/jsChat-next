@@ -1,11 +1,13 @@
+"use client";
+
 import {
   MultilineGlassSkeleton,
   GlassSkeleton,
 } from "@/components/ui/glassSkeleton";
 import { cn } from "@/lib/utils";
+import { useState, useEffect } from "react";
 
 export default function ChatSkeleton() {
-  // const loading = true;
   return (
     <div className="flex flex-col justify-center items-start px-16 h-[83vh]">
       <ItemSkeleton />
@@ -43,6 +45,16 @@ export default function ChatSkeleton() {
 }
 
 function ItemSkeleton() {
+  // 1. Start with a fixed, non-random width.
+  const [width, setWidth] = useState("80%"); // Or any default you prefer
+
+  // 2. Use useEffect to set a random width only on the client, after hydration.
+  useEffect(() => {
+    // This code only runs in the browser, not on the server.
+    const randomWidth = Math.floor(Math.random() * (90 - 70 + 1)) + 70;
+    setWidth(`${randomWidth}%`);
+  }, []); // The empty dependency array [] ensures this runs only once after mount.
+
   return (
     <div
       className={cn(
@@ -61,7 +73,7 @@ function ItemSkeleton() {
           // Standard layout styles
           "h-3 rounded-full animate-pulse" // Added animate-pulse for extra effect
         )}
-        style={{ width: `${Math.floor(Math.random() * 20) + 70}%` }}
+        style={{ width: width }}
       ></div>
     </div>
   );

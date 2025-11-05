@@ -3,7 +3,7 @@
 // export const maxDuration = 55;
 
 import React from "react";
-import { useState, useRef, useEffect, useTransition } from "react";
+import { useState, useRef, useEffect, useTransition, useCallback } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 import { Suspense } from "react";
@@ -17,25 +17,7 @@ import RecursiveBranch from "./RecursiveBranch";
 import { Button } from "../ui/button";
 import { hasSiblings } from "./Branch";
 import ChatSkeleton from "@/app/chat-skeleton/page";
-
-// const ChatSkeleton = () => {
-//   return (
-//     // <div className="space-y-4">
-//     //   <div className="flex items-center space-x-4">
-//     //     <GlassSkeleton className="h-12 w-12 rounded-full" />
-//     //     <div className="w-full space-y-2">
-//     //       <GlassSkeleton className="h-4 w-4/5" />
-//     //       <GlassSkeleton className="h-4 w-3/5" />
-//     //     </div>
-//     //   </div>
-//     //   <MultilineGlassSkeleton lines={4} />
-//     // </div>
-//     <div className="w-3/4 mx-auto">
-//       <MultilineGlassSkeleton lines={8} />
-//       <MultilineGlassSkeleton lines={4} />
-//     </div>
-//   );
-// };
+import { createQueryString } from "@/lib/myToolsClient";
 
 export function RecursiveChatContainer(props) {
   // console.log("starting RecursiveChatContainer");
@@ -47,7 +29,8 @@ export function RecursiveChatContainer(props) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-
+  const isNew = searchParams.get("new");
+  // console.log("isNew", isNew);
   const abortControllerRef = useRef(null);
   const [isStreaming, setIsStreaming] = useState(false);
 
@@ -69,6 +52,15 @@ export function RecursiveChatContainer(props) {
   const [branchKeyToMaximize, setBranchKeyToMaximize] = useState(
     JSON.stringify([1])
   );
+  const createQueryString = useCallback(
+    (name, value) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set(name, value);
+      return params.toString();
+    },
+    [searchParams]
+  );
+  // loadHistory: props.chatId
   useEffect(() => {
     const loadHistory = async () => {
       // console.log("loading history for ", props.chatId);
@@ -94,13 +86,17 @@ export function RecursiveChatContainer(props) {
           props.setGlobalModelInfo(thisSession.content.globalModelInfo);
         }
       }
-      setLoadingHistory(false);
     };
-    loadHistory();
+
+    if (isNew === "false") {
+      console.log("loadHistory");
+      loadHistory();
+    }
+    setLoadingHistory(false);
   }, [props.chatId]);
 
+  // save chat session on finish: botMessages
   useEffect(() => {
-    // // save chat session
     // console.log("botMessageFinished", botMessageFinished);
     if (botMessageFinished) {
       // console.log("chat saved on submit", botMessages);
@@ -111,6 +107,12 @@ export function RecursiveChatContainer(props) {
         systemPrompt: props.systemPrompt,
         globalModelInfo: props.globalModelInfo,
       });
+      if (isNew === "true") {
+        console.log("chat is new -> false");
+        const queryString = pathname + "?" + createQueryString("new", "false");
+        // console.log("queryString", queryString);
+        router.push(queryString);
+      }
 
       if (botMessages.length === 1) {
         router.refresh();
@@ -119,16 +121,14 @@ export function RecursiveChatContainer(props) {
       }
     }
   }, [botMessages]);
-  // console.log("botMessages", botMessages);
-
+  // update branch key to maximize: globalIdUser, userMessages
   useEffect(() => {
     const newBranchKeyToMaximize = getBranchKeyToMaximize({
       userMessages,
     });
     setBranchKeyToMaximize(newBranchKeyToMaximize);
   }, [globalIdUser, userMessages]);
-  // console.log("branchKeyToMaximize", branchKeyToMaximize);
-  // console.log("globalIdUser", globalIdUser);
+
   const { open } = useSidebar();
 
   let chatContainerClass =
