@@ -2,7 +2,8 @@
 import { streamText } from "ai";
 import OpenAI from "openai";
 const openai = new OpenAI({
-  apiKey: process.env["OPENAI_KEY"], // This is the default and can be omitted
+  apiKey: process.env["OPENAI_KEY"],
+  timeout: 3600 * 1000,
 });
 const xAI = new OpenAI({
   apiKey: process.env["XAI_API_KEY"],
@@ -54,7 +55,7 @@ export const runtime = "edge";
 
 export async function POST(req) {
   const data = await req.json();
-
+  // console.log(data.model)
   // console.log("route runtime", process.env.NEXT_RUNTIME);
   // revalidatePath("/", "layout");
   // console.log("model server", data.model.model);
@@ -357,6 +358,8 @@ export async function POST(req) {
           console.log("openai", data.model.model);
           const agentic = data?.modelConfig?.agentic && data.model.hasAgentic;
           const search = data?.modelConfig?.search && data.model.hasSearch;
+          const isDeepResearchModel = data?.model.hasDeepResearch;
+
           let reasoning = {};
           // console.log("key", process.env["OPENAI_KEY"]);
           const { convertedMessages, hasImage } =
@@ -379,6 +382,16 @@ export async function POST(req) {
               search_context_size: "high",
             });
             extraConfigs["include"] = ["web_search_call.action.sources"];
+          } else if (isDeepResearchModel) {
+            // Deep research models require at least one of 'web_search_preview', 'mcp', or 'file_search' tools.
+            // Deep research models only support search_context_size \'medium\'.
+            extraConfigs["tools"].push({
+              type: "web_search",
+              search_context_size: "medium",
+            });
+            extraConfigs["include"] = ["web_search_call.action.sources"];
+            //  'high' is not supported with the 'o4-mini-deep-research' model. Supported values are: 'medium'.
+            reasoning = { reasoning: { effort: "medium" } };
           }
           if (agentic) {
             extraConfigs["tools"].push(...openAI_tools);
@@ -395,6 +408,7 @@ export async function POST(req) {
             extraConfigs,
             search,
             agentic,
+            isDeepResearchModel,
             searchCost,
             mutables: mutables,
           });
@@ -894,36 +908,94 @@ export async function POST(req) {
     const deepResearch = data.modelConfig?.deepResearch;
     const agentic = data.modelConfig?.agentic;
     console.log("data.modelConfig", data.modelConfig);
+    const { convertedMessages, hasImage } = convertToOpenAIResponsesFormat({
+      messages: data.messages,
+      agentic: false,
+    });
     await wait(5);
 
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          // console.log("sampleTextWithLink", sampleTextWithLink);
           const encoder = new TextEncoder();
 
-          // "deepResearch: " +
-          // data.modelConfig.deepResearch +
-          // " " +
-          // "search: " +
-          // data.modelConfig.search +
-          // " " +
-          // JSON.stringify(data.messages[data.messages.length - 1]) +
-          console.log(data.messages[data.messages.length - 1]);
-          // sampleTextWithLink.push(
-          //   data.messages[data.messages.length - 1]
-          // );
-          for (let word of sampleTextWithLink) {
+          // console.log(data.messages[data.messages.length - 1]);
+
+          for (let chunk of sampleEvents) {
+            // console.log("chunk", chunk);
             // try {
-            await wait(2);
-            controller.enqueue(
-              encoder.encode(
-                JSON.stringify({
-                  text: word,
-                }) + "\n"
-              )
-            );
-            mutables.total_tokens += 1;
+            await wait(0.4);
+            if (chunk.type === "response.output_text.delta") {
+              controller.enqueue(
+                encoder.encode(
+                  JSON.stringify({
+                    text: chunk.delta,
+                  }) + "\n"
+                )
+              );
+            }
+            if (chunk.type === "response.output_item.done") {
+              console.log("chunk", chunk);
+              // add item to message history
+              convertedMessages.push(chunk?.item);
+
+              if (
+                chunk?.item?.type === "function_call" &&
+                chunk?.item?.name === "get_search_results"
+              ) {
+                toolCalls.push({
+                  type: chunk.item?.type,
+                  arguments: chunk.item?.arguments,
+                  call_id: chunk.item?.call_id,
+                  name: chunk.item?.name,
+                });
+              }
+              if (chunk?.item?.type === "web_search_call") {
+                // add search cost
+                mutables.total_tokens += searchCost * 2;
+
+                if (chunk?.item?.action?.type === "search") {
+                  // add the search query
+                  controller.enqueue(
+                    encoder.encode(
+                      JSON.stringify({
+                        query: chunk?.item?.action?.query,
+                      }) + "\n"
+                    )
+                  );
+
+                  // add the search sources
+                  const openAISearchResults = chunk?.item?.action?.sources; // array of {type, url}
+                  controller.enqueue(
+                    encoder.encode(
+                      JSON.stringify({
+                        openai_search_results: openAISearchResults,
+                      }) + "\n"
+                    )
+                  );
+                }
+
+                // deep research model
+                if (
+                  chunk?.item?.action?.type === "open_page" ||
+                  chunk?.item?.action?.type === "find"
+                ) {
+                  // add the open_page details
+                  // chunk?.item?.action: {type, url}
+                  controller.enqueue(
+                    encoder.encode(
+                      JSON.stringify({
+                        query: chunk?.item?.action,
+                      }) + "\n"
+                    )
+                  );
+                }
+              }
+            }
+            if (chunk.type === "response.completed") {
+              // console.log("final chunk", chunk);
+              mutables.total_tokens += chunk?.response?.usage?.total_tokens;
+            }
           }
           controller.close(); // Close the stream
         } catch (err) {
@@ -1029,6 +1101,7 @@ async function getOpenAIResponse({
   extraConfigs,
   search,
   agentic,
+  isDeepResearchModel,
   searchCost,
   mutables,
 }) {
@@ -1036,82 +1109,23 @@ async function getOpenAIResponse({
   // return;
   const toolCalls = [];
   let llmResponseText = "";
-  if (search) {
-    mutables.total_tokens += searchCost * 2;
-  }
+  // if (search) {
+  //   mutables.total_tokens += searchCost * 2;
+  // }
+  // if (isDeepResearchModel) {
+  //   mutables.total_tokens += searchCost * 2;
+  // }
   const streamResponse = await openai.responses.create({
     input: convertedMessages,
     model: model,
     stream: true,
     // stream_options: { include_usage: true },
-    max_output_tokens: 16384,
+    max_output_tokens: isDeepResearchModel ? 100000 : 16384,
     ...reasoning,
     ...extraConfigs,
   });
 
   for await (const chunk of streamResponse) {
-    // console.log("chunk", chunk);
-    if (chunk.type === "response.output_item.done") {
-      convertedMessages.push(chunk?.item);
-    }
-    if (
-      chunk.type === "response.output_item.done" &&
-      chunk?.item?.type === "function_call"
-    ) {
-      if (chunk?.item?.name === "get_search_results") {
-        toolCalls.push({
-          type: chunk.item?.type,
-          arguments: chunk.item?.arguments,
-          call_id: chunk.item?.call_id,
-          name: chunk.item?.name,
-        });
-      }
-    }
-    if (
-      chunk.type === "response.output_item.done" &&
-      chunk?.item?.action?.query
-    ) {
-      // controller.enqueue(
-      //   encoder.encode(
-      //     JSON.stringify({
-      //       text: "\n```query\n" + chunk?.item?.action?.query + "\n```\n",
-      //     }) + "\n"
-      //   )
-      // );
-      controller.enqueue(
-        encoder.encode(
-          JSON.stringify({
-            query: chunk?.item?.action?.query,
-          }) + "\n"
-        )
-      );
-    }
-    if (
-      chunk.type === "response.output_item.done" &&
-      chunk?.item?.action?.sources
-    ) {
-      const openAISearchResults = chunk?.item?.action?.sources; // array of {type, url}
-
-      controller.enqueue(
-        encoder.encode(
-          JSON.stringify({
-            openai_search_results: openAISearchResults,
-          }) + "\n"
-        )
-      );
-      // console.log("chunk", chunk);
-    }
-    if (chunk.type == "response.output_text.annotation.added") {
-      // console.log("annotation chunk:", chunk);
-      controller.enqueue(
-        encoder.encode(
-          JSON.stringify({
-            annotation_item: chunk,
-          }) + "\n"
-        )
-      );
-      // console.log("chunk", chunk);
-    }
     if (chunk.type === "response.output_text.delta") {
       // controller.enqueue(encoder.encode(chunk?.delta));
       llmResponseText += chunk?.delta;
@@ -1123,12 +1137,78 @@ async function getOpenAIResponse({
         )
       );
     }
+    if (chunk.type === "response.output_item.done") {
+      console.log("chunk", chunk);
+      // add item to message history
+      convertedMessages.push(chunk?.item);
+
+      if (
+        chunk?.item?.type === "function_call" &&
+        chunk?.item?.name === "get_search_results"
+      ) {
+        toolCalls.push({
+          type: chunk.item?.type,
+          arguments: chunk.item?.arguments,
+          call_id: chunk.item?.call_id,
+          name: chunk.item?.name,
+        });
+      }
+      if (chunk?.item?.type === "web_search_call") {
+        // add search cost
+        mutables.total_tokens += searchCost * 2;
+
+        if (chunk?.item?.action?.type === "search") {
+          // add the search query
+          controller.enqueue(
+            encoder.encode(
+              JSON.stringify({
+                query: chunk?.item?.action?.query,
+              }) + "\n"
+            )
+          );
+
+          // add the search sources
+          const openAISearchResults = chunk?.item?.action?.sources; // array of {type, url}
+          controller.enqueue(
+            encoder.encode(
+              JSON.stringify({
+                openai_search_results: openAISearchResults,
+              }) + "\n"
+            )
+          );
+        } else {
+          // deep research model
+          // find_in_page, open_page, etc.
+          // chunk?.item?.action: {type, url}
+          controller.enqueue(
+            encoder.encode(
+              JSON.stringify({
+                query: chunk?.item?.action,
+              }) + "\n"
+            )
+          );
+        }
+      }
+    }
+    if (chunk.type == "response.output_text.annotation.added") {
+      // console.log("annotation chunk:", chunk);
+      controller.enqueue(
+        encoder.encode(
+          JSON.stringify({
+            annotation_item: chunk,
+          }) + "\n"
+        )
+      );
+    }
     if (chunk.type === "response.completed") {
+      // console.log("final chunk", chunk);
       mutables.total_tokens += chunk?.response?.usage?.total_tokens;
     }
   }
   // if tool called -> call the tools
   if (toolCalls.length > 0) {
+    // console.log("model called tools");
+    console.log(toolCalls);
     const toolCallResults = await callTheTools({
       toolCalls,
       controller,
@@ -1154,6 +1234,7 @@ async function getOpenAIResponse({
       extraConfigs,
       search,
       agentic,
+      isDeepResearchModel,
       searchCost,
       mutables: mutables,
     });
@@ -1496,6 +1577,120 @@ const openAI_tools = [
     strict: true,
   },
 ];
+
+let sampleEvents = [];
+sampleEvents.push({
+  type: "response.output_text.delta",
+  item_id: "msg_123",
+  output_index: 0,
+  content_index: 0,
+  delta: "1\n\n",
+  sequence_number: 1,
+});
+
+sampleEvents.push({
+  type: "response.output_text.delta",
+  item_id: "msg_123",
+  output_index: 0,
+  content_index: 0,
+  delta: "2\n\n",
+  sequence_number: 1,
+});
+
+sampleEvents.push({
+  type: "response.output_text.delta",
+  item_id: "msg_123",
+  output_index: 0,
+  content_index: 0,
+  delta: "3\n\n",
+  sequence_number: 1,
+});
+
+sampleEvents.push({
+  type: "response.output_item.done",
+  item_id: "msg_123",
+  output_index: 0,
+  content_index: 0,
+  item: {
+    type: "web_search_call",
+    action: {
+      type: "search",
+      query: "question 1",
+      sources: [
+        { type: "url", url: "https://some-address.com" },
+        { type: "url", url: "https://some-address.com" },
+      ],
+    },
+  },
+  sequence_number: 1,
+});
+
+sampleEvents.push({
+  type: "response.output_item.done",
+  item_id: "msg_123",
+  output_index: 0,
+  content_index: 0,
+  item: {
+    type: "web_search_call",
+    action: {
+      type: "open_page",
+      url: "https://some-address.com",
+    },
+  },
+  sequence_number: 1,
+});
+
+sampleEvents.push({
+  type: "response.output_item.done",
+  item_id: "msg_123",
+  output_index: 0,
+  content_index: 0,
+  item: {
+    type: "web_search_call",
+    action: {
+      type: "find",
+      pattern: "some search PATTERN",
+      url: "https://some-address.com",
+    },
+  },
+  sequence_number: 1,
+});
+
+sampleEvents.push({
+  type: "response.completed",
+  response: {
+    id: "resp_123",
+    status: "completed",
+    output: [
+      {
+        id: "msg_123",
+        type: "message",
+        role: "assistant",
+        content: [
+          {
+            type: "output_text",
+            text: "In a shimmering forest under a sky full of stars, a lonely unicorn named Lila discovered a hidden pond that glowed with moonlight. Every night, she would leave sparkling, magical flowers by the water's edge, hoping to share her beauty with others. One enchanting evening, she woke to find a group of friendly animals gathered around, eager to be friends and share in her magic.",
+            annotations: [],
+          },
+        ],
+      },
+    ],
+    text: {
+      format: {
+        type: "text",
+      },
+    },
+    usage: {
+      input_tokens: 0,
+      output_tokens: 0,
+      output_tokens_details: {
+        reasoning_tokens: 0,
+      },
+      total_tokens: 33,
+    },
+  },
+  sequence_number: 1,
+});
 
 let sampleTextWithLink = [];
 sampleTextWithLink.push("<think> a ");

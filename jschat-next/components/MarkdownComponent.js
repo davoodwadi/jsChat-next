@@ -53,14 +53,21 @@ import { cn } from "@/lib/utils";
 
 const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
   let finalContent = props.children;
-  if (Array.isArray(props?.annotations) && props.annotations.length > 0) {
+
+  // console.log(props);
+
+  if (props?.annotations?.length > 0) {
     const contentWithCitations = addCitationsToContentInlineOpenAI(
       finalContent,
       props.annotations
     );
     finalContent = contentWithCitations;
   }
-  if (props?.groundingChunks && props?.groundingSupports) {
+  if (
+    props?.groundingChunks?.length > 0 &&
+    props?.groundingSupports?.length > 0
+  ) {
+    // console.log("there is groundingChunks");
     const contentWithCitations = addCitationsToContentInlineSuper(
       finalContent,
       props?.groundingChunks,
@@ -69,7 +76,7 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
     finalContent = contentWithCitations;
   }
 
-  if (props?.search_results) {
+  if (props?.search_results?.length > 0) {
     // console.log("getting search results in markdown", props.search_results);
     const contentWithCitations = addCitationsToContentInlineSuperPerplexity(
       finalContent,
@@ -84,6 +91,7 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
   finalContent = mathProcessedText;
   // finalContent = processedText;
   // console.log("finalContent", finalContent);
+  // console.log("openai_search_results", props.openai_search_results);
   // console.log("props?.think", props?.think);
 
   return (
@@ -97,17 +105,17 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
 
       <CustomMarkdown props={props}>{finalContent}</CustomMarkdown>
 
-      {props?.openai_search_results && (
+      {props?.openai_search_results?.length > 0 && (
         <OpenAISourcesComponent props={props}>
           {props?.openai_search_results}
         </OpenAISourcesComponent>
       )}
-      {props?.groundingChunks && (
+      {props?.groundingChunks?.length > 0 && (
         <GeminiSourcesComponent props={props}>
           {props?.groundingChunks}
         </GeminiSourcesComponent>
       )}
-      {props?.search_results && (
+      {props?.search_results?.length > 0 && (
         <PerplexitySourcesComponent props={props}>
           {props.search_results}
         </PerplexitySourcesComponent>
@@ -361,7 +369,7 @@ function GeminiSourcesComponent({ children, ...props }) {
 }
 
 function OpenAISourcesComponent({ children, ...props }) {
-  // console.log("OpenAISourcesComponent");
+  // console.log("***OpenAISourcesComponent", children);
   const [isExpanded, setIsExpanded] = useState(true);
 
   if (!Array.isArray(children)) {
@@ -805,7 +813,7 @@ function SearchBlock({ children, ...props }) {
 // Query block component
 function QueryBlock({ children, ...props }) {
   const [isExpanded, setIsExpanded] = useState(true);
-
+  // console.log("children", children);
   return (
     <div
       {...props}
@@ -824,7 +832,7 @@ function QueryBlock({ children, ...props }) {
         <Search className="h-4 w-4 text-black/50 dark:text-white/50 shrink-0" />
 
         <div className="uppercase tracking-wide font-semibold text-black/70 dark:text-white/70">
-          Search Query
+          Search
         </div>
 
         <div className="flex-1" />
@@ -841,8 +849,56 @@ function QueryBlock({ children, ...props }) {
         // --- CHANGES START HERE ---
         // Added padding for a cleaner, flush look instead of margin
         <div className="overflow-x-auto px-3 pb-3 pt-1 text-sm">
-          <div className="bg-zinc-500/5 dark:bg-white/5 p-3 rounded-md">
+          {/* <div className="bg-zinc-500/5 dark:bg-white/5 p-3 rounded-md">
             {children}
+          </div> */}
+          <div className="bg-zinc-500/5 dark:bg-white/5 p-3 rounded-md">
+            {Array.isArray(children) &&
+              children.map((item, i) => {
+                if (typeof item === "string") {
+                  // Render plain strings directly
+                  return (
+                    <p
+                      key={i}
+                      className="font-medium text-zinc-800 dark:text-zinc-100 mb-1 last:mb-0"
+                    >
+                      {item}
+                    </p>
+                  );
+                }
+
+                // Handle object items
+                return (
+                  <div key={i} className="mb-2 last:mb-0">
+                    {item.type && (
+                      <span className="font-medium text-zinc-800 dark:text-zinc-100">
+                        {item.type}
+                      </span>
+                    )}
+                    {item.url && (
+                      <>
+                        {item.type && ": "}
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-500 underline break-all"
+                        >
+                          {item.url}
+                        </a>
+                      </>
+                    )}
+                    {item.pattern && (
+                      <>
+                        {item.type && !item.url && ": "}
+                        <code className="bg-zinc-200/50 dark:bg-zinc-700/50 px-1 rounded ml-1">
+                          {item.pattern}
+                        </code>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
           </div>
         </div>
         // --- CHANGES END HERE ---

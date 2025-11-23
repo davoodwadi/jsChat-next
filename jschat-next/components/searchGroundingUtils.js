@@ -1,7 +1,7 @@
 export function addCitationsToContentInlineOpenAI(content, annotations) {
   // 1. Filter for only the 'url_citation' annotations, as other types might exist.
   // console.log("content", content);
-  // console.log("addCitationsToContentInlineOpenAI", annotations);
+  console.log("addCitationsToContentInlineOpenAI", annotations);
   const citationAnnotations = annotations.filter(
     (ann) => ann.annotation && ann.annotation.type === "url_citation"
   );
@@ -51,6 +51,7 @@ export function addCitationsToContentInlineOpenAI(content, annotations) {
   // 5. Join all the parts together into a single string and return.
   return resultParts.join("");
 }
+
 export function addCitationsToContentInlineSuperPerplexity(
   content,
   search_results

@@ -190,6 +190,18 @@ into a unified model.`,
 
 export const openaiModelsWithMeta = [
   {
+    name: "ChatGPT 5 latest",
+    model: "gpt-5-chat-latest",
+    meta: "Flagship Model Used in ChatGPT",
+    new: true,
+    vision: true,
+    reasoning: false,
+    hasDeepResearch: false,
+    hasSearch: false,
+    hasAgentic: false,
+    icon: DetailedIcon,
+  },
+  {
     name: "GPT 4.1 mini",
     model: "gpt-4.1-mini",
     meta: "Latest Mini Version of OpenAI's GPT Model Series (Fastest)",
@@ -200,6 +212,18 @@ export const openaiModelsWithMeta = [
     hasSearch: true,
     hasAgentic: true,
     icon: FastIcon,
+  },
+  {
+    name: "o4 mini Deep Research",
+    model: "o4-mini-deep-research",
+    meta: "Latest Deep Research & Reasoning Model From OpenAI | High Effort (Slow - Needs Thinking)",
+    reasoning: true,
+    new: true,
+    vision: true,
+    hasDeepResearch: true,
+    hasSearch: false,
+    hasAgentic: false,
+    icon: BrainIcon,
   },
   {
     name: "o4 mini",
@@ -222,18 +246,7 @@ export const openaiModelsWithMeta = [
   //   vision: true,
   //   icon: BrainIcon,
   // },
-  {
-    name: "ChatGPT 5 latest",
-    model: "gpt-5-chat-latest",
-    meta: "Flagship Model Used in ChatGPT",
-    new: true,
-    vision: true,
-    reasoning: false,
-    hasDeepResearch: false,
-    hasSearch: false,
-    hasAgentic: false,
-    icon: DetailedIcon,
-  },
+
   {
     name: "GPT 4.1 nano",
     model: "gpt-4.1-nano",

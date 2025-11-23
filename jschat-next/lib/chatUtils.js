@@ -60,7 +60,17 @@ export async function handleSubmit({
   let chain;
   let streamIterator;
   let tempChunks = "";
-  const extraContent = { annotations: [], queries: [], results: [] };
+  const extraContent = {
+    think: null,
+    groundingChunks: [],
+    groundingSupports: [],
+    search_results: [],
+    openai_search_results: [],
+
+    annotations: [],
+    queries: [],
+    results: [],
+  };
 
   const array = JSON.parse(targetId);
 
@@ -205,32 +215,54 @@ export async function handleSubmit({
             if (parsedData?.think) {
               // console.log("parsedData?.think", parsedData?.think);
               extraContent.think =
-                (extraContent?.think === null) |
-                (extraContent?.think === undefined)
+                extraContent?.think === null
                   ? parsedData.think
                   : extraContent.think + parsedData.think;
             }
             if (parsedData?.groundingChunks) {
-              extraContent.groundingChunks = parsedData.groundingChunks;
+              extraContent.groundingChunks = [
+                ...extraContent.groundingChunks,
+                ...parsedData.groundingChunks,
+              ];
             }
             if (parsedData?.groundingSupports) {
-              extraContent.groundingSupports = parsedData.groundingSupports;
+              extraContent.groundingSupports = [
+                ...extraContent.groundingSupports,
+                ...parsedData.groundingSupports,
+              ];
             }
             if (parsedData?.search_results) {
-              extraContent.search_results = parsedData.search_results;
+              extraContent.search_results = [
+                ...extraContent.search_results,
+                ...parsedData.search_results,
+              ];
             }
             if (parsedData?.openai_search_results) {
-              extraContent.openai_search_results =
-                parsedData.openai_search_results;
+              extraContent.openai_search_results = [
+                ...extraContent.openai_search_results,
+                ...parsedData.openai_search_results,
+              ];
             }
             if (parsedData?.annotation_item) {
-              extraContent.annotations.push(parsedData.annotation_item);
+              extraContent.annotations = [
+                ...extraContent.annotations,
+                parsedData.annotation_item,
+              ];
+              // extraContent.annotations.push(parsedData.annotation_item);
             }
             if (parsedData?.query) {
-              extraContent.queries.push(parsedData.query);
+              extraContent.queries = [
+                ...extraContent.queries,
+                parsedData.query,
+              ];
+              // extraContent.queries.push(parsedData.query);
             }
             if (parsedData?.search) {
-              extraContent.results.push(parsedData.search);
+              extraContent.results = [
+                ...extraContent.results,
+                parsedData.search,
+              ];
+              // extraContent.results.push(parsedData.search);
             }
             // console.log(
             //   "parsedData?.openai_search_results",
@@ -427,39 +459,61 @@ export async function handleSubmit({
             const parsedData = JSON.parse(jsonStr);
             // console.log("parsedData", parsedData);
             if (parsedData?.text) {
-              // console.log("parsedData?.text", parsedData?.text);
               tempChunks += parsedData?.text;
             }
             if (parsedData?.think) {
               // console.log("parsedData?.think", parsedData?.think);
               extraContent.think =
-                (extraContent?.think === null) |
-                (extraContent?.think === undefined)
+                extraContent?.think === null
                   ? parsedData.think
                   : extraContent.think + parsedData.think;
             }
             if (parsedData?.groundingChunks) {
-              extraContent.groundingChunks = parsedData.groundingChunks;
+              extraContent.groundingChunks = [
+                ...extraContent.groundingChunks,
+                ...parsedData.groundingChunks,
+              ];
             }
             if (parsedData?.groundingSupports) {
-              extraContent.groundingSupports = parsedData.groundingSupports;
+              extraContent.groundingSupports = [
+                ...extraContent.groundingSupports,
+                ...parsedData.groundingSupports,
+              ];
             }
             if (parsedData?.search_results) {
-              extraContent.search_results = parsedData.search_results;
+              extraContent.search_results = [
+                ...extraContent.search_results,
+                ...parsedData.search_results,
+              ];
             }
             if (parsedData?.openai_search_results) {
-              extraContent.openai_search_results =
-                parsedData.openai_search_results;
+              extraContent.openai_search_results = [
+                ...extraContent.openai_search_results,
+                ...parsedData.openai_search_results,
+              ];
             }
             if (parsedData?.annotation_item) {
-              extraContent.annotations.push(parsedData.annotation_item);
+              extraContent.annotations = [
+                ...extraContent.annotations,
+                parsedData.annotation_item,
+              ];
+              // extraContent.annotations.push(parsedData.annotation_item);
             }
             if (parsedData?.query) {
-              extraContent.queries.push(parsedData.query);
+              extraContent.queries = [
+                ...extraContent.queries,
+                parsedData.query,
+              ];
+              // extraContent.queries.push(parsedData.query);
             }
             if (parsedData?.search) {
-              extraContent.results.push(parsedData.search);
+              extraContent.results = [
+                ...extraContent.results,
+                parsedData.search,
+              ];
+              // extraContent.results.push(parsedData.search);
             }
+
             newBotEntry = {
               key: JSON.stringify(array),
               globalIdBot: newGlobalIdBot,
