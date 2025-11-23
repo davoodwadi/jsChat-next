@@ -559,11 +559,17 @@ export async function POST(req) {
     let streamConfig = {
       config: {
         systemInstruction: system?.content ? system.content : null,
-        thinkingConfig: {
-          thinkingBudget: 16000,
-        },
       },
     };
+    const isGemini3 = data.model.model.includes("gemini-3");
+    if (isGemini3) {
+      console.log("Gemini 3");
+    } else {
+      console.log("Gemini 2");
+      streamConfig.config["thinkingConfig"] = {
+        thinkingBudget: 16000,
+      };
+    }
     streamConfig = data?.modelConfig?.search
       ? {
           ...streamConfig,
