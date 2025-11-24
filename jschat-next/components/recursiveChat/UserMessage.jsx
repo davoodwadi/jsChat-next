@@ -20,6 +20,7 @@ import {
   X,
   Microscope,
   Search,
+  Brain,
 } from "lucide-react";
 import { HatGlasses, GraduationCap, ChevronsLeftRight } from "lucide-react";
 import { ModelSelector, CompactModelSelector } from "./ModelSelector";
@@ -72,6 +73,9 @@ min-h-[2.5rem] overflow-y-auto
   const [userMessageModelInfo, setUserMessageModelInfo] = useState(() => {
     return {
       modelConfig: {
+        reasoning:
+          props?.botMessage?.modelConfig?.reasoning ||
+          props.globalModelInfo.modelConfig.reasoning,
         search:
           props?.botMessage?.modelConfig?.search ||
           props.globalModelInfo.modelConfig.search,
@@ -102,6 +106,7 @@ min-h-[2.5rem] overflow-y-auto
     // set new value for new branch
     setBase64Image((v) => props.children?.image);
   }
+
   useEffect(() => {
     // reset the textarea when the branch is deleted
     if (props.children?.text === "") {
@@ -225,6 +230,33 @@ min-h-[2.5rem] overflow-y-auto
         {/* image preview END  */}
 
         <div className="flex flex-wrap justify-center gap-2 pt-2">
+          {/* reasoning START */}
+          {userMessageModelInfo?.model?.hasSearch && (
+            <Button
+              size="sm"
+              aria-label="Reasoning"
+              className={
+                userMessageModelInfo.modelConfig.reasoning
+                  ? "glass-button-dark !rounded-full w-8 h-8 p-0 "
+                  : "glass-button !rounded-full w-8 h-8 p-0 "
+              }
+              onClick={() => {
+                setUserMessageModelInfo((prev) => {
+                  return {
+                    ...prev,
+                    modelConfig: {
+                      ...prev.modelConfig,
+                      reasoning: !prev.modelConfig.reasoning,
+                    },
+                  };
+                });
+              }}
+            >
+              <Brain />
+            </Button>
+          )}
+          {/* reasoning END */}
+
           {/* search START */}
           {userMessageModelInfo?.model?.hasSearch && (
             <Button

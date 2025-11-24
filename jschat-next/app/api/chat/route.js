@@ -561,14 +561,32 @@ export async function POST(req) {
         systemInstruction: system?.content ? system.content : null,
       },
     };
+
     const isGemini3 = data.model.model.includes("gemini-3");
     if (isGemini3) {
-      console.log("Gemini 3");
+      if (data.modelConfig.reasoning && data.model.hasReasoning) {
+        streamConfig.config["thinkingConfig"] = {
+          thinkingLevel: "high",
+          includeThoughts: true,
+        };
+      } else {
+        streamConfig.config["thinkingConfig"] = {
+          thinkingLevel: "low",
+          includeThoughts: true,
+        };
+      }
     } else {
-      console.log("Gemini 2");
-      streamConfig.config["thinkingConfig"] = {
-        thinkingBudget: 16000,
-      };
+      if (data.modelConfig.reasoning && data.model.hasReasoning) {
+        streamConfig.config["thinkingConfig"] = {
+          includeThoughts: true,
+          thinkingBudget: -1,
+        };
+      } else {
+        streamConfig.config["thinkingConfig"] = {
+          includeThoughts: true,
+          thinkingBudget: 0,
+        };
+      }
     }
     streamConfig = data?.modelConfig?.search
       ? {
@@ -577,8 +595,11 @@ export async function POST(req) {
         }
       : streamConfig;
 
-    // console.log("streamConfig", streamConfig);
-    // return;
+    if (data?.modelConfig?.search) {
+      mutables.total_tokens += searchCost;
+      console.log("adding searchCost", mutables.total_tokens);
+    }
+
     const stream = new ReadableStream({
       async start(controller) {
         try {
@@ -594,43 +615,72 @@ export async function POST(req) {
             message: newUserMessage,
           });
           for await (const chunk of stream) {
-            const usageMetadata = chunk?.usageMetadata;
+            // console.log(chunk);
+            if (chunk?.candidates[0]?.finishReason === "STOP") {
+              const usageMetadata = chunk?.usageMetadata;
+              mutables.total_tokens += usageMetadata?.totalTokenCount;
+            }
             // console.log("usageMetadata", usageMetadata);
-            mutables.total_tokens += usageMetadata?.totalTokenCount;
             try {
               if (chunk?.candidates[0]?.content?.parts[0]?.text) {
-                const groundingMetadata =
-                  chunk?.candidates[0]?.groundingMetadata;
-                const groundingChunks = groundingMetadata?.groundingChunks;
-                if (groundingChunks) {
-                  // console.log("groundingChunks", groundingChunks);
-                  const groundingChunksRedirect =
-                    await updateGroundingChunksWithActualLinksAndTitles(
-                      groundingChunks
-                    );
+                if (chunk?.candidates[0]?.content?.parts[0]?.thought) {
+                  // thinking tokens
                   controller.enqueue(
                     encoder.encode(
                       JSON.stringify({
-                        groundingChunks: groundingChunksRedirect,
+                        think: chunk?.candidates[0]?.content?.parts[0]?.text,
+                      }) + "\n"
+                    )
+                  );
+                } else {
+                  // text tokens
+                  controller.enqueue(
+                    encoder.encode(
+                      JSON.stringify({
+                        text: chunk?.candidates[0]?.content?.parts[0]?.text,
                       }) + "\n"
                     )
                   );
                 }
-                const groundingSupports = groundingMetadata?.groundingSupports;
-                if (groundingSupports) {
-                  // console.log("groundingSupports", groundingSupports);
+              }
+
+              const groundingMetadata = chunk?.candidates[0]?.groundingMetadata;
+
+              if (groundingMetadata?.webSearchQueries) {
+                for (const query of groundingMetadata?.webSearchQueries) {
                   controller.enqueue(
                     encoder.encode(
                       JSON.stringify({
-                        groundingSupports: groundingSupports,
+                        query: query,
                       }) + "\n"
                     )
                   );
                 }
+              }
+              if (groundingMetadata?.groundingChunks) {
+                console.log(
+                  "groundingMetadata?.groundingChunks",
+                  groundingMetadata?.groundingChunks
+                );
+                const groundingChunksRedirect =
+                  await updateGroundingChunksWithActualLinksAndTitles(
+                    groundingMetadata?.groundingChunks
+                  );
                 controller.enqueue(
                   encoder.encode(
                     JSON.stringify({
-                      text: chunk?.candidates[0]?.content?.parts[0]?.text,
+                      groundingChunks: groundingChunksRedirect,
+                    }) + "\n"
+                  )
+                );
+              }
+
+              if (groundingMetadata?.groundingSupports) {
+                // console.log("groundingMetadata?.groundingSupports", groundingMetadata?.groundingSupports);
+                controller.enqueue(
+                  encoder.encode(
+                    JSON.stringify({
+                      groundingSupports: groundingMetadata?.groundingSupports,
                     }) + "\n"
                   )
                 );
@@ -913,7 +963,13 @@ export async function POST(req) {
     const academic = data.modelConfig?.academic;
     const deepResearch = data.modelConfig?.deepResearch;
     const agentic = data.modelConfig?.agentic;
-    console.log("data.modelConfig", data.modelConfig);
+    const reasoning = data.modelConfig?.reasoning;
+
+    console.log(
+      "data.modelConfig.reasoning && data.model.hasReasoning",
+      data.modelConfig.reasoning && data.model.hasReasoning
+    );
+
     const { convertedMessages, hasImage } = convertToOpenAIResponsesFormat({
       messages: data.messages,
       agentic: false,
@@ -941,7 +997,7 @@ export async function POST(req) {
               );
             }
             if (chunk.type === "response.output_item.done") {
-              console.log("chunk", chunk);
+              // console.log("chunk", chunk);
               // add item to message history
               convertedMessages.push(chunk?.item);
 

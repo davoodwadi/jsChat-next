@@ -50,6 +50,7 @@ import {
 } from "lucide-react"; // or your preferred icon library
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
   let finalContent = props.children;
@@ -741,7 +742,7 @@ function ThinkingBlock({ children, ...props }) {
 
       {isExpanded && (
         <div className=" px-4 pb-4 text-sm text-muted-foreground">
-          {children}
+          <Markdown>{children}</Markdown>
         </div>
       )}
     </div>
@@ -1007,35 +1008,6 @@ export function preprocessLatexMath(markdown) {
       })
   );
 }
-function extractThinKContent(text) {
-  // console.log("text", text);
-  const startTag = "<think>";
-  const endTag = "</think>";
-
-  const startIndex = text.indexOf(startTag);
-  // console.log(startIndex, "startIndex");
-
-  // If no <think> tag
-  if (startIndex === -1) return { think: null, content: text };
-
-  // Look for closing </think> tag
-  const endIndex = text.indexOf(endTag);
-  // console.log(endIndex, "endIndex");
-
-  let think;
-  let content;
-  if (endIndex !== -1) {
-    // Closing tag exists — extract just the content between
-    think = text.slice(startIndex + startTag.length, endIndex);
-    content = text.slice(endIndex + endTag.length);
-  } else {
-    // No closing tag
-    think = text.slice(startIndex + startTag.length);
-    content = "";
-  }
-
-  return { content, think };
-}
 
 export function CustomTooltip({ fullText, link, snippet, title, ...rest }) {
   // console.log(" snippet", snippet);
@@ -1269,9 +1241,14 @@ export function CustomTooltip({ fullText, link, snippet, title, ...rest }) {
           )}
 
           {/* Click hint */}
-          <div className="text-xs text-gray-500 border-t border-gray-700 pt-2 mt-2">
-            Click to open link
-          </div>
+          <Link
+            href={link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-gray-500 border-t border-gray-700 pt-2 mt-2"
+          >
+            Open Link
+          </Link>
         </div>
       </div>
     </div>

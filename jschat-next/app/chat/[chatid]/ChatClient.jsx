@@ -49,6 +49,7 @@ import {
   xAIModelsWithMeta,
   geminiModelsWithMeta,
   testModels,
+  allModels,
 } from "@/app/models";
 
 import { test } from "@/lib/test";
@@ -73,12 +74,16 @@ if (test) {
   modelMeta.unshift({ desc: "Test LLMs", models: testModels });
 }
 export default function ChatClient({ chatId, bookmarked }) {
+  // const { icon, ...startingModel } = test
+  //   ? testModels[0]
+  //   : geminiModelsWithMeta.find((m) => m.model.includes("gemini-2.5-pro")) ||
+  //     geminiModelsWithMeta[0];
   const { icon, ...startingModel } = test
     ? testModels[0]
-    : geminiModelsWithMeta.find((m) => m.model.includes("gemini-2.5-pro")) ||
-      geminiModelsWithMeta[0];
+    : allModels.find((m) => m?.default) || openaiModelsWithMeta[0];
+
   // const [model, setModel] = useState(startingModel);
-  // console.log(model);
+  // console.log(allModels);
   const [systemPrompt, setSystemPrompt] = useState("");
   const [globalModelInfo, setGlobalModelInfo] = useState({
     model: startingModel,
@@ -87,6 +92,7 @@ export default function ChatClient({ chatId, bookmarked }) {
       deepResearch: false,
       agentic: false,
       academic: false,
+      reasoning: false,
     },
   });
 

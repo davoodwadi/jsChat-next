@@ -365,7 +365,8 @@ export async function updateGroundingChunksWithActualLinksAndTitles(
         return {
           web: {
             uri: actualUrl,
-            title: actualTitle,
+            // title: actualTitle,
+            title: chunk.web.title,
           },
         };
       } catch (error) {
