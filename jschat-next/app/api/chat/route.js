@@ -95,7 +95,7 @@ export async function POST(req) {
           // });
           // console.log("latest anthropic models:", all_models);
           for await (const messageStreamEvent of streamResponse) {
-            console.log("messageStreamEvent", messageStreamEvent);
+            // console.log("messageStreamEvent", messageStreamEvent);
             if (messageStreamEvent.type === "message_start") {
               // console.log("message_start", messageStreamEvent.message.usage);
               mutables.total_tokens +=
