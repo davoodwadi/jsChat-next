@@ -73,19 +73,17 @@ export async function POST(req) {
       async start(controller) {
         try {
           const encoder = new TextEncoder();
-          // console.log("Anthropic Model", data.model);
-          // console.log("Anthropic Model", data.model.reasoning);
-          // return;
-          const thinking = data.model.reasoning
-            ? { thinking: { type: "enabled", budget_tokens: 8000 } }
-            : {};
+          const thinking =
+            data.model.hasReasoning && data.modelConfig.reasoning
+              ? { thinking: { type: "enabled", budget_tokens: 16000 } }
+              : {};
 
           // console.log("thinking", thinking);
 
           // console.log("messages", messages);
           // console.log("system", system);
           const streamResponse = await anthropic.messages.create({
-            max_tokens: 8192,
+            max_tokens: 64000,
             system: system && system?.content,
             messages: convertedMessages,
             model: data.model.model,
@@ -97,7 +95,7 @@ export async function POST(req) {
           // });
           // console.log("latest anthropic models:", all_models);
           for await (const messageStreamEvent of streamResponse) {
-            // console.log("messageStreamEvent", messageStreamEvent);
+            console.log("messageStreamEvent", messageStreamEvent);
             if (messageStreamEvent.type === "message_start") {
               // console.log("message_start", messageStreamEvent.message.usage);
               mutables.total_tokens +=
@@ -111,24 +109,6 @@ export async function POST(req) {
             } else if (messageStreamEvent.type === "message_delta") {
               // console.log("message_delta", messageStreamEvent);
               mutables.total_tokens += messageStreamEvent.usage.output_tokens;
-            } else if (messageStreamEvent?.content_block?.type === "thinking") {
-              // controller.enqueue(encoder.encode("<think>\n"));
-              // controller.enqueue(
-              //   encoder.encode(
-              //     JSON.stringify({
-              //       text: "<think>\n",
-              //     }) + "\n"
-              //   )
-              // );
-            } else if (messageStreamEvent?.delta?.type === "signature_delta") {
-              // controller.enqueue(encoder.encode("\n\n</think>\n\n"));
-              // controller.enqueue(
-              //   encoder.encode(
-              //     JSON.stringify({
-              //       text: "\n\n</think>\n\n",
-              //     }) + "\n"
-              //   )
-              // );
             } else if (messageStreamEvent.type === "content_block_delta") {
               // messageStreamEvent.delta.text
               if (messageStreamEvent?.delta?.type === "thinking_delta") {

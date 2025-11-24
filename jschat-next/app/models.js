@@ -299,7 +299,7 @@ export const openaiModelsWithMeta = [
 export const anthropicModelsWithMeta = [
   {
     name: "Claude Sonnet 4.5",
-    model: "claude-sonnet-4-5-20250929",
+    model: "claude-sonnet-4-5",
     meta: "Anthropic's Most Intelligent Model for Complext Agents and Coding, Capable of Reasoning",
     new: true,
     vision: true,
@@ -307,9 +307,18 @@ export const anthropicModelsWithMeta = [
     icon: BrainIcon,
   },
   {
+    name: "Claude 4.5 Haiku",
+    model: "claude-haiku-4-5",
+    meta: "Fastest Anthropic Model With Frontier Speed",
+    new: true,
+    vision: true,
+    hasReasoning: true,
+    icon: FastIcon,
+  },
+  {
     name: "Claude 3.5 Haiku",
     model: "claude-3-5-haiku-latest",
-    meta: "Fastest Anthropic Model For Daily Tasks",
+    meta: "Legacy Anthropic Model For Daily Tasks",
     new: false,
     vision: true,
     hasReasoning: false,

@@ -231,7 +231,7 @@ min-h-[2.5rem] overflow-y-auto
 
         <div className="flex flex-wrap justify-center gap-2 pt-2">
           {/* reasoning START */}
-          {userMessageModelInfo?.model?.hasSearch && (
+          {userMessageModelInfo?.model?.hasReasoning && (
             <Button
               size="sm"
               aria-label="Reasoning"
