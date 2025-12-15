@@ -43,6 +43,7 @@ export const metadata = {
 };
 
 export default async function RootLayout({ params, children }) {
+  // console.log("root layout");
   return (
     <html lang="en" suppressHydrationWarning className="light">
       <body

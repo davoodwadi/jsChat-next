@@ -190,10 +190,22 @@ into a unified model.`,
 
 export const openaiModelsWithMeta = [
   {
+    name: "ChatGPT 5.2 latest",
+    model: "gpt-5.2-chat-latest",
+    meta: "Flagship Model Used in ChatGPT",
+    new: true,
+    vision: true,
+    hasReasoning: false,
+    hasDeepResearch: false,
+    hasSearch: false,
+    hasAgentic: false,
+    icon: DetailedIcon,
+  },
+  {
     name: "ChatGPT 5 latest",
     model: "gpt-5-chat-latest",
     meta: "Flagship Model Used in ChatGPT",
-    new: true,
+    new: false,
     vision: true,
     hasReasoning: false,
     hasDeepResearch: false,
