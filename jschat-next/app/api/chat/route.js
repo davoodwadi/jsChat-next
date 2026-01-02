@@ -351,7 +351,7 @@ export async function POST(req) {
           // console.log("data.model", data.model);
 
           // return;
-          if (data.model.reasoning) {
+          if (data.modelConfig.reasoning) {
             reasoning = { reasoning: { effort: "high" } };
           }
 
@@ -430,7 +430,9 @@ export async function POST(req) {
     });
   } else if (xAIModels.includes(data.model.model)) {
     console.log("xAI");
-    const isReasoning = data.model.reasoning;
+    // console.log(data);
+    // return;
+    const isReasoning = data.modelConfig.reasoning;
     const reasoning = isReasoning ? { reasoning_effort: "high" } : {};
 
     const { convertedMessages, hasImage } = convertToOpenAIResponsesFormatXAI({
@@ -450,7 +452,7 @@ export async function POST(req) {
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
-
+    // console.log("reasoning", reasoning);
     // return;
     const stream = new ReadableStream({
       async start(controller) {
