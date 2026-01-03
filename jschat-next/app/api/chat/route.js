@@ -351,7 +351,7 @@ export async function POST(req) {
           // console.log("data.model", data.model);
 
           // return;
-          if (data.modelConfig.reasoning) {
+          if (data.modelConfig.reasoning && data.model.hasReasoning) {
             reasoning = { reasoning: { effort: "high" } };
           }
 
