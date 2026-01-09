@@ -19,12 +19,12 @@ export function FloatingActionMenu({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  // console.log("systemPrompt", systemPrompt);
   const [tempSystemPrompt, setTempSystemPrompt] = useState("");
   const handleConfirmSystemPrompt = () => {
     setSystemPrompt(tempSystemPrompt);
     setDialogOpen(false);
   };
-
   const menuRef = useRef(null);
 
   // Close the menu if the user clicks outside of it
@@ -41,6 +41,13 @@ export function FloatingActionMenu({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [menuRef]);
+  useEffect(() => {
+    // set initial systemPrompt loaded
+    if (systemPrompt) {
+      // console.log("setting system prompt inside useEffect to", systemPrompt);
+      setTempSystemPrompt(systemPrompt);
+    }
+  }, [systemPrompt]);
 
   return (
     <div ref={menuRef} className="relative flex items-center justify-center">
@@ -51,7 +58,6 @@ export function FloatingActionMenu({
             {elements.map((item, index) => {
               // Conditionally render the bookmark star based on its enabled state
               const Icon = item.Element;
-              // console.log("Icon", Icon);
               const isBookmarked = item.text === "Bookmark" && item.enabled;
 
               return (
@@ -66,9 +72,6 @@ export function FloatingActionMenu({
                   disabled={item.loading}
                   className="group flex w-max items-center gap-3 w-10 h-10 px-4 py-2 rounded-full shadow-lg backdrop-blur-lg transition-all hover:bg-slate-700/70 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {/* <span className="text-sm font-medium transition-colors group-hover:text-white"> */}
-                  {/* {"Icon"} */}
-                  {/* </span> */}
                   <Icon
                     className={`h-5 w-5 ${isBookmarked ? "fill-yellow-200 text-yellow-400" : ""}`}
                   />
@@ -120,8 +123,6 @@ export function FloatingActionMenu({
             zIndex: 100,
           }}
         >
-          {/* <div className="glass-overlay" /> */}
-
           <div
             className="relative z-10 p-6"
             style={{ maxHeight: "90vh", overflowY: "auto" }}

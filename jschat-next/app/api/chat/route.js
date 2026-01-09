@@ -550,18 +550,28 @@ export async function POST(req) {
         streamConfig.config["thinkingConfig"] = {
           thinkingLevel: "high",
           includeThoughts: true,
+          thinkingBudget: -1,
         };
-      } else {
-        streamConfig.config["thinkingConfig"] = {
-          thinkingLevel: "low",
-          includeThoughts: true,
-        };
+      } else if (!data.modelConfig.reasoning) {
+        // console.log("no reasoning");
+        if (data.model.model.includes("gemini-3-flash-preview")) {
+          streamConfig.config["thinkingConfig"] = {
+            thinkingLevel: "minimal",
+            includeThoughts: true,
+            thinkingBudget: 0,
+          };
+        } else {
+          streamConfig.config["thinkingConfig"] = {
+            thinkingLevel: "low",
+            includeThoughts: true,
+            thinkingBudget: 0,
+          };
+        }
       }
     } else {
       if (data.modelConfig.reasoning && data.model.hasReasoning) {
         streamConfig.config["thinkingConfig"] = {
           includeThoughts: true,
-          thinkingBudget: -1,
         };
       } else {
         streamConfig.config["thinkingConfig"] = {
@@ -581,6 +591,8 @@ export async function POST(req) {
       mutables.total_tokens += searchCost;
       console.log("adding searchCost", mutables.total_tokens);
     }
+    // console.log(streamConfig);
+    // return;
 
     const stream = new ReadableStream({
       async start(controller) {

@@ -20,12 +20,7 @@ import ChatSkeleton from "@/app/chat-skeleton/page";
 import { createQueryString } from "@/lib/myToolsClient";
 
 export function RecursiveChatContainer(props) {
-  // console.log("starting RecursiveChatContainer");
-  // console.log("RecursiveChatContainer props", props);
-  // console.log("RecursiveChatContainer props", props.systemPrompt);
-  // console.log("props.refElementBot.current", props.refElementBot.current);
-  // const refChatContainer = useRef(null);
-  // console.log("props.model", props.model);
+  // console.log("props", props);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -118,8 +113,6 @@ export function RecursiveChatContainer(props) {
 
       if (botMessages.length === 1) {
         router.refresh();
-        // focus to the new userMessage textarea
-        // props.refElementUser?.current?.focus();
       }
     }
   }, [botMessages]);
@@ -260,34 +253,6 @@ export function getBranchKeyToMaximize({ userMessages }) {
   const keyToMax = findSingleParent(key, userMessages);
   // console.log("keyToMax", keyToMax);
   return keyToMax;
-}
-//
-function checkParentBranch(key) {
-  // console.log("key", key);
-  const array = JSON.parse(key);
-  // if length of array is 1 it is the root branch
-  if (array.length === 1) {
-    // console.log("root branch", key);
-    return { final: true, key: key };
-  }
-  // if last value in array > 1 -> it is a new horizontal branch
-  // -> maximize it
-  let lastArray = array[array.length - 1];
-  // console.log("lastArray", lastArray);
-  if (lastArray > 1) {
-    return { final: true, key: key };
-  } else {
-    // if last value in array === 1 -> it is a new vertical branch
-    // -> maximize its parent
-    let parentArray = array.slice(0, -1);
-    if (parentArray.length === 0) {
-      // first botMessage in branch
-      parentArray = array;
-      return { final: true, key: key };
-    }
-    // for instace parentArray [2, 1, 1]
-    return checkParentBranch(JSON.stringify(parentArray));
-  }
 }
 
 export function getMaxGlobalIdUser(userMessages) {

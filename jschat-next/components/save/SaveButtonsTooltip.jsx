@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 export function SaveButtonsTooltip({ elements }) {
-  //   console.log("elements", elements);
+  console.log("elements", elements);
   return (
     <>
       {elements.map(({ Element, loading, text, enabled, onClickFn }, index) => {

@@ -17,10 +17,7 @@ import { createSaveChatSessionParams } from "@/lib/save/saveUtils";
 import { FloatingActionMenu } from "@/components/FloatingActionMenu";
 
 export default function SaveItems(props) {
-  // console.log("SaveItems userMessages", userMessages);
-  // console.log("SaveItems botMessages", botMessages);
-  // console.log("SaveItems props", props);
-  // console.log("SaveItems systemPrompt", systemPrompt);
+  // console.log("SaveItems systemPrompt", props.systemPrompt);
   const router = useRouter();
   const [loadingSave, setLoadingSave] = useState(false);
   const [loadingLoad, setLoadingLoad] = useState(false);
@@ -130,17 +127,9 @@ export default function SaveItems(props) {
       />
     </div>
   );
-  // return (
-  //   <div className="flex flex-row mx-auto mt-2 fixed bottom-6 z-50">
-  //     <SaveButtonsTooltip elements={elements} />
-  //   </div>
-  // );
 }
 
 export function SaveItemsCanvas(params) {
-  // console.log("SaveItems userMessages", userMessages);
-  // console.log("SaveItems botMessages", botMessages);
-  // console.log("SaveItems props", props);
   // console.log("SaveItems systemPrompt", systemPrompt);
   const router = useRouter();
   const [loadingSave, setLoadingSave] = useState(false);

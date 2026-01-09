@@ -21,15 +21,6 @@ const ChatContainer = dynamic(
   }
 );
 
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-
 import { useState, useRef, useEffect, useTransition } from "react";
 
 import {

@@ -423,8 +423,21 @@ export const geminiModelsWithMeta = [
     hasDeepResearch: false,
     hasSearch: true,
     icon: BrainIcon,
-    default: true,
+    default: false,
   },
+  {
+    name: "Gemini 3 Flash",
+    model: "gemini-3-flash-preview",
+    meta: "Google's Latest and Fastest LLM With Web Search and Thinking Capabilities",
+    new: true,
+    vision: true,
+    hasReasoning: true,
+    hasDeepResearch: false,
+    hasSearch: true,
+    default: true,
+    icon: BrainIcon,
+  },
+
   {
     name: "Gemini 2.5 Flash",
     model: "models/gemini-2.5-flash",
