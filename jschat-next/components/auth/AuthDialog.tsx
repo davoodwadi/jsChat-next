@@ -1,9 +1,7 @@
 "use client";
 
-import { providerMap } from "@/auth.config";
 import { signInClientAction } from "@/lib/actions";
 import PaymentComponent from "@/components/payment/Payment";
-
 import {
   Dialog,
   DialogContent,
@@ -13,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Loader2, Plus } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGithub, faGoogle } from "@fortawesome/free-brands-svg-icons";
 type Provider = {
@@ -50,25 +48,6 @@ const InlineAuthButton: React.FC<{ provider: Provider }> = ({ provider }) => {
 type AuthDialogProps = React.ComponentPropsWithoutRef<typeof Dialog> & {
   isDialogOpen: boolean;
   setIsDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
-};
-
-export const AuthDialog: React.FC<AuthDialogProps> = (props) => {
-  return (
-    <>
-      <Dialog open={props.isDialogOpen} onOpenChange={props.setIsDialogOpen}>
-        <DialogContent className="sm:w-1/2 rounded-xl">
-          <DialogHeader>
-            <DialogTitle className="mx-auto mb-4">Please Sign In</DialogTitle>
-            <DialogDescription className="flex flex-col gap-y-2">
-              {Object.values(providerMap).map((provider, i) => (
-                <InlineAuthButton provider={provider} key={i} />
-              ))}
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
 };
 
 const InlineTopupButton: React.FC<{}> = () => {

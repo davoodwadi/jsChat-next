@@ -9,7 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Plus, Search } from "lucide-react";
 
 import ChatSkeleton from "@/app/chat-skeleton/page";
-import { AuthDialog, TopupDialog } from "@/components/auth/AuthDialog";
+import { TopupDialog } from "@/components/auth/AuthDialog";
+import { AuthDialogServer } from "@/components/auth/AuthDialogServer";
 import { useParams } from "next/navigation";
 import { saveChatSession, loadChatSession } from "@/lib/save/saveActions";
 import { allModelsWithoutIcon } from "@/app/models";
@@ -247,7 +248,7 @@ dark:text-gray-100`;
             id="contextArea"
           />
 
-          <AuthDialog
+          <AuthDialogServer
             isDialogOpen={isDialogOpen}
             setIsDialogOpen={setIsDialogOpen}
           />

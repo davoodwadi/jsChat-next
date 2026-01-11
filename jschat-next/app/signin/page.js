@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { signIn } from "@/auth";
-import { providerMap } from "@/auth.config";
+import { getProviders } from "@/auth";
 import Image from "next/image";
 import { AuthError } from "next-auth";
 
@@ -13,6 +13,21 @@ export default async function SignInPage(props) {
   //   "props.searchParams?.callbackUrl",
   //   props.searchParams?.callbackUrl
   // );
+  const providers = await getProviders();
+  // console.log(providers);
+  const providerMap = providers
+    .map((provider) => {
+      if (typeof provider === "function") {
+        const providerData = provider();
+        return { id: providerData.id, name: providerData.name };
+      } else {
+        // console.log("provider in auth.config", provider);
+        return provider;
+        // return { id: provider.id, name: provider.name };
+      }
+    })
+    .filter((provider) => provider.id !== "credentials");
+
   return (
     <div className="flex flex-col gap-2">
       {Object.values(providerMap).map((provider, i) => (

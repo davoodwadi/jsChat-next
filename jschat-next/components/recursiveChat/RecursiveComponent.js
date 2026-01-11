@@ -7,7 +7,8 @@ import { useState, useRef, useEffect, useTransition, useCallback } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 import { Suspense } from "react";
-import { AuthDialog, TopupDialog } from "@/components/auth/AuthDialog";
+import { TopupDialog } from "@/components/auth/AuthDialog";
+import { AuthDialogClient } from "@/components/auth/AuthDialogClient";
 import SaveItems from "@/components/save/SaveComponents";
 import { loadChatSession, saveChatSession } from "@/lib/save/saveActions";
 
@@ -200,7 +201,7 @@ export default function ChatContainer(props) {
             setIsTopupDialogOpen={setIsTopupDialogOpen}
           />
         </Suspense>
-        <AuthDialog
+        <AuthDialogClient
           isDialogOpen={isDialogOpen}
           setIsDialogOpen={setIsDialogOpen}
         />

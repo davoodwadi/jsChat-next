@@ -113,19 +113,19 @@ if (client) {
 } else {
   adapter = undefined;
 }
-export const { handlers, signIn, signOut, auth } = NextAuth(async (req) => {
-  // 2. Detect the domain from headers
+
+export let providerMap = [];
+
+// auth.ts
+
+export const getProviders = async () => {
   const headerList = await headers();
-  host = headerList.get("host") || "";
-  // host = req?.headers?.get("host") || "";
-  let gitHubType = "";
-  if (host.includes("spreed.dev")) {
-    gitHubType = "github-dev";
-  } else if (host.includes("spreed.chat")) {
-    gitHubType = "github-chat";
-  } else if (host.includes("localhost")) {
-    gitHubType = "github-local";
-  }
+  const host = headerList.get("host") || "";
+
+  let gitHubId = "github-chat";
+  if (host.includes("spreed.dev")) gitHubId = "github-dev";
+  if (host.includes("localhost")) gitHubId = "github-local";
+  console.log("gitHubId", gitHubId);
   const googleProvider = Google({
     clientId: process.env.AUTH_GOOGLE_ID,
     clientSecret: process.env.AUTH_GOOGLE_SECRET,
@@ -136,8 +136,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth(async (req) => {
       return { email: profile.email };
     },
   });
+
   let gitHubProvider;
-  if (gitHubType == "github-chat") {
+  if (gitHubId == "github-chat") {
     gitHubProvider = GitHub({
       clientId: process.env.AUTH_GITHUB_ID,
       clientSecret: process.env.AUTH_GITHUB_SECRET,
@@ -148,7 +149,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth(async (req) => {
         return { email: profile.email };
       },
     });
-  } else if (gitHubType == "github-dev") {
+  } else if (gitHubId == "github-dev") {
     gitHubProvider = GitHub({
       clientId: process.env.AUTH_GITHUB_ID_DEV,
       clientSecret: process.env.AUTH_GITHUB_SECRET_DEV,
@@ -173,6 +174,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth(async (req) => {
   }
 
   const providers: Provider[] = [googleProvider, gitHubProvider];
+  return providers;
+};
+
+export const { handlers, signIn, signOut, auth } = NextAuth(async (req) => {
+  const providers = await getProviders();
+
   // filter providers
   // const filteredProviders = authConfig.providers.filter((provider) => {
   //   // Providers in Auth.js can be objects or functions that return objects
