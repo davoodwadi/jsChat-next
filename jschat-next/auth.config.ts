@@ -2,9 +2,6 @@ import Google from "next-auth/providers/google";
 import GitHub from "next-auth/providers/github";
 import type { Provider } from "next-auth/providers";
 
-const isDevDomain = process.env.NEXT_PUBLIC_VERCEL_URL?.includes("spreed.dev");
-console.log("isDevDomain", isDevDomain, process.env.NEXT_PUBLIC_VERCEL_URL);
-
 const providers: Provider[] = [
   Google({
     clientId: process.env.AUTH_GOOGLE_ID,
@@ -17,12 +14,33 @@ const providers: Provider[] = [
     },
   }),
   GitHub({
+    id: "github-chat",
     clientId: process.env.AUTH_GITHUB_ID,
     clientSecret: process.env.AUTH_GITHUB_SECRET,
     allowDangerousEmailAccountLinking: true,
     async profile(profile) {
       // console.log("profile:", profile)
 
+      return { email: profile.email };
+    },
+  }),
+  GitHub({
+    id: "github-dev", // Custom ID
+    name: "GitHub",
+    clientId: process.env.AUTH_GITHUB_ID_DEV,
+    clientSecret: process.env.AUTH_GITHUB_SECRET_DEV,
+    allowDangerousEmailAccountLinking: true,
+    async profile(profile) {
+      return { email: profile.email };
+    },
+  }),
+  GitHub({
+    id: "github-local",
+    name: "GitHub",
+    clientId: process.env.AUTH_GITHUB_ID_LOCAL,
+    clientSecret: process.env.AUTH_GITHUB_SECRET_LOCAL,
+    allowDangerousEmailAccountLinking: true,
+    async profile(profile) {
       return { email: profile.email };
     },
   }),
@@ -40,7 +58,7 @@ export const providerMap = providers
     }
   })
   .filter((provider) => provider.id !== "credentials");
-
 export const authConfig = {
   providers: providers,
 };
+// console.log("authConfig", authConfig);
