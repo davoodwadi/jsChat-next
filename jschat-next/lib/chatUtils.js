@@ -169,22 +169,19 @@ export async function handleSubmit({
     let data;
     // try catch finally START
     try {
-      data = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/${endpoint}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            messages: chain,
-            model: model,
-            email: authStatus,
-            modelConfig,
-          }),
-          signal: abortControllerRef.current.signal, // Safe reference
-        }
-      );
+      data = await fetch(`/api/${endpoint}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messages: chain,
+          model: model,
+          email: authStatus,
+          modelConfig,
+        }),
+        signal: abortControllerRef.current.signal, // Safe reference
+      });
       if (!data.ok) {
         // Handle 400/500 responses from the server BEFORE the stream
         const errorData = await data.json();
@@ -401,23 +398,20 @@ export async function handleSubmit({
     let data;
     // try catch finally START
     try {
-      console.log("STARTING FETCH");
-      data = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/${endpoint}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            messages: chain,
-            model: model,
-            email: authStatus,
-            modelConfig,
-          }),
-          signal: abortControllerRef.current.signal, // Safe reference
-        }
-      );
+      console.log("STARTING FETCH", `/api/${endpoint}`);
+      data = await fetch(`/api/${endpoint}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messages: chain,
+          model: model,
+          email: authStatus,
+          modelConfig,
+        }),
+        signal: abortControllerRef.current.signal, // Safe reference
+      });
       if (!data.ok) {
         // Handle 400/500 responses from the server BEFORE the stream
         const errorData = await data.json();

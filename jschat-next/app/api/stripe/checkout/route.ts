@@ -3,9 +3,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { connectToDatabase } from "@/lib/db";
 import { MongoError } from "mongodb";
+import { headers } from "next/headers";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 export async function POST(request: NextRequest) {
+  // 1. Get the host from headers
+  const head = await headers();
+  const host = head.get("host") || "";
+  const protocol = host.includes("local") ? "http://" : "https://";
+  const baseUrl = protocol + host;
+  console.log("baseUrl", baseUrl);
+
   try {
     // you can implement some basic check here like, is user valid or not
     const client = await connectToDatabase();
@@ -43,8 +51,8 @@ export async function POST(request: NextRequest) {
         // payment_method_types: ["card"],
         line_items: lineItems,
         mode: "payment",
-        success_url: `${process.env.NEXT_BASE_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${process.env.NEXT_BASE_URL}/payment/failure?session_id={CHECKOUT_SESSION_ID}`,
+        success_url: `${baseUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${baseUrl}/payment/failure?session_id={CHECKOUT_SESSION_ID}`,
         metadata: metadata,
       });
     console.log("checkoutSession.status", checkoutSession.status);

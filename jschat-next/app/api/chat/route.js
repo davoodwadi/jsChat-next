@@ -49,12 +49,23 @@ import {
 import { updateGroundingChunksWithActualLinksAndTitles } from "@/components/searchGroundingUtils";
 import { allModelsWithoutIcon } from "@/app/models";
 import { basic_search } from "@/lib/sample";
+import { headers } from "next/headers";
+// import { host } from "@/auth";
+
 // // Allow streaming responses up to 30 seconds
 // export const maxDuration = 30
 export const runtime = "edge";
 
 export async function POST(req) {
   const data = await req.json();
+
+  // 1. Get the host from headers
+  const head = await headers();
+  const host = head.get("host");
+  const protocol = host.includes("local") ? "http://" : "https://";
+
+  const baseUrl = protocol + host;
+  console.log("baseUrl", baseUrl);
   // console.log(data.model)
   // console.log("route runtime", process.env.NEXT_RUNTIME);
   // revalidatePath("/", "layout");
@@ -153,7 +164,7 @@ export async function POST(req) {
           console.log("mutables.total_tokens", mutables.total_tokens);
           // UPDATE TOKENS HERE START
           // update usage
-          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
+          fetch(`${baseUrl}/api/tokens`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -229,7 +240,7 @@ export async function POST(req) {
           console.log("mutables.total_tokens", mutables.total_tokens);
           // UPDATE TOKENS HERE START
           // update usage
-          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
+          fetch(`${baseUrl}/api/tokens`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -309,7 +320,7 @@ export async function POST(req) {
           console.log("mutables.total_tokens", mutables.total_tokens);
           // UPDATE TOKENS HERE START
           // update usage
-          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
+          fetch(`${baseUrl}/api/tokens`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -408,7 +419,7 @@ export async function POST(req) {
           console.log("mutables.total_tokens", mutables.total_tokens);
           // UPDATE TOKENS HERE START
           // update usage
-          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
+          fetch(`${baseUrl}/api/tokens`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -508,7 +519,7 @@ export async function POST(req) {
           console.log("mutables.total_tokens", mutables.total_tokens);
           // UPDATE TOKENS HERE START
           // update usage
-          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
+          fetch(`${baseUrl}/api/tokens`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -564,7 +575,7 @@ export async function POST(req) {
           streamConfig.config["thinkingConfig"] = {
             thinkingLevel: "low",
             includeThoughts: true,
-            thinkingBudget: 0,
+            // thinkingBudget: 0,
           };
         }
       }
@@ -700,7 +711,7 @@ export async function POST(req) {
           console.log("mutables.total_tokens", mutables.total_tokens);
           // UPDATE TOKENS HERE START
           // update usage
-          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
+          fetch(`${baseUrl}/api/tokens`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -832,7 +843,7 @@ export async function POST(req) {
           console.log("mutables.total_tokens", mutables.total_tokens);
           // UPDATE TOKENS HERE START
           // update usage
-          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
+          fetch(`${baseUrl}/api/tokens`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -931,7 +942,7 @@ export async function POST(req) {
           console.log("mutables.total_tokens", mutables.total_tokens);
           // UPDATE TOKENS HERE START
           // update usage
-          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
+          fetch(`${baseUrl}/api/tokens`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -1072,7 +1083,7 @@ export async function POST(req) {
           console.log("mutables.total_tokens", mutables.total_tokens);
           // UPDATE TOKENS HERE START
           // update usage
-          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
+          fetch(`${baseUrl}/api/tokens`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -1138,7 +1149,7 @@ async function wait(duration) {
   return new Promise((resolve) => setTimeout(resolve, duration));
 }
 async function get_search_results_tavily(query) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tavily`, {
+  const res = await fetch(`${baseUrl}/api/tavily`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

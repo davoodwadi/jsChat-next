@@ -179,7 +179,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth(async (req) => {
   //   const p = typeof provider === "function" ? provider() : provider;
   //   return p.id === "google" || p.options?.id === gitHubType;
   // });
-  console.log("Current host detected:", host, gitHubType, providers);
+  // console.log("Current host detected:", host, gitHubType, providers);
   // const isDevDomain = host.includes("spreed.dev");
   // console.log(authConfig);
   return {
