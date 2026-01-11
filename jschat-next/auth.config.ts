@@ -2,6 +2,9 @@ import Google from "next-auth/providers/google";
 import GitHub from "next-auth/providers/github";
 import type { Provider } from "next-auth/providers";
 
+const isDevDomain = process.env.NEXT_PUBLIC_VERCEL_URL?.includes("spreed.dev");
+console.log("isDevDomain", isDevDomain, process.env.NEXT_PUBLIC_VERCEL_URL);
+
 const providers: Provider[] = [
   Google({
     clientId: process.env.AUTH_GOOGLE_ID,
