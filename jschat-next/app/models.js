@@ -190,6 +190,30 @@ into a unified model.`,
 
 export const openaiModelsWithMeta = [
   {
+    name: "GPT 5.2 Pro",
+    model: "gpt-5.2-pro",
+    meta: "Flagship Model Used in ChatGPT Pro",
+    new: true,
+    vision: true,
+    hasReasoning: true,
+    hasDeepResearch: false,
+    hasSearch: false,
+    hasAgentic: false,
+    icon: DetailedIcon,
+  },
+  {
+    name: "GPT 5.2",
+    model: "gpt-5.2",
+    meta: "Flagship Model Used in ChatGPT Pro",
+    new: true,
+    vision: true,
+    hasReasoning: true,
+    hasDeepResearch: false,
+    hasSearch: true,
+    hasAgentic: false,
+    icon: DetailedIcon,
+  },
+  {
     name: "ChatGPT 5.2 latest",
     model: "gpt-5.2-chat-latest",
     meta: "Flagship Model Used in ChatGPT",
@@ -528,7 +552,7 @@ if (test) {
 export { allModels };
 
 export const allModelsWithoutIcon = allModels.map(
-  ({ icon, ...model }) => model
+  ({ icon, ...model }) => model,
 );
 
 export const alibabaModels = alibabaModelsWithMeta.map((m) => m.model);

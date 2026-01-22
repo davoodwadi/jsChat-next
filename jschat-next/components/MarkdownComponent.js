@@ -47,6 +47,7 @@ import {
   Search,
   TerminalSquare,
   ClipboardList,
+  Cog,
 } from "lucide-react"; // or your preferred icon library
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
@@ -60,7 +61,7 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
   if (props?.annotations?.length > 0) {
     const contentWithCitations = addCitationsToContentInlineOpenAI(
       finalContent,
-      props.annotations
+      props.annotations,
     );
     finalContent = contentWithCitations;
   }
@@ -72,7 +73,7 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
     const contentWithCitations = addCitationsToContentInlineSuper(
       finalContent,
       props?.groundingChunks,
-      props?.groundingSupports
+      props?.groundingSupports,
     );
     finalContent = contentWithCitations;
   }
@@ -81,7 +82,7 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
     // console.log("getting search results in markdown", props.search_results);
     const contentWithCitations = addCitationsToContentInlineSuperPerplexity(
       finalContent,
-      props.search_results
+      props.search_results,
     );
     finalContent = contentWithCitations;
   }
@@ -370,17 +371,17 @@ function GeminiSourcesComponent({ children, ...props }) {
 }
 
 function OpenAISourcesComponent({ children, ...props }) {
-  // console.log("***OpenAISourcesComponent", children);
+  // console.log("OpenAISourcesComponent", children);
   const [isExpanded, setIsExpanded] = useState(true);
-
   if (!Array.isArray(children)) {
-    return null; // nothing will render
+    return null;
   }
+
   return (
-    <div className="  mt-8 rounded-xl border bg-gradient-to-br from-muted/40 to-background p-[1px] shadow-md">
+    <div className="mt-8 rounded-xl border bg-gradient-to-br from-muted/40 to-background p-[1px] shadow-md">
       <div className="rounded-xl bg-card p-4">
         {/* Header Toggle */}
-        <div className=" flex items-center gap-2">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
             className="w-full flex items-center px-4 py-3 text-xs font-semibold uppercase tracking-wider transition-colors hover:bg-gray-100 dark:hover:bg-[#2a2a2a]"
@@ -396,37 +397,61 @@ function OpenAISourcesComponent({ children, ...props }) {
             )}
           </button>
         </div>
+
         {/* Results */}
         {isExpanded && (
-          <ul className=" overflow-x-auto grid gap-3 sm:grid-cols-2 !px-6 mt-5">
+          <ul className="overflow-x-auto grid gap-3 sm:grid-cols-2 !px-6 mt-5">
             {children.map((source, idx) => {
-              const itemUrl = source.url;
-              const domain = getDomain(source.url);
-              const itemTitle = domain;
+              console.log("source", source);
+              const isApi = source.type === "api" || !source.url;
+              const itemUrl = source.url || "#";
+              const displayName = source.url
+                ? getDomain(source.url)
+                : source.name || "Unknown Source";
+              const iconLetter = displayName[0]?.toUpperCase();
+
               return (
                 <li key={idx}>
                   <div className="group flex h-full items-center justify-between rounded-lg border bg-muted/30 p-3 text-xs hover:border-primary/40 hover:bg-accent hover:text-accent-foreground transition-colors">
                     <div className="flex flex-1 items-center gap-3">
+                      {/* Avatar Icon: Shows 'Cog' for API, Letter for URL */}
                       <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-bold">
-                        {domain[0]?.toUpperCase()}
+                        {isApi ? <Cog className="h-4 w-4" /> : iconLetter}
                       </span>
 
-                      <div className="flex flex-col">
-                        <p className="text-ellipsis overflow-hidden text-sm font-medium">
-                          {itemTitle}
-                        </p>
-                        <a
-                          href={itemUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {domain}
-                        </a>
+                      <div className="flex flex-col min-w-0">
+                        {isApi && (
+                          <p className="text-ellipsis overflow-hidden text-sm font-medium whitespace-nowrap">
+                            "System Tool"
+                          </p>
+                        )}
+                        {source.url ? (
+                          <a
+                            href={itemUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-muted-foreground hover:underline truncate"
+                          >
+                            {displayName}
+                          </a>
+                        ) : (
+                          <span className="text-muted-foreground truncate">
+                            {displayName}
+                          </span>
+                        )}
                       </div>
                     </div>
-                    <a href={itemUrl} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="h-4 w-4 flex-shrink-0 opacity-60 group-hover:opacity-100" />
-                    </a>
+
+                    {/* Only show External Link icon if there is a URL */}
+                    {source.url && (
+                      <a
+                        href={itemUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <ExternalLink className="h-4 w-4 flex-shrink-0 opacity-60 group-hover:opacity-100" />
+                      </a>
+                    )}
                   </div>
                 </li>
               );
@@ -489,16 +514,16 @@ function CustomMarkdown({ children, mode, props }) {
             node.children &&
             node.children[0]?.tagName === "code" &&
             (node.children[0]?.properties?.className?.includes(
-              "language-search"
+              "language-search",
             ) ||
               node.children[0]?.properties?.className?.includes(
-                "language-query"
+                "language-query",
               ) ||
               node.children[0]?.properties?.className?.includes(
-                "language-tool"
+                "language-tool",
               ) ||
               node.children[0]?.properties?.className?.includes(
-                "language-output"
+                "language-output",
               ))
           ) {
             // Just render the children directly (SearchBlock will take over)
@@ -631,9 +656,9 @@ function CustomMarkdown({ children, mode, props }) {
             (child) => {
               if (!child || !child.type) return false;
               return problematicTags.includes(
-                child.type.displayName || child.type.name || child.type
+                child.type.displayName || child.type.name || child.type,
               );
-            }
+            },
           );
 
           const paragraphClasses = "mb-4 leading-relaxed ";
@@ -962,23 +987,23 @@ const preprocessMarkdown = (text) => {
   let processedTexts = text;
   processedTexts = processedTexts.replace(
     /<think>([\s\S]*?)<\/think>/g,
-    "\n\n<think>\n\n$1\n\n</think>\n\n"
+    "\n\n<think>\n\n$1\n\n</think>\n\n",
   );
   processedTexts = processedTexts.replace(
     /<tool>([\s\S]*?)<\/tool>/g,
-    "\n\n<tool>\n\n$1\n\n</tool>\n\n"
+    "\n\n<tool>\n\n$1\n\n</tool>\n\n",
   );
   processedTexts = processedTexts.replace(
     /<output>([\s\S]*?)<\/output>/g,
-    "\n\n<output>\n\n$1\n\n</output>\n\n"
+    "\n\n<output>\n\n$1\n\n</output>\n\n",
   );
   processedTexts = processedTexts.replace(
     /<query>([\s\S]*?)<\/query>/g,
-    "\n\n<query>\n\n$1\n\n</query>\n\n"
+    "\n\n<query>\n\n$1\n\n</query>\n\n",
   );
   processedTexts = processedTexts.replace(
     /<search>([\s\S]*?)<\/search>/g,
-    "\n\n<search>\n\n$1\n\n</search>\n\n"
+    "\n\n<search>\n\n$1\n\n</search>\n\n",
   );
   // Replace \[ ... \] with $$ ... $$ for block math
   // processedTexts = processedTexts.replace(

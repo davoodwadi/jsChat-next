@@ -68,7 +68,7 @@ export async function createOrUpdateUser({
     { username: email },
     {
       projection: essentialProjection,
-    }
+    },
   );
   // check if exists in plans collection
   let doc = null;
@@ -125,7 +125,6 @@ export const getProviders = async () => {
   let gitHubId = "github-chat";
   if (host.includes("spreed.dev")) gitHubId = "github-dev";
   if (host.includes("localhost")) gitHubId = "github-local";
-  console.log("gitHubId", gitHubId);
   const googleProvider = Google({
     clientId: process.env.AUTH_GOOGLE_ID,
     clientSecret: process.env.AUTH_GOOGLE_SECRET,

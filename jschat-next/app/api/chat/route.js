@@ -78,7 +78,7 @@ export async function POST(req) {
   const searchCost = 20000;
   if (anthropicModels.includes(data.model.model)) {
     const { convertedMessages, system } = convertToAnthropicFormat(
-      data.messages
+      data.messages,
     );
     const stream = new ReadableStream({
       async start(controller) {
@@ -130,8 +130,8 @@ export async function POST(req) {
                   encoder.encode(
                     JSON.stringify({
                       think: messageStreamEvent?.delta?.thinking,
-                    }) + "\n"
-                  )
+                    }) + "\n",
+                  ),
                 );
               } else {
                 // controller.enqueue(
@@ -141,8 +141,8 @@ export async function POST(req) {
                   encoder.encode(
                     JSON.stringify({
                       text: messageStreamEvent?.delta?.text,
-                    }) + "\n"
-                  )
+                    }) + "\n",
+                  ),
                 );
               }
             }
@@ -192,7 +192,7 @@ export async function POST(req) {
 
           // console.log("groq");
           const { convertedMessages, hasImage } = convertToOpenAIFormat(
-            data.messages
+            data.messages,
           );
           const streamResponse = await groq.chat.completions.create({
             messages: convertedMessages,
@@ -208,16 +208,16 @@ export async function POST(req) {
                 encoder.encode(
                   JSON.stringify({
                     text: chunk.choices[0]?.delta?.content,
-                  }) + "\n"
-                )
+                  }) + "\n",
+                ),
               );
             } else if (chunk.choices[0]?.delta?.reasoning) {
               controller.enqueue(
                 encoder.encode(
                   JSON.stringify({
                     text: chunk.choices[0]?.delta?.reasoning,
-                  }) + "\n"
-                )
+                  }) + "\n",
+                ),
               );
             } else if (typeof chunk?.choices[0]?.finish_reason === "string") {
               mutables.total_tokens += chunk?.x_groq?.usage?.total_tokens;
@@ -263,10 +263,10 @@ export async function POST(req) {
   } else if (deepinfraModels.includes(data.model.model)) {
     console.log("deepinfra");
     const { convertedMessages, hasImage } = convertToDeepInfraFormat(
-      data.messages
+      data.messages,
     );
     const modelMeta = allModelsWithoutIcon.find(
-      (m) => m.model === data.model.model
+      (m) => m.model === data.model.model,
     );
     if (!modelMeta.vision && hasImage) {
       // console.log("model does not have vision capabilities", data.model.model);
@@ -274,7 +274,7 @@ export async function POST(req) {
         JSON.stringify({
           error: `${data.model.model} does not support vision`,
         }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -296,8 +296,8 @@ export async function POST(req) {
                 encoder.encode(
                   JSON.stringify({
                     text: chunk,
-                  }) + "\n"
-                )
+                  }) + "\n",
+                ),
               );
             } else if (fullPart.type === "finish") {
               mutables.total_tokens += fullPart.usage.totalTokens;
@@ -363,8 +363,16 @@ export async function POST(req) {
 
           // return;
           if (data.modelConfig.reasoning && data.model.hasReasoning) {
-            reasoning = { reasoning: { effort: "high" } };
+            if (data.model.name.includes("5.2")) {
+              reasoning = { reasoning: { effort: "xhigh" } };
+            } else {
+              reasoning = { reasoning: { effort: "high" } };
+            }
           }
+
+          // console.log("data.model", data.model);
+          // console.log("reasoning", reasoning);
+          // return;
 
           let extraConfigs = { tools: [] };
           if (search) {
@@ -452,7 +460,7 @@ export async function POST(req) {
     });
 
     const modelMeta = allModelsWithoutIcon.find(
-      (m) => m.model === data.model.model
+      (m) => m.model === data.model.model,
     );
     if (!modelMeta.vision && hasImage) {
       console.log("model does not have vision capabilities", data.model.model);
@@ -460,7 +468,7 @@ export async function POST(req) {
         JSON.stringify({
           error: `${data.model.model} does not support vision`,
         }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
     // console.log("reasoning", reasoning);
@@ -485,8 +493,8 @@ export async function POST(req) {
                 encoder.encode(
                   JSON.stringify({
                     think: chunk?.delta,
-                  }) + "\n"
-                )
+                  }) + "\n",
+                ),
               );
             }
             if (chunk.type === "response.output_text.delta") {
@@ -494,8 +502,8 @@ export async function POST(req) {
                 encoder.encode(
                   JSON.stringify({
                     text: chunk?.delta,
-                  }) + "\n"
-                )
+                  }) + "\n",
+                ),
               );
             }
             if (chunk.type === "response.completed") {
@@ -545,7 +553,7 @@ export async function POST(req) {
     // console.log("Gemini modelList", modelList);
 
     const { history, newUserMessage, system } = convertToGoogleFormat(
-      data.messages
+      data.messages,
     );
     // console.log("newUserMessage", newUserMessage);
     // return;
@@ -634,8 +642,8 @@ export async function POST(req) {
                     encoder.encode(
                       JSON.stringify({
                         think: chunk?.candidates[0]?.content?.parts[0]?.text,
-                      }) + "\n"
-                    )
+                      }) + "\n",
+                    ),
                   );
                 } else {
                   // text tokens
@@ -643,8 +651,8 @@ export async function POST(req) {
                     encoder.encode(
                       JSON.stringify({
                         text: chunk?.candidates[0]?.content?.parts[0]?.text,
-                      }) + "\n"
-                    )
+                      }) + "\n",
+                    ),
                   );
                 }
               }
@@ -657,26 +665,26 @@ export async function POST(req) {
                     encoder.encode(
                       JSON.stringify({
                         query: query,
-                      }) + "\n"
-                    )
+                      }) + "\n",
+                    ),
                   );
                 }
               }
               if (groundingMetadata?.groundingChunks) {
                 console.log(
                   "groundingMetadata?.groundingChunks",
-                  groundingMetadata?.groundingChunks
+                  groundingMetadata?.groundingChunks,
                 );
                 const groundingChunksRedirect =
                   await updateGroundingChunksWithActualLinksAndTitles(
-                    groundingMetadata?.groundingChunks
+                    groundingMetadata?.groundingChunks,
                   );
                 controller.enqueue(
                   encoder.encode(
                     JSON.stringify({
                       groundingChunks: groundingChunksRedirect,
-                    }) + "\n"
-                  )
+                    }) + "\n",
+                  ),
                 );
               }
 
@@ -686,8 +694,8 @@ export async function POST(req) {
                   encoder.encode(
                     JSON.stringify({
                       groundingSupports: groundingMetadata?.groundingSupports,
-                    }) + "\n"
-                  )
+                    }) + "\n",
+                  ),
                 );
               }
             } catch (e) {
@@ -759,7 +767,7 @@ export async function POST(req) {
     let search_results_sent = false;
 
     const { convertedMessages, hasImage } = convertToOpenAIFormat(
-      data.messages
+      data.messages,
     );
     let usage;
     const stream = new ReadableStream({
@@ -781,8 +789,8 @@ export async function POST(req) {
                 encoder.encode(
                   JSON.stringify({
                     text: content,
-                  }) + "\n"
-                )
+                  }) + "\n",
+                ),
               );
             }
             if (chunk?.usage) {
@@ -805,8 +813,8 @@ export async function POST(req) {
                 encoder.encode(
                   JSON.stringify({
                     search_results: JSON.stringify(search_results),
-                  }) + "\n"
-                )
+                  }) + "\n",
+                ),
               );
               search_results_sent = true;
               console.log("search results sent");
@@ -877,7 +885,7 @@ export async function POST(req) {
     // return;
 
     const { convertedMessages, hasImage } = convertToOpenAIFormat(
-      data.messages
+      data.messages,
     );
     let usage;
     const stream = new ReadableStream({
@@ -903,8 +911,8 @@ export async function POST(req) {
                 encoder.encode(
                   JSON.stringify({
                     think: reasoning_content,
-                  }) + "\n"
-                )
+                  }) + "\n",
+                ),
               );
             }
             if (content) {
@@ -912,8 +920,8 @@ export async function POST(req) {
                 encoder.encode(
                   JSON.stringify({
                     text: content,
-                  }) + "\n"
-                )
+                  }) + "\n",
+                ),
               );
             }
             if (chunk?.usage) {
@@ -972,7 +980,7 @@ export async function POST(req) {
 
     console.log(
       "data.modelConfig.reasoning && data.model.hasReasoning",
-      data.modelConfig.reasoning && data.model.hasReasoning
+      data.modelConfig.reasoning && data.model.hasReasoning,
     );
 
     const { convertedMessages, hasImage } = convertToOpenAIResponsesFormat({
@@ -997,8 +1005,8 @@ export async function POST(req) {
                 encoder.encode(
                   JSON.stringify({
                     text: chunk.delta,
-                  }) + "\n"
-                )
+                  }) + "\n",
+                ),
               );
             }
             if (chunk.type === "response.output_item.done") {
@@ -1027,8 +1035,8 @@ export async function POST(req) {
                     encoder.encode(
                       JSON.stringify({
                         query: chunk?.item?.action?.query,
-                      }) + "\n"
-                    )
+                      }) + "\n",
+                    ),
                   );
 
                   // add the search sources
@@ -1037,8 +1045,8 @@ export async function POST(req) {
                     encoder.encode(
                       JSON.stringify({
                         openai_search_results: openAISearchResults,
-                      }) + "\n"
-                    )
+                      }) + "\n",
+                    ),
                   );
                 }
 
@@ -1053,8 +1061,8 @@ export async function POST(req) {
                     encoder.encode(
                       JSON.stringify({
                         query: chunk?.item?.action,
-                      }) + "\n"
-                    )
+                      }) + "\n",
+                    ),
                   );
                 }
               }
@@ -1193,6 +1201,7 @@ async function getOpenAIResponse({
   });
 
   for await (const chunk of streamResponse) {
+    // console.log("chunk", chunk);
     if (chunk.type === "response.output_text.delta") {
       // controller.enqueue(encoder.encode(chunk?.delta));
       llmResponseText += chunk?.delta;
@@ -1200,12 +1209,12 @@ async function getOpenAIResponse({
         encoder.encode(
           JSON.stringify({
             text: chunk?.delta,
-          }) + "\n"
-        )
+          }) + "\n",
+        ),
       );
     }
     if (chunk.type === "response.output_item.done") {
-      console.log("chunk", chunk);
+      // console.log("chunk", chunk);
       // add item to message history
       convertedMessages.push(chunk?.item);
 
@@ -1223,15 +1232,15 @@ async function getOpenAIResponse({
       if (chunk?.item?.type === "web_search_call") {
         // add search cost
         mutables.total_tokens += searchCost * 2;
-
+        console.log("chunk", chunk);
         if (chunk?.item?.action?.type === "search") {
           // add the search query
           controller.enqueue(
             encoder.encode(
               JSON.stringify({
                 query: chunk?.item?.action?.query,
-              }) + "\n"
-            )
+              }) + "\n",
+            ),
           );
 
           // add the search sources
@@ -1240,8 +1249,8 @@ async function getOpenAIResponse({
             encoder.encode(
               JSON.stringify({
                 openai_search_results: openAISearchResults,
-              }) + "\n"
-            )
+              }) + "\n",
+            ),
           );
         } else {
           // deep research model
@@ -1251,8 +1260,8 @@ async function getOpenAIResponse({
             encoder.encode(
               JSON.stringify({
                 query: chunk?.item?.action,
-              }) + "\n"
-            )
+              }) + "\n",
+            ),
           );
         }
       }
@@ -1263,8 +1272,8 @@ async function getOpenAIResponse({
         encoder.encode(
           JSON.stringify({
             annotation_item: chunk,
-          }) + "\n"
-        )
+          }) + "\n",
+        ),
       );
     }
     if (chunk.type === "response.completed") {
@@ -1334,8 +1343,8 @@ async function callTheTools({
         encoder.encode(
           JSON.stringify({
             query: query,
-          }) + "\n"
-        )
+          }) + "\n",
+        ),
       );
     } catch {}
     const res = await callTool({ toolCall, controller, encoder });
@@ -1369,8 +1378,8 @@ async function callTool({ toolCall, controller, encoder }) {
       encoder.encode(
         JSON.stringify({
           search: JSON.stringify(minimalResults),
-        }) + "\n"
-      )
+        }) + "\n",
+      ),
     );
 
     const tool_output = {
@@ -1764,11 +1773,11 @@ sampleTextWithLink.push("<think> a ");
 sampleTextWithLink.push("person lives on. <sup>");
 sampleTextWithLink.push("[ Sampling and Data | Introduction to Statistics ");
 sampleTextWithLink.push(
-  "](https://courses.lumenlearning.com/introstats1/chapter/sampling-and-data/)</sup>"
+  "](https://courses.lumenlearning.com/introstats1/chapter/sampling-and-data/)</sup>",
 );
 sampleTextWithLink.push(" Quantitative data, samples.</think>");
 sampleTextWithLink.push(
-  "The main topics are here...klsfjsdlkfjsadfkjsadfksad;fkjasdfklsjadfl;ksadjfl;ksadjflkslkdfjsdklghdfjnvmcxvsadfjsfsdfhgksdjfs;dfjsadkfsad;lkfjsdl;fksajf;lksdjflskdfjsdlkfjsdflksdjf;lsdkfjsdlkfsdjflksdj\n"
+  "The main topics are here...klsfjsdlkfjsadfkjsadfksad;fkjasdfklsjadfl;ksadjfl;ksadjflkslkdfjsdklghdfjnvmcxvsadfjsfsdfhgksdjfs;dfjsadkfsad;lkfjsdl;fksajf;lksdjflskdfjsdlkfjsdflksdjf;lsdkfjsdlkfsdjflksdj\n",
 );
 sampleTextWithLink.push("\n```tool\n");
 sampleTextWithLink.push("call a tool\n");

@@ -1,16 +1,16 @@
 export function addCitationsToContentInlineOpenAI(content, annotations) {
   // 1. Filter for only the 'url_citation' annotations, as other types might exist.
   // console.log("content", content);
-  console.log("addCitationsToContentInlineOpenAI", annotations);
+  // console.log("addCitationsToContentInlineOpenAI", annotations);
   const citationAnnotations = annotations.filter(
-    (ann) => ann.annotation && ann.annotation.type === "url_citation"
+    (ann) => ann.annotation && ann.annotation.type === "url_citation",
   );
   // console.log("citationAnnotations", citationAnnotations);
 
   // 2. Sort annotations by their start index. This is CRUCIAL to process the
   //    string in the correct order from beginning to end.
   citationAnnotations.sort(
-    (a, b) => a.annotation.start_index - b.annotation.start_index
+    (a, b) => a.annotation.start_index - b.annotation.start_index,
   );
 
   let resultParts = [];
@@ -54,7 +54,7 @@ export function addCitationsToContentInlineOpenAI(content, annotations) {
 
 export function addCitationsToContentInlineSuperPerplexity(
   content,
-  search_results
+  search_results,
 ) {
   // console.log("=== Starting citation processing ===");
   // console.log("Original content:", content);
@@ -63,7 +63,7 @@ export function addCitationsToContentInlineSuperPerplexity(
   // Step 1: Basic validation
   if (!content || !search_results) {
     console.log(
-      "Missing content or search_results, returning original content"
+      "Missing content or search_results, returning original content",
     );
     return content;
   }
@@ -143,14 +143,14 @@ function escapeHtmlAttr(str) {
 export const addCitationsToContentInline = (
   content,
   groundingChunks,
-  groundingSupports
+  groundingSupports,
 ) => {
   let result = content;
 
   // Sort supports by endIndex in descending order to avoid changing indices
   // when we insert content
   const sortedSupports = [...groundingSupports].sort(
-    (a, b) => b.segment.endIndex - a.segment.endIndex
+    (a, b) => b.segment.endIndex - a.segment.endIndex,
   );
   // Process each support
   sortedSupports.forEach((support) => {
@@ -178,14 +178,14 @@ export const addCitationsToContentInline = (
 export const addCitationsToContentInlineSuper = (
   content,
   groundingChunks,
-  groundingSupports
+  groundingSupports,
 ) => {
   let result = content;
 
   // Sort supports by endIndex in descending order to avoid changing indices
   // when we insert content
   const sortedSupports = [...groundingSupports].sort(
-    (a, b) => b.segment.endIndex - a.segment.endIndex
+    (a, b) => b.segment.endIndex - a.segment.endIndex,
   );
   // console.log("sortedSupports", sortedSupports);
   // Process each support
@@ -227,14 +227,14 @@ export const addCitationsToContentInlineSuper = (
 export const _addCitationsToContentInlineSuper = (
   content,
   groundingChunks,
-  groundingSupports
+  groundingSupports,
 ) => {
   let result = content;
 
   // Sort supports by endIndex in descending order to avoid changing indices
   // when we insert content
   const sortedSupports = [...groundingSupports].sort(
-    (a, b) => b.segment.endIndex - a.segment.endIndex
+    (a, b) => b.segment.endIndex - a.segment.endIndex,
   );
   // console.log("sortedSupports", sortedSupports);
   // Process each support
@@ -264,7 +264,7 @@ export const _addCitationsToContentInlineSuper = (
 export const addCitationsToContent = (
   content,
   groundingChunks,
-  groundingSupports
+  groundingSupports,
 ) => {
   let result = content;
   const references = new Map(); // Maps chunk indices to their URLs and titles
@@ -272,7 +272,7 @@ export const addCitationsToContent = (
   // Sort supports by endIndex in descending order to avoid changing indices
   // when we insert content
   const sortedSupports = [...groundingSupports].sort(
-    (a, b) => b.segment.endIndex - a.segment.endIndex
+    (a, b) => b.segment.endIndex - a.segment.endIndex,
   );
   // console.log("sortedSupports", sortedSupports);
   // Process each support
@@ -316,7 +316,7 @@ export const addCitationsToContent = (
     // console.log("references", references);
     result += "\n\n## References\n\n";
     const sortedReferences = Array.from(references.entries()).sort(
-      ([chunkIndexA], [chunkIndexB]) => chunkIndexA - chunkIndexB
+      ([chunkIndexA], [chunkIndexB]) => chunkIndexA - chunkIndexB,
     );
     // Add each reference using Markdown reference-style links
     for (let [chunkIndex, ref] of sortedReferences) {
@@ -337,7 +337,7 @@ function findTextPositions(bigText, searchText) {
   return { startIndex, endIndex };
 }
 export async function updateGroundingChunksWithActualLinksAndTitles(
-  groundingChunks
+  groundingChunks,
 ) {
   // Helper to extract <title> from HTML string
   function extractTitle(html) {
@@ -374,7 +374,7 @@ export async function updateGroundingChunksWithActualLinksAndTitles(
         // Return original if error happens
         return chunk;
       }
-    })
+    }),
   );
 
   return updatedChunks;
