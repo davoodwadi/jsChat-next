@@ -1201,7 +1201,16 @@ async function getOpenAIResponse({
   });
 
   for await (const chunk of streamResponse) {
-    // console.log("chunk", chunk);
+    console.log("chunk", chunk);
+    if (chunk.type === "response.created") {
+      controller.enqueue(
+        encoder.encode(
+          JSON.stringify({
+            signal: "",
+          }) + "\n",
+        ),
+      );
+    }
     if (chunk.type === "response.output_text.delta") {
       // controller.enqueue(encoder.encode(chunk?.delta));
       llmResponseText += chunk?.delta;
