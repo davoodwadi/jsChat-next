@@ -414,7 +414,6 @@ function OpenAISourcesComponent({ children, ...props }) {
                 <li key={idx}>
                   <div className="group flex h-full items-center justify-between rounded-lg border bg-muted/30 p-3 text-xs hover:border-primary/40 hover:bg-accent hover:text-accent-foreground transition-colors">
                     <div className="flex flex-1 items-center gap-3">
-                      {/* Avatar Icon: Shows 'Cog' for API, Letter for URL */}
                       <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-bold">
                         {isApi ? <Cog className="h-4 w-4" /> : iconLetter}
                       </span>
@@ -422,7 +421,7 @@ function OpenAISourcesComponent({ children, ...props }) {
                       <div className="flex flex-col min-w-0">
                         {isApi && (
                           <p className="text-ellipsis overflow-hidden text-sm font-medium whitespace-nowrap">
-                            "System Tool"
+                            System Tool
                           </p>
                         )}
                         {source.url ? (
