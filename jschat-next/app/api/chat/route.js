@@ -987,7 +987,6 @@ export async function POST(req) {
       messages: data.messages,
       agentic: false,
     });
-    await wait(5);
 
     const stream = new ReadableStream({
       async start(controller) {
@@ -997,9 +996,17 @@ export async function POST(req) {
           // console.log(data.messages[data.messages.length - 1]);
 
           for (let chunk of sampleEvents) {
+            await wait(5);
+            console.log("waited 5 seconds");
+            controller.enqueue(
+              encoder.encode(
+                JSON.stringify({
+                  signal: "",
+                }) + "\n",
+              ),
+            );
             // console.log("chunk", chunk);
             // try {
-            await wait(0.4);
             if (chunk.type === "response.output_text.delta") {
               controller.enqueue(
                 encoder.encode(
@@ -1201,7 +1208,7 @@ async function getOpenAIResponse({
   });
 
   for await (const chunk of streamResponse) {
-    console.log("chunk", chunk);
+    // console.log("chunk", chunk);
     if (chunk.type === "response.created") {
       controller.enqueue(
         encoder.encode(
@@ -1241,7 +1248,7 @@ async function getOpenAIResponse({
       if (chunk?.item?.type === "web_search_call") {
         // add search cost
         mutables.total_tokens += searchCost * 2;
-        console.log("chunk", chunk);
+        // console.log("chunk", chunk);
         if (chunk?.item?.action?.type === "search") {
           // add the search query
           controller.enqueue(
@@ -1293,7 +1300,7 @@ async function getOpenAIResponse({
   // if tool called -> call the tools
   if (toolCalls.length > 0) {
     // console.log("model called tools");
-    console.log(toolCalls);
+    // console.log(toolCalls);
     const toolCallResults = await callTheTools({
       toolCalls,
       controller,

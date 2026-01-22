@@ -402,7 +402,7 @@ function OpenAISourcesComponent({ children, ...props }) {
         {isExpanded && (
           <ul className="overflow-x-auto grid gap-3 sm:grid-cols-2 !px-6 mt-5">
             {children.map((source, idx) => {
-              console.log("source", source);
+              // console.log("source", source);
               const isApi = source.type === "api" || !source.url;
               const itemUrl = source.url || "#";
               const displayName = source.url

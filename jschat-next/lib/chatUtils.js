@@ -118,10 +118,12 @@ export async function handleSubmit({
       (m) =>
         JSON.parse(m.key).length === array.length &&
         JSON.stringify(JSON.parse(m.key).slice(0, -1)) ===
-          JSON.stringify(array.slice(0, -1))
+          JSON.stringify(array.slice(0, -1)),
     );
     const maxSameBranch = Math.max(
-      ...sameParents.map((m) => JSON.parse(m.key)[JSON.parse(m.key).length - 1])
+      ...sameParents.map(
+        (m) => JSON.parse(m.key)[JSON.parse(m.key).length - 1],
+      ),
     );
 
     // add a horizontal branch in the key array
@@ -206,6 +208,9 @@ export async function handleSubmit({
             // console.log("chunk to parse:", jsonStr);
             const parsedData = JSON.parse(jsonStr);
             // console.log("parsedData", parsedData);
+            if (parsedData?.signal) {
+              console.log("signal received");
+            }
             if (parsedData?.text) {
               tempChunks += parsedData?.text;
             }
@@ -279,7 +284,7 @@ export async function handleSubmit({
               ...extraContent,
             };
             setBotMessages((v) =>
-              v.map((m) => (m.key === JSON.stringify(array) ? newBotEntry : m))
+              v.map((m) => (m.key === JSON.stringify(array) ? newBotEntry : m)),
             );
           } catch (e) {
             console.log("Failed to parse JSON:", e);
@@ -322,7 +327,7 @@ export async function handleSubmit({
       };
       setBotMessages((v) => {
         const updatedBotMessages = v.map((m) =>
-          m.key === JSON.stringify(array) ? newBotEntry : m
+          m.key === JSON.stringify(array) ? newBotEntry : m,
         );
         rest.setBotMessageFinished(true);
         return updatedBotMessages;
@@ -340,7 +345,7 @@ export async function handleSubmit({
       };
       setBotMessages((v) => {
         const updatedBotMessages = v.map((m) =>
-          m.key === JSON.stringify(array) ? newBotEntry : m
+          m.key === JSON.stringify(array) ? newBotEntry : m,
         );
         rest.setBotMessageFinished(true);
         return updatedBotMessages;
@@ -365,7 +370,7 @@ export async function handleSubmit({
     setUserMessages((v) => {
       const userMessagesCopy = [...v];
       const messageToUpdate = userMessagesCopy.find(
-        (msg) => msg.key === JSON.stringify(array)
+        (msg) => msg.key === JSON.stringify(array),
       );
       messageToUpdate.content = multimediaMessage;
       return userMessagesCopy;
@@ -436,7 +441,7 @@ export async function handleSubmit({
       };
       setBotMessages((v) => {
         return v.map((m) =>
-          m.key === JSON.stringify(array) ? newBotEntry : m
+          m.key === JSON.stringify(array) ? newBotEntry : m,
         );
       });
       while (true) {
@@ -520,7 +525,7 @@ export async function handleSubmit({
             };
             setBotMessages((v) => {
               return v.map((m) =>
-                m.key === JSON.stringify(array) ? newBotEntry : m
+                m.key === JSON.stringify(array) ? newBotEntry : m,
               );
             });
           } catch (e) {
@@ -566,7 +571,7 @@ export async function handleSubmit({
       };
       setBotMessages((v) => {
         const updatedBotMessages = v.map((m) =>
-          m.key === JSON.stringify(array) ? newBotEntry : m
+          m.key === JSON.stringify(array) ? newBotEntry : m,
         );
         rest.setBotMessageFinished(true);
         return updatedBotMessages;
@@ -584,7 +589,7 @@ export async function handleSubmit({
       };
       setBotMessages((v) => {
         const updatedBotMessages = v.map((m) =>
-          m.key === JSON.stringify(array) ? newBotEntry : m
+          m.key === JSON.stringify(array) ? newBotEntry : m,
         );
         rest.setBotMessageFinished(true);
         return updatedBotMessages;
