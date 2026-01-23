@@ -54,7 +54,7 @@ import { headers } from "next/headers";
 
 // // Allow streaming responses up to 30 seconds
 // export const maxDuration = 30
-export const runtime = "edge";
+// export const runtime = "edge";
 
 export async function POST(req) {
   const data = await req.json();
