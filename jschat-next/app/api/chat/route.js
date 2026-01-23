@@ -1207,6 +1207,14 @@ async function getOpenAIResponse({
     ...extraConfigs,
   });
 
+  controller.enqueue(
+    encoder.encode(
+      JSON.stringify({
+        signal: true,
+      }) + "\n",
+    ),
+  );
+
   for await (const chunk of streamResponse) {
     // console.log("chunk", chunk);
     if (chunk.type === "response.created") {
