@@ -355,6 +355,7 @@ export async function POST(req) {
           const isDeepResearchModel = data?.model.hasDeepResearch;
 
           let reasoning = {};
+          let extraConfigs = { tools: [], max_output_tokens: 16384 };
           // console.log("key", process.env["OPENAI_KEY"]);
           const { convertedMessages, hasImage } =
             convertToOpenAIResponsesFormat({
@@ -363,7 +364,9 @@ export async function POST(req) {
             });
           // const legacyMessages = convertToOpenAIFormat(data.messages);
           // console.log("data.model", data.model);
-
+          if (data.model.name.includes("5.2")) {
+            extraConfigs.max_output_tokens = 127000;
+          }
           // return;
           if (data.modelConfig.reasoning && data.model.hasReasoning) {
             if (data.model.name.includes("5.2")) {
@@ -382,7 +385,6 @@ export async function POST(req) {
           // console.log("reasoning", reasoning);
           // return;
 
-          let extraConfigs = { tools: [] };
           if (search) {
             extraConfigs["tools"].push({
               type: "web_search",
@@ -403,7 +405,14 @@ export async function POST(req) {
           controller.enqueue(
             encoder.encode(
               JSON.stringify({
-                signal: reasoning,
+                signal: JSON.stringify(reasoning),
+              }) + "\n",
+            ),
+          );
+          controller.enqueue(
+            encoder.encode(
+              JSON.stringify({
+                signal: JSON.stringify(extraConfigs),
               }) + "\n",
             ),
           );
@@ -413,6 +422,12 @@ export async function POST(req) {
           // console.log("extraConfigs", extraConfigs);
           // controller.close();
           // return;
+          // const response = await openai.responses.inputTokens.count({
+          //   model: data.model.model,
+          //   input: convertedMessages,
+          // });
+          // console.log("response.input_tokens", response.input_tokens);
+
           await getOpenAIResponse({
             controller,
             encoder,
@@ -432,7 +447,7 @@ export async function POST(req) {
           } else if (err.code === "ERR_INVALID_STATE") {
             console.log("⚠️ Tried writing to closed stream, ignoring");
           } else {
-            console.error("❌ Unexpected streaming error:", err);
+            console.log("❌ Unexpected streaming error:", err);
           }
           try {
             controller.close();
@@ -1217,7 +1232,7 @@ async function getOpenAIResponse({
     model: model,
     stream: true,
     // stream_options: { include_usage: true },
-    max_output_tokens: isDeepResearchModel ? 100000 : 16384,
+    // max_output_tokens: isDeepResearchModel ? 100000 : 16384,
     ...reasoning,
     ...extraConfigs,
   });
@@ -1315,6 +1330,16 @@ async function getOpenAIResponse({
     } else if (chunk.type === "response.completed") {
       // console.log("final chunk", chunk);
       mutables.total_tokens += chunk?.response?.usage?.total_tokens;
+    } else if (chunk.type === "response.incomplete") {
+      controller.enqueue(
+        encoder.encode(
+          JSON.stringify({
+            signal: JSON.stringify(chunk),
+          }) + "\n",
+        ),
+      );
+      console.log("INCOMPLETE");
+      console.log(chunk);
     } else {
       controller.enqueue(
         encoder.encode(
