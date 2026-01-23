@@ -65,9 +65,9 @@ export async function POST(req) {
 
   const baseUrl = protocol + host;
   // console.log("baseUrl", baseUrl);
-  if (baseUrl.includes("spreed")) {
-    console.log("EdgeRuntime", EdgeRuntime);
-  }
+  // if (baseUrl.includes("spreed")) {
+  //   console.log("EdgeRuntime", EdgeRuntime);
+  // }
 
   // console.log(data.model)
   // console.log("route runtime", process.env.NEXT_RUNTIME);
