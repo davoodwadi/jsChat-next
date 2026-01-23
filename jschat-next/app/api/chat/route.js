@@ -1236,8 +1236,7 @@ async function getOpenAIResponse({
           }) + "\n",
         ),
       );
-    }
-    if (chunk.type === "response.output_item.done") {
+    } else if (chunk.type === "response.output_item.done") {
       // console.log("chunk", chunk);
       // add item to message history
       convertedMessages.push(chunk?.item);
@@ -1289,8 +1288,7 @@ async function getOpenAIResponse({
           );
         }
       }
-    }
-    if (chunk.type == "response.output_text.annotation.added") {
+    } else if (chunk.type == "response.output_text.annotation.added") {
       // console.log("annotation chunk:", chunk);
       controller.enqueue(
         encoder.encode(
@@ -1299,10 +1297,17 @@ async function getOpenAIResponse({
           }) + "\n",
         ),
       );
-    }
-    if (chunk.type === "response.completed") {
+    } else if (chunk.type === "response.completed") {
       // console.log("final chunk", chunk);
       mutables.total_tokens += chunk?.response?.usage?.total_tokens;
+    } else {
+      controller.enqueue(
+        encoder.encode(
+          JSON.stringify({
+            signal: true,
+          }) + "\n",
+        ),
+      );
     }
   }
   // if tool called -> call the tools
