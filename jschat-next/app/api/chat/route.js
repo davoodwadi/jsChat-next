@@ -1213,7 +1213,7 @@ async function getOpenAIResponse({
       controller.enqueue(
         encoder.encode(
           JSON.stringify({
-            signal: "",
+            signal: true,
           }) + "\n",
         ),
       );

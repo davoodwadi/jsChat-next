@@ -457,6 +457,9 @@ export async function handleSubmit({
           try {
             const parsedData = JSON.parse(jsonStr);
             // console.log("parsedData", parsedData);
+            if (parsedData?.signal) {
+              console.log("signal received");
+            }
             if (parsedData?.text) {
               tempChunks += parsedData?.text;
             }
