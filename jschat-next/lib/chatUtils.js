@@ -209,7 +209,9 @@ export async function handleSubmit({
             const parsedData = JSON.parse(jsonStr);
             // console.log("parsedData", parsedData);
             if (parsedData?.signal) {
-              console.log("signal received");
+              console.log(
+                `[${new Date().toLocaleTimeString()}] signal received`,
+              );
             }
             if (parsedData?.text) {
               tempChunks += parsedData?.text;
@@ -458,7 +460,9 @@ export async function handleSubmit({
             const parsedData = JSON.parse(jsonStr);
             // console.log("parsedData", parsedData);
             if (parsedData?.signal) {
-              console.log("signal received");
+              console.log(
+                `[${new Date().toLocaleTimeString()}] signal received`,
+              );
             }
             if (parsedData?.text) {
               tempChunks += parsedData?.text;
