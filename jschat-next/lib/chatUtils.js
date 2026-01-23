@@ -210,7 +210,7 @@ export async function handleSubmit({
             // console.log("parsedData", parsedData);
             if (parsedData?.signal) {
               console.log(
-                `[${new Date().toLocaleTimeString()}] signal received`,
+                `[${new Date().toLocaleTimeString()}] ${parsedData.signal}`,
               );
             }
             if (parsedData?.text) {
@@ -461,7 +461,7 @@ export async function handleSubmit({
             // console.log("parsedData", parsedData);
             if (parsedData?.signal) {
               console.log(
-                `[${new Date().toLocaleTimeString()}] signal received`,
+                `[${new Date().toLocaleTimeString()}] ${parsedData.signal}`,
               );
             }
             if (parsedData?.text) {

@@ -367,7 +367,12 @@ export async function POST(req) {
           // return;
           if (data.modelConfig.reasoning && data.model.hasReasoning) {
             if (data.model.name.includes("5.2")) {
-              reasoning = { reasoning: { effort: "xhigh" } };
+              if (baseUrl.includes("spreed")) {
+                // prevent 5 minute timeout on spreed
+                reasoning = { reasoning: { effort: "high" } };
+              } else {
+                reasoning = { reasoning: { effort: "xhigh" } };
+              }
             } else {
               reasoning = { reasoning: { effort: "high" } };
             }
@@ -395,6 +400,13 @@ export async function POST(req) {
             //  'high' is not supported with the 'o4-mini-deep-research' model. Supported values are: 'medium'.
             reasoning = { reasoning: { effort: "medium" } };
           }
+          controller.enqueue(
+            encoder.encode(
+              JSON.stringify({
+                signal: reasoning,
+              }) + "\n",
+            ),
+          );
           if (agentic) {
             extraConfigs["tools"].push(...openAI_tools);
           }
@@ -1307,7 +1319,7 @@ async function getOpenAIResponse({
       controller.enqueue(
         encoder.encode(
           JSON.stringify({
-            signal: true,
+            signal: chunk.type,
           }) + "\n",
         ),
       );
