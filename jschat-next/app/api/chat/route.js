@@ -48,7 +48,6 @@ import {
 
 import { updateGroundingChunksWithActualLinksAndTitles } from "@/components/searchGroundingUtils";
 import { allModelsWithoutIcon } from "@/app/models";
-import { basic_search } from "@/lib/sample";
 import { headers } from "next/headers";
 // import { host } from "@/auth";
 
@@ -57,7 +56,6 @@ import { headers } from "next/headers";
 // export const runtime = "edge";
 
 export async function POST(req) {
-  console.log("EdgeRuntime", globalThis.EdgeRuntime);
   const data = await req.json();
 
   // 1. Get the host from headers
@@ -66,7 +64,11 @@ export async function POST(req) {
   const protocol = host.includes("local") ? "http://" : "https://";
 
   const baseUrl = protocol + host;
-  console.log("baseUrl", baseUrl);
+  // console.log("baseUrl", baseUrl);
+  if (baseUrl.includes("spreed")) {
+    console.log("EdgeRuntime", EdgeRuntime);
+  }
+
   // console.log(data.model)
   // console.log("route runtime", process.env.NEXT_RUNTIME);
   // revalidatePath("/", "layout");
