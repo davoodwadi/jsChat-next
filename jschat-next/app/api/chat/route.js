@@ -57,6 +57,7 @@ import { headers } from "next/headers";
 // export const runtime = "edge";
 
 export async function POST(req) {
+  console.log("EdgeRuntime", globalThis.EdgeRuntime);
   const data = await req.json();
 
   // 1. Get the host from headers
