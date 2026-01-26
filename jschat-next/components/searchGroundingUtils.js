@@ -206,8 +206,9 @@ export const addCitationsToContentInlineSuper = (
         const escapedTitle = escapeHtmlAttr(title);
         const escapedSnippet = escapeHtmlAttr(snippet);
         // Build the final HTML <a> tag string using a template literal for readability
-        const linkHtml = `<a href="${escapedUrl}" target="_blank" rel="noopener noreferrer" title="${escapedTitle}" class="citation-link" data-snippet="${escapedSnippet}">${citationNumber}</a>`;
-        return linkHtml;
+        // const linkHtml = `<a href="${escapedUrl}" target="_blank" rel="noopener noreferrer" title="${escapedTitle}" class="citation-link" data-snippet="${escapedSnippet}">${citationNumber}</a>`;
+        const linkMarkdown = `[${title}](${url})`;
+        return linkMarkdown;
       })
       .join(" ");
 
@@ -215,7 +216,8 @@ export const addCitationsToContentInlineSuper = (
       return;
     }
 
-    const citationHtml = `<sup> ${citationLinks} </sup>`;
+    // const citationHtml = `<sup> ${citationLinks} </sup>`;
+    const citationHtml = ` ${citationLinks} `;
 
     // // Insert citations at the end of the segment
     const { text } = segment;

@@ -12,7 +12,7 @@ import { InlineMath, BlockMath } from "react-katex";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import rehypeKatex from "rehype-katex";
-// import rehypeMathjax from "rehype-mathjax";
+import rehypeMathjax from "rehype-mathjax";
 // import rehypeStringify from "rehype-stringify";
 import remarkMath from "remark-math";
 import rehypeFormat from "rehype-format";
@@ -30,6 +30,8 @@ import {
   a11yDark,
 } from "react-syntax-highlighter/dist/esm/styles/prism";
 import "katex/dist/katex.min.css"; // `rehype-katex` does not import the CSS
+import { visit } from "unist-util-visit";
+
 import CopyText from "@/components/CopyTextComponent";
 import "@/styles/markdown.css";
 import React, {
@@ -67,11 +69,9 @@ import {
 const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
   let finalContent = props.children;
 
-  const isOpenAI = Boolean(
-    openaiModels.includes(props.botMessage.model.model) &&
-      props.botMessage?.openaiResponseOutput,
-  );
+  const isOpenAI = Boolean(openaiModels.includes(props.botMessage.model.model));
   if (isOpenAI) {
+    // console.log("isOpenAI");
     return (
       <div ref={ref}>
         <OpenAIMarkdown props={props}>{finalContent}</OpenAIMarkdown>
@@ -80,6 +80,17 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
   }
   // console.log("NOT OpenAI");
 
+  const isGemini = Boolean(geminiModels.includes(props.botMessage.model.model));
+  if (isGemini) {
+    // console.log("isGemini");
+
+    return (
+      <div ref={ref}>
+        <GeminiMarkdown props={props}>{finalContent}</GeminiMarkdown>
+      </div>
+    );
+  }
+
   // if (props?.annotations?.length > 0) {
   //   const contentWithCitations = addCitationsToContentInlineOpenAI(
   //     finalContent,
@@ -87,18 +98,6 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
   //   );
   //   finalContent = contentWithCitations;
   // }
-  if (
-    props?.groundingChunks?.length > 0 &&
-    props?.groundingSupports?.length > 0
-  ) {
-    // console.log("there is groundingChunks");
-    const contentWithCitations = addCitationsToContentInlineSuper(
-      finalContent,
-      props?.groundingChunks,
-      props?.groundingSupports,
-    );
-    finalContent = contentWithCitations;
-  }
 
   if (props?.search_results?.length > 0) {
     // console.log("getting search results in markdown", props.search_results);
@@ -109,7 +108,7 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
     finalContent = contentWithCitations;
   }
 
-  const processedText = preprocessMarkdown(finalContent);
+  // const processedText = preprocessMarkdown(finalContent);
   // const mathProcessedText = preprocessLatexMath(processedText);
   // console.log("mathProcessedText", mathProcessedText);
   // finalContent = mathProcessedText;
@@ -706,34 +705,514 @@ function CustomMarkdown({ children, mode, props }) {
   );
 }
 
+function replaceLatexDelimsOutsideCode(md) {
+  // const inlineSymbolStart = "```inline-math";
+  // const inlineSymbolEnd = "```";
+  let out = "";
+  let i = 0;
+
+  let inFence = false;
+  let fenceMarker = ""; // ``` or ~~~
+  let fenceSize = 0;
+
+  let inlineTickSize = 0; // 0 means not in inline code
+
+  const isStartOfLine = (pos) => pos === 0 || md[pos - 1] === "\n";
+
+  const countRun = (pos, ch) => {
+    let k = pos;
+    while (k < md.length && md[k] === ch) k++;
+    return k - pos;
+  };
+
+  const isEscapedBackslash = (pos) => {
+    // pos points at a backslash. If it has an odd number of preceding backslashes,
+    // then this one is escaped (e.g. "\\(" should stay literal "\(").
+    let n = 0;
+    for (let j = pos - 1; j >= 0 && md[j] === "\\"; j--) n++;
+    return n % 2 === 1;
+  };
+
+  while (i < md.length) {
+    // Fenced code blocks (``` or ~~~) at start of line
+    if (inlineTickSize === 0 && isStartOfLine(i)) {
+      const tickRun = countRun(i, "`");
+      const tildeRun = countRun(i, "~");
+      const run = Math.max(tickRun, tildeRun);
+      const marker = tickRun >= 3 ? "`" : tildeRun >= 3 ? "~" : "";
+
+      if (marker) {
+        if (!inFence) {
+          inFence = true;
+          fenceMarker = marker;
+          fenceSize = run;
+        } else if (marker === fenceMarker && run >= fenceSize) {
+          inFence = false;
+          fenceMarker = "";
+          fenceSize = 0;
+        }
+
+        out += md.slice(i, i + run);
+        i += run;
+        continue;
+      }
+    }
+
+    // Inside fenced code: copy verbatim
+    if (inFence) {
+      out += md[i++];
+      continue;
+    }
+
+    // Inline code spans using backticks
+    if (md[i] === "`") {
+      const run = countRun(i, "`");
+      if (inlineTickSize === 0) {
+        inlineTickSize = run;
+      } else if (run === inlineTickSize) {
+        inlineTickSize = 0;
+      }
+      out += md.slice(i, i + run);
+      i += run;
+      continue;
+    }
+
+    // Inside inline code: copy verbatim
+    if (inlineTickSize !== 0) {
+      out += md[i++];
+      continue;
+    }
+
+    // Replace \[...\] and \( ... \) outside code (only if the "\" isn't itself escaped)
+    if (md[i] === "\\" && !isEscapedBackslash(i)) {
+      if (md[i + 1] === "[") {
+        const close = md.indexOf("\\]", i + 2);
+        if (close !== -1) {
+          const content = md.slice(i + 2, close);
+          out += `$$${content}$$`;
+          i = close + 2;
+          continue;
+        }
+      }
+
+      if (md[i + 1] === "(") {
+        const close = md.indexOf("\\)", i + 2);
+        if (close !== -1) {
+          const content = md.slice(i + 2, close);
+          // out += `${inlineSymbolStart}${content}${inlineSymbolEnd}`;
+          out += `\`math-inline:${content.trim()}\``;
+          // return `\`math-inline:${content.trim()}\``;
+          i = close + 2;
+          continue;
+        }
+      }
+    }
+
+    out += md[i++];
+  }
+
+  return out;
+}
+function processMarkdownWithMathSingleDollar(markdown) {
+  if (!markdown) return "";
+
+  const codeBlocks = [];
+
+  // 1. MASKING: Find code blocks and replace them with placeholders.
+  // Regex Breakdown:
+  // (`{3,})[\s\S]*?\1  -> Matches fenced code blocks (```...```) handling newlines
+  // |                  -> OR
+  // (`+)(?:(?!\2).)+\2 -> Matches inline code (`...`) ensuring we match same number of backticks
+  const codeRegex = /(`{3,})[\s\S]*?\1|(`+)(?:(?!\2).)+\2/g;
+
+  const maskedMarkdown = markdown.replace(codeRegex, (match) => {
+    const key = `__CODE_BLOCK_${codeBlocks.length}__`;
+    codeBlocks.push(match);
+    return key;
+  });
+
+  // 2. PROCESSING: Apply the Math vs Money logic on the masked text
+  const processedMarkdown = escapeInlineMath(maskedMarkdown);
+
+  // 3. RESTORING: Put the code blocks back
+  return processedMarkdown.replace(/__CODE_BLOCK_(\d+)__/g, (_, index) => {
+    return codeBlocks[index];
+  });
+}
+
+/**
+ * The logic from the previous step (Money vs Math detection)
+ */
+function escapeInlineMath(text) {
+  // Regex looks for $...$ but ensures no illegal whitespace or surrounding escapes
+  const mathRegex = /(?<!\\|\$)(\$)(?!\$)((?:[^$]|\\\$)+?)(?<!\\)(\$)(?!\$)/g;
+
+  return text.replace(mathRegex, (match, open, content, close) => {
+    const trimmed = content.trim();
+
+    // Heuristic A: Content is purely numeric/currency (e.g. "$10.50")
+    if (/^\d+(?:[.,]\d+)*$/.test(trimmed)) {
+      return match;
+    }
+
+    // Heuristic B: "Gap" between two prices (e.g. "$10 and $20")
+    // Logic: If it starts with a number AND ends with a space (captured), it's likely text.
+    if (/^\d/.test(content) && /\s$/.test(content)) {
+      return match;
+    }
+
+    // Heuristic C: Starts with digit but contains no math symbols (e.g. "$500 USD")
+    const hasMathSymbols = /[=+\-*/^_\\]/.test(trimmed);
+    if (/^\d/.test(trimmed) && !hasMathSymbols) {
+      return match;
+    }
+
+    // Replace with the unique syntax for your custom renderer
+    return `\`math-inline:${trimmed}\``;
+  });
+}
+function SimpleMarkdownOpenAI({ children }) {
+  const style = a11yDark;
+
+  return (
+    <Markdown
+      remarkPlugins={[remarkMath, remarkGfm]}
+      rehypePlugins={[rehypeKatex, rehypeRaw]}
+      // prose prose-zinc dark:prose-invert !max-w-none
+      className={` pb-4 break-words prose prose-zinc dark:prose-invert !max-w-none`}
+      components={{
+        sup(props) {
+          const { children } = props;
+          // const fullText = getTextContent(children);
+          // console.log("fullText", fullText);
+          return (
+            <sup className="" style={{ marginLeft: "0.3em" }}>
+              {children}
+            </sup>
+          );
+        },
+        a(props) {
+          const { children, className, node, ...rest } = props;
+          if (!rest.href.includes("http")) {
+            return <a href={rest.href}>{children}</a>;
+          } else {
+            return <LinkTooltip rest={rest}>{children}</LinkTooltip>;
+          }
+        },
+        table: TableWrapper,
+        pre({ node, children, ...props }) {
+          // Default: keep pre
+          return <pre {...props}>{children}</pre>;
+        },
+        code(props) {
+          const { children, className, node, ...rest } = props;
+          const text = children;
+          // console.log("node", node);
+          // console.log("className", className);
+          // console.log("rest", rest);
+          // console.log("children", children);
+          if (text && text.startsWith("math-inline:")) {
+            const math = text.slice("math-inline:".length);
+            // console.log("math", math);
+            return <InlineMath>{math}</InlineMath>;
+          }
+          const match = /language-(\w+)/.exec(className || "");
+          if (match) {
+            // set language
+            const language = match[1];
+            // known code block
+            function CustomPreTag({ children, ...rest }) {
+              // console.log("children", children)
+              // console.log("rest", rest);
+              // console.log(cn(className, "overflow-x-auto w-full  min-w-0"));
+              return (
+                <div
+                  {...rest}
+                  className="flex flex-col overflow-x-auto w-full  min-w-0"
+                >
+                  <div className="flex flex-row justify-between text-xs mb-4">
+                    <div>{language}</div>
+                    <CopyText text={text} />
+                  </div>
+                  {children}
+                </div>
+              );
+            }
+            // console.log("children", typeof children);
+            // console.log("language", language);
+
+            return (
+              <>
+                <SyntaxHighlighter
+                  {...rest}
+                  PreTag={CustomPreTag} //"div"
+                  children={String(children).replace(/\n$/, "")}
+                  language={match[1]}
+                  style={style}
+                  // showLineNumbers
+                />
+              </>
+            );
+          } else {
+            return (
+              <code
+                {...rest}
+                className={cn(className, "overflow-x-auto w-full  min-w-0")}
+              >
+                {children}
+              </code>
+            );
+          }
+        },
+        p({ node, children, ...props }) {
+          // const hasBlockChild = React.Children.toArray(children).some(
+          //   (child) => {
+          //     if (!child || !child.type) return false;
+          //     return problematicTags.includes(
+          //       child.type.displayName || child.type.name || child.type,
+          //     );
+          //   },
+          // );
+
+          const paragraphClasses = "mb-4 leading-relaxed ";
+
+          // if (hasBlockChild) {
+          //   return (
+          //     <div {...props} className={paragraphClasses}>
+          //       {children}
+          //     </div>
+          //   );
+          // }
+
+          return (
+            <p {...props} className={paragraphClasses}>
+              {children}
+            </p>
+          );
+        },
+      }}
+    >
+      {children}
+    </Markdown>
+  );
+}
+function SimpleMarkdownGemini({ children }) {
+  const style = a11yDark;
+
+  return (
+    <Markdown
+      remarkPlugins={[[remarkMath, { singleDollarTextMath: false }], remarkGfm]}
+      rehypePlugins={[rehypeKatex, rehypeRaw]}
+      // prose prose-zinc dark:prose-invert !max-w-none
+      className={` pb-4 break-words prose prose-zinc dark:prose-invert !max-w-none`}
+      components={{
+        sup(props) {
+          const { children } = props;
+          // const fullText = getTextContent(children);
+          // console.log("fullText", fullText);
+          return (
+            <sup className="" style={{ marginLeft: "0.3em" }}>
+              {children}
+            </sup>
+          );
+        },
+        a(props) {
+          const { children, className, node, ...rest } = props;
+          if (!rest.href.includes("http")) {
+            return <a href={rest.href}>{children}</a>;
+          } else {
+            return <LinkTooltip rest={rest}>{children}</LinkTooltip>;
+          }
+        },
+        table: TableWrapper,
+        pre({ node, children, ...props }) {
+          // Default: keep pre
+          return <pre {...props}>{children}</pre>;
+        },
+        code(props) {
+          const { children, className, node, ...rest } = props;
+          const text = children;
+          // console.log("node", node);
+          // console.log("className", className);
+          // console.log("rest", rest);
+          // console.log("children", children);
+          if (text && text.startsWith("math-inline:")) {
+            const math = text.slice("math-inline:".length);
+            // console.log("math", math);
+            return <InlineMath>{math}</InlineMath>;
+          }
+          const match = /language-(\w+)/.exec(className || "");
+          if (match) {
+            // set language
+            const language = match[1];
+            // known code block
+            function CustomPreTag({ children, ...rest }) {
+              // console.log("children", children)
+              // console.log("rest", rest);
+              // console.log(cn(className, "overflow-x-auto w-full  min-w-0"));
+              return (
+                <div
+                  {...rest}
+                  className="flex flex-col overflow-x-auto w-full  min-w-0"
+                >
+                  <div className="flex flex-row justify-between text-xs mb-4">
+                    <div>{language}</div>
+                    <CopyText text={text} />
+                  </div>
+                  {children}
+                </div>
+              );
+            }
+            // console.log("children", typeof children);
+            // console.log("language", language);
+
+            return (
+              <>
+                <SyntaxHighlighter
+                  {...rest}
+                  PreTag={CustomPreTag} //"div"
+                  children={String(children).replace(/\n$/, "")}
+                  language={match[1]}
+                  style={style}
+                  // showLineNumbers
+                />
+              </>
+            );
+          } else {
+            return (
+              <code
+                {...rest}
+                className={cn(className, "overflow-x-auto w-full  min-w-0")}
+              >
+                {children}
+              </code>
+            );
+          }
+        },
+        p({ node, children, ...props }) {
+          // const hasBlockChild = React.Children.toArray(children).some(
+          //   (child) => {
+          //     if (!child || !child.type) return false;
+          //     return problematicTags.includes(
+          //       child.type.displayName || child.type.name || child.type,
+          //     );
+          //   },
+          // );
+
+          const paragraphClasses = "mb-4 leading-relaxed ";
+
+          // if (hasBlockChild) {
+          //   return (
+          //     <div {...props} className={paragraphClasses}>
+          //       {children}
+          //     </div>
+          //   );
+          // }
+
+          return (
+            <p {...props} className={paragraphClasses}>
+              {children}
+            </p>
+          );
+        },
+      }}
+    >
+      {children}
+    </Markdown>
+  );
+}
+// const someMD = `I can.
+
+// \`\`\`python
+// import \\(
+// \`\`\`
+
+// 1) **Differentiate** it (find \\( \\frac{dy}{dx} \\) or derivative w.r.t. some variable), or
+// `;
 function OpenAIMarkdown({ children, mode, props }) {
-  const responseOutput = JSON.parse(props.botMessage.openaiResponseOutput);
-  // console.log("OpenAIMarkdown", responseOutput);
   const elementsToShow = [];
   const sources = [];
-  responseOutput.forEach((chunk, index) => {
-    if (chunk.type === "message") {
-      // console.log("message", chunk.content[0].text);
-      const mathProcessedText = preprocessLatexMath(chunk.content[0].text);
-
+  // console.log(props);
+  if (props.botMessage.openaiResponseOutput) {
+    const responseOutput = JSON.parse(props.botMessage.openaiResponseOutput);
+    // console.log("OpenAIMarkdown", responseOutput);
+    responseOutput.forEach((chunk, index) => {
+      if (chunk.type === "message") {
+        // console.log("message", chunk.content[0].text);
+        const text = chunk.content[0].text;
+        // const mathProcessedText = preprocessLatexMath(text);
+        // console.log("BEFORE", text);
+        const after = replaceLatexDelimsOutsideCode(text);
+        // const after = text;
+        console.log("AFTER", after);
+        elementsToShow.push(
+          <SimpleMarkdownOpenAI key={index}>{after}</SimpleMarkdownOpenAI>,
+        );
+      } else if (chunk.type === "web_search_call") {
+        // console.log("web_search_call", chunk.action);
+        elementsToShow.push(
+          <QueryBlock key={index}>{chunk.action.queries}</QueryBlock>,
+        );
+        sources.push(...chunk.action.sources);
+      }
+    });
+    if (sources.length > 0) {
+      // console.log("sources", sources);
       elementsToShow.push(
-        <CustomMarkdown key={index}>{mathProcessedText}</CustomMarkdown>,
+        <OpenAISourcesComponent>{sources}</OpenAISourcesComponent>,
       );
-    } else if (chunk.type === "web_search_call") {
-      // console.log("web_search_call", chunk.action);
-      elementsToShow.push(
-        <QueryBlock key={index}>{chunk.action.queries}</QueryBlock>,
-      );
-      sources.push(...chunk.action.sources);
     }
-  });
-  if (sources.length > 0) {
-    // console.log("sources", sources);
+    // console.log("elementsToShow", elementsToShow);
+  } else {
+    const text = props.botMessage.content;
+    const after = replaceLatexDelimsOutsideCode(text);
     elementsToShow.push(
-      <OpenAISourcesComponent>{sources}</OpenAISourcesComponent>,
+      <SimpleMarkdownOpenAI key={0}>{after}</SimpleMarkdownOpenAI>,
     );
   }
-  // console.log("elementsToShow", elementsToShow);
+  return elementsToShow;
+}
+
+function GeminiMarkdown({ children, mode, props }) {
+  // console.log("GeminiMarkdown", props);
+  const elementsToShow = [];
+  if (props?.think) {
+    elementsToShow.push(
+      <ThinkingBlock props={props} key={"think"}>
+        {props.think}
+      </ThinkingBlock>,
+    );
+  }
+  let finalText = props.botMessage.content;
+
+  if (
+    props?.groundingChunks?.length > 0 &&
+    props?.groundingSupports?.length > 0
+  ) {
+    // console.log("there is groundingChunks");
+    const contentWithCitations = addCitationsToContentInlineSuper(
+      finalText,
+      props?.groundingChunks,
+      props?.groundingSupports,
+    );
+    finalText = contentWithCitations;
+  }
+  // console.log("GeminiMarkdown", finalText);
+  // replace $ math with inline
+  finalText = processMarkdownWithMathSingleDollar(finalText);
+  console.log("finalText", finalText);
+  elementsToShow.push(
+    <SimpleMarkdownGemini key={0}>{finalText}</SimpleMarkdownGemini>,
+  );
+  if (props?.groundingChunks?.length > 0) {
+    elementsToShow.push(
+      <GeminiSourcesComponent props={props} key={"sources"}>
+        {props?.groundingChunks}
+      </GeminiSourcesComponent>,
+    );
+  }
+
+  // // console.log("elementsToShow", elementsToShow);
   return elementsToShow;
 }
 
