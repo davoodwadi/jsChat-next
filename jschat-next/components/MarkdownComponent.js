@@ -1144,7 +1144,7 @@ function OpenAIMarkdown({ children, mode, props }) {
         // console.log("BEFORE", text);
         const after = replaceLatexDelimsOutsideCode(text);
         // const after = text;
-        console.log("AFTER", after);
+        // console.log("AFTER", after);
         elementsToShow.push(
           <SimpleMarkdownOpenAI key={index}>{after}</SimpleMarkdownOpenAI>,
         );
@@ -1200,7 +1200,7 @@ function GeminiMarkdown({ children, mode, props }) {
   // console.log("GeminiMarkdown", finalText);
   // replace $ math with inline
   finalText = processMarkdownWithMathSingleDollar(finalText);
-  console.log("finalText", finalText);
+  // console.log("finalText", finalText);
   elementsToShow.push(
     <SimpleMarkdownGemini key={0}>{finalText}</SimpleMarkdownGemini>,
   );
