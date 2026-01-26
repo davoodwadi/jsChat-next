@@ -223,6 +223,13 @@ export async function handleSubmit({
                   ? parsedData.think
                   : extraContent.think + parsedData.think;
             }
+            if (parsedData?.thoughtSignature) {
+              extraContent.thoughtSignature = parsedData.thoughtSignature;
+            }
+            if (parsedData?.openaiResponseOutput) {
+              extraContent.openaiResponseOutput =
+                parsedData.openaiResponseOutput;
+            }
             if (parsedData?.groundingChunks) {
               extraContent.groundingChunks = [
                 ...extraContent.groundingChunks,
@@ -474,6 +481,13 @@ export async function handleSubmit({
                   ? parsedData.think
                   : extraContent.think + parsedData.think;
             }
+            if (parsedData?.thoughtSignature) {
+              extraContent.thoughtSignature = parsedData.thoughtSignature;
+            }
+            if (parsedData?.openaiResponseOutput) {
+              extraContent.openaiResponseOutput =
+                parsedData.openaiResponseOutput;
+            }
             if (parsedData?.groundingChunks) {
               extraContent.groundingChunks = [
                 ...extraContent.groundingChunks,
@@ -640,10 +654,17 @@ function getChain({
     const parentUser = userMessages.filter((m) => m.key === parentKey)[0];
     const parentBot = botMessages.filter((m) => m.key === parentKey)[0];
     chain.push({ content: parentUser.content, role: "user" }); // key: parentKey,
-    chain.push({
+    const assistant = {
       content: parentBot.content,
       role: "assistant",
-    }); // key: parentKey,
+    };
+    if (parentBot?.thoughtSignature) {
+      assistant.thoughtSignature = parentBot?.thoughtSignature;
+    }
+    if (parentBot?.openaiResponseOutput) {
+      assistant.openaiResponseOutput = parentBot?.openaiResponseOutput;
+    }
+    chain.push(assistant); // key: parentKey,
   }
   // console.log("chain messages", chain);
 

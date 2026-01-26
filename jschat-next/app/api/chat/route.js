@@ -355,13 +355,19 @@ export async function POST(req) {
           const isDeepResearchModel = data?.model.hasDeepResearch;
 
           let reasoning = {};
-          let extraConfigs = { tools: [], max_output_tokens: 16384 };
+          let extraConfigs = {
+            tools: [],
+            max_output_tokens: 16384,
+            include: [],
+          };
           // console.log("key", process.env["OPENAI_KEY"]);
           const { convertedMessages, hasImage } =
             convertToOpenAIResponsesFormat({
               messages: data.messages,
               agentic,
             });
+          // console.dir(convertedMessages, { depth: null });
+          // return;
           // const legacyMessages = convertToOpenAIFormat(data.messages);
           // console.log("data.model", data.model);
           if (data.model.name.includes("5.2")) {
@@ -379,6 +385,7 @@ export async function POST(req) {
             } else {
               reasoning = { reasoning: { effort: "high" } };
             }
+            extraConfigs.include.push("reasoning.encrypted_content");
           }
 
           // console.log("data.model", data.model);
@@ -390,7 +397,7 @@ export async function POST(req) {
               type: "web_search",
               search_context_size: "high",
             });
-            extraConfigs["include"] = ["web_search_call.action.sources"];
+            extraConfigs["include"].push("web_search_call.action.sources");
           } else if (isDeepResearchModel) {
             // Deep research models require at least one of 'web_search_preview', 'mcp', or 'file_search' tools.
             // Deep research models only support search_context_size \'medium\'.
@@ -398,7 +405,7 @@ export async function POST(req) {
               type: "web_search",
               search_context_size: "medium",
             });
-            extraConfigs["include"] = ["web_search_call.action.sources"];
+            extraConfigs["include"].push("web_search_call.action.sources");
             //  'high' is not supported with the 'o4-mini-deep-research' model. Supported values are: 'medium'.
             reasoning = { reasoning: { effort: "medium" } };
           }
@@ -585,8 +592,6 @@ export async function POST(req) {
     const { history, newUserMessage, system } = convertToGoogleFormat(
       data.messages,
     );
-    // console.log("newUserMessage", newUserMessage);
-    // return;
     let streamConfig = {
       config: {
         systemInstruction: system?.content ? system.content : null,
@@ -599,7 +604,7 @@ export async function POST(req) {
         streamConfig.config["thinkingConfig"] = {
           thinkingLevel: "high",
           includeThoughts: true,
-          thinkingBudget: -1,
+          // thinkingBudget: -1,
         };
       } else if (!data.modelConfig.reasoning) {
         // console.log("no reasoning");
@@ -607,7 +612,7 @@ export async function POST(req) {
           streamConfig.config["thinkingConfig"] = {
             thinkingLevel: "minimal",
             includeThoughts: true,
-            thinkingBudget: 0,
+            // thinkingBudget: 0,
           };
         } else {
           streamConfig.config["thinkingConfig"] = {
@@ -653,12 +658,18 @@ export async function POST(req) {
             history: history,
             ...streamConfig,
           });
+          // console.dir(history, { depth: null, colors: true });
 
           const stream = await chat.sendMessageStream({
             message: newUserMessage,
           });
           for await (const chunk of stream) {
-            // console.log(chunk);
+            // console.log(
+            //   "chunk.candidates[0]?.content",
+            //   chunk.candidates[0]?.content,
+            // );
+            // console.dir(chunk, { depth: null, colors: true });
+
             if (chunk?.candidates[0]?.finishReason === "STOP") {
               const usageMetadata = chunk?.usageMetadata;
               mutables.total_tokens += usageMetadata?.totalTokenCount;
@@ -686,6 +697,18 @@ export async function POST(req) {
                   );
                 }
               }
+              // send thoughtSignature
+              if (chunk?.candidates[0]?.content?.parts[0]?.thoughtSignature) {
+                controller.enqueue(
+                  encoder.encode(
+                    JSON.stringify({
+                      thoughtSignature:
+                        chunk?.candidates[0]?.content?.parts[0]
+                          ?.thoughtSignature,
+                    }) + "\n",
+                  ),
+                );
+              }
 
               const groundingMetadata = chunk?.candidates[0]?.groundingMetadata;
 
@@ -701,10 +724,10 @@ export async function POST(req) {
                 }
               }
               if (groundingMetadata?.groundingChunks) {
-                console.log(
-                  "groundingMetadata?.groundingChunks",
-                  groundingMetadata?.groundingChunks,
-                );
+                // console.log(
+                //   "groundingMetadata?.groundingChunks",
+                //   groundingMetadata?.groundingChunks,
+                // );
                 const groundingChunksRedirect =
                   await updateGroundingChunksWithActualLinksAndTitles(
                     groundingMetadata?.groundingChunks,
@@ -732,6 +755,9 @@ export async function POST(req) {
               console.log(e);
             }
           }
+
+          // console.dir(chat.getHistory(), { depth: null, colors: true });
+
           controller.close(); // Close the stream
         } catch (err) {
           if (err.code === "ECONNRESET" || err.name === "AbortError") {
@@ -1227,6 +1253,8 @@ async function getOpenAIResponse({
   // if (isDeepResearchModel) {
   //   mutables.total_tokens += searchCost * 2;
   // }
+  // console.log(extraConfigs);
+  // return;
   const streamResponse = await openai.responses.create({
     input: convertedMessages,
     model: model,
@@ -1246,7 +1274,7 @@ async function getOpenAIResponse({
   );
 
   for await (const chunk of streamResponse) {
-    // console.log("chunk", chunk);
+    // console.dir(chunk, { depth: null });
     if (chunk.type === "response.created") {
       controller.enqueue(
         encoder.encode(
@@ -1328,8 +1356,15 @@ async function getOpenAIResponse({
         ),
       );
     } else if (chunk.type === "response.completed") {
-      // console.log("final chunk", chunk);
       mutables.total_tokens += chunk?.response?.usage?.total_tokens;
+
+      controller.enqueue(
+        encoder.encode(
+          JSON.stringify({
+            openaiResponseOutput: JSON.stringify(chunk.response.output),
+          }) + "\n",
+        ),
+      );
     } else if (chunk.type === "response.incomplete") {
       controller.enqueue(
         encoder.encode(
@@ -1462,7 +1497,9 @@ async function callTool({ toolCall, controller, encoder }) {
 function convertToOpenAIResponsesFormat({ agentic, messages }) {
   let hasImage = false;
   let hasDeveloper = false;
-  const converted = messages.map((m) => {
+  // console.log("messages", messages);
+  const converted = [];
+  for (const m of messages) {
     if (m.role === "user") {
       const userM = {
         role: "user",
@@ -1477,22 +1514,24 @@ function convertToOpenAIResponsesFormat({ agentic, messages }) {
         });
         hasImage = true;
       }
-      return userM;
-    } else if (agentic) {
+      converted.push(userM);
+    } else if (agentic && m.role === "developer") {
       const currentDate = new Date().toISOString();
-      if (m.role === "developer") {
-        const devM = {
-          content: "Current date: " + currentDate + "\n" + m.content,
-          role: "developer",
-        };
-        hasDeveloper = true;
-        return devM;
-      }
+      const devM = {
+        content: "Current date: " + currentDate + "\n" + m.content,
+        role: "developer",
+      };
+      hasDeveloper = true;
+      converted.push(devM);
+    } else if (m.role === "assistant" && m?.openaiResponseOutput) {
+      const openaiResponseOutput = JSON.parse(m.openaiResponseOutput);
+      // console.log("openaiResponseOutput", openaiResponseOutput);
+      converted.push(...openaiResponseOutput);
+    } else {
+      converted.push(m);
     }
-    {
-      return m;
-    }
-  });
+  }
+
   if (agentic && !hasDeveloper) {
     const currentDate = new Date().toISOString();
     return {
@@ -1607,30 +1646,39 @@ function convertToDeepInfraFormat(messages) {
 }
 
 function convertToGoogleFormat(messages) {
-  const convertedMessages = messages
-    .filter((m) => m.role !== "system")
-    .map((m) => {
-      if (m.role === "user") {
-        const userM = {
-          role: "user",
-          parts: [],
-        };
-        if (m.content.image) {
-          userM.parts.push(formatBase64ImageGoogle(m.content.image));
-        }
-        userM.parts.push({ text: m.content.text ? m.content.text : "" });
-        // const userM = {
-        //   role: "user",
-        //   parts: [{ text: m.content.text ? m.content.text : "" }],
-        // };
-        return userM;
-      } else if (m.role === "assistant") {
-        return {
-          role: "model",
-          parts: [{ text: m.content ? m.content : "" }],
-        };
+  // console.log("messages", messages);
+  const convertedMessages = [];
+  // const convertedMessages = messages
+  // .filter((m) => m.role !== "system")
+  for (const msg of messages) {
+    // console.log(msg);
+    if (msg.role === "user") {
+      const userM = {
+        role: "user",
+        parts: [],
+      };
+      if (msg.content.image) {
+        userM.parts.push(formatBase64ImageGoogle(msg.content.image));
       }
-    });
+      userM.parts.push({ text: msg.content.text ? msg.content.text : "" });
+      convertedMessages.push(userM);
+    } else if (msg.role === "assistant") {
+      const modelM = {
+        role: "model",
+        parts: [{ text: msg.content ? msg.content : "" }],
+      };
+      convertedMessages.push(modelM);
+
+      if (msg?.thoughtSignature) {
+        const thoughtSignaturePart = {
+          role: "model",
+          parts: [{ text: "", thoughtSignature: msg.thoughtSignature }],
+        };
+        convertedMessages.push(thoughtSignaturePart);
+      }
+    }
+  }
+
   const history = convertedMessages.slice(0, -1); // all elements except the last
   const newUserMessage = convertedMessages[convertedMessages.length - 1]; // the last element
 

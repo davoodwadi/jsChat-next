@@ -52,19 +52,41 @@ import {
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import {
+  openaiModels,
+  geminiModels,
+  alibabaModels,
+  anthropicModels,
+  xAIModels,
+  groqModels,
+  deepinfraModels,
+  perplexityModels,
+  testModels,
+} from "@/app/models";
 
 const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
   let finalContent = props.children;
 
-  // console.log(props);
-
-  if (props?.annotations?.length > 0) {
-    const contentWithCitations = addCitationsToContentInlineOpenAI(
-      finalContent,
-      props.annotations,
+  const isOpenAI = Boolean(
+    openaiModels.includes(props.botMessage.model.model) &&
+      props.botMessage?.openaiResponseOutput,
+  );
+  if (isOpenAI) {
+    return (
+      <div ref={ref}>
+        <OpenAIMarkdown props={props}>{finalContent}</OpenAIMarkdown>
+      </div>
     );
-    finalContent = contentWithCitations;
   }
+  // console.log("NOT OpenAI");
+
+  // if (props?.annotations?.length > 0) {
+  //   const contentWithCitations = addCitationsToContentInlineOpenAI(
+  //     finalContent,
+  //     props.annotations,
+  //   );
+  //   finalContent = contentWithCitations;
+  // }
   if (
     props?.groundingChunks?.length > 0 &&
     props?.groundingSupports?.length > 0
@@ -88,13 +110,14 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
   }
 
   const processedText = preprocessMarkdown(finalContent);
-  const mathProcessedText = preprocessLatexMath(processedText);
+  // const mathProcessedText = preprocessLatexMath(processedText);
   // console.log("mathProcessedText", mathProcessedText);
-  finalContent = mathProcessedText;
+  // finalContent = mathProcessedText;
   // finalContent = processedText;
   // console.log("finalContent", finalContent);
   // console.log("openai_search_results", props.openai_search_results);
   // console.log("props?.think", props?.think);
+  // console.log(props)
 
   return (
     <div ref={ref}>
@@ -681,6 +704,37 @@ function CustomMarkdown({ children, mode, props }) {
       {markdownChildren}
     </Markdown>
   );
+}
+
+function OpenAIMarkdown({ children, mode, props }) {
+  const responseOutput = JSON.parse(props.botMessage.openaiResponseOutput);
+  // console.log("OpenAIMarkdown", responseOutput);
+  const elementsToShow = [];
+  const sources = [];
+  responseOutput.forEach((chunk, index) => {
+    if (chunk.type === "message") {
+      // console.log("message", chunk.content[0].text);
+      const mathProcessedText = preprocessLatexMath(chunk.content[0].text);
+
+      elementsToShow.push(
+        <CustomMarkdown key={index}>{mathProcessedText}</CustomMarkdown>,
+      );
+    } else if (chunk.type === "web_search_call") {
+      // console.log("web_search_call", chunk.action);
+      elementsToShow.push(
+        <QueryBlock key={index}>{chunk.action.queries}</QueryBlock>,
+      );
+      sources.push(...chunk.action.sources);
+    }
+  });
+  if (sources.length > 0) {
+    // console.log("sources", sources);
+    elementsToShow.push(
+      <OpenAISourcesComponent>{sources}</OpenAISourcesComponent>,
+    );
+  }
+  // console.log("elementsToShow", elementsToShow);
+  return elementsToShow;
 }
 
 function TableWrapper({ node, ...props }) {

@@ -41,6 +41,7 @@ let baseBotClass = ` p-4 m-1 relative
      dark:focus:ring-blue-500 dark:focus:border-blue-500 `;
 
 export default function BotMessage(props) {
+  // console.log("props?.botMessage", props?.botMessage);
   // console.log("Bot props", props);
   // console.log("props?.botMessage?.status", props?.botMessage?.status);
   const isLatestBot = props.id === props.branchKeyToMaximize;
