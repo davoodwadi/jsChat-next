@@ -52,7 +52,7 @@ import { headers } from "next/headers";
 // import { host } from "@/auth";
 
 // // Allow streaming responses up to 30 seconds
-// export const maxDuration = 30
+export const maxDuration = 300;
 // export const runtime = "edge";
 
 export async function POST(req) {
