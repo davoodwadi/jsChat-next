@@ -622,6 +622,7 @@ export async function POST(req) {
           };
         }
       }
+      streamConfig.config["maxOutputTokens"] = 65536;
     } else {
       if (data.modelConfig.reasoning && data.model.hasReasoning) {
         streamConfig.config["thinkingConfig"] = {
