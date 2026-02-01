@@ -226,6 +226,9 @@ export async function handleSubmit({
             if (parsedData?.thoughtSignature) {
               extraContent.thoughtSignature = parsedData.thoughtSignature;
             }
+            if (parsedData?.modelParts) {
+              extraContent.modelParts = parsedData.modelParts;
+            }
             if (parsedData?.openaiResponseOutput) {
               extraContent.openaiResponseOutput =
                 parsedData.openaiResponseOutput;
@@ -484,6 +487,10 @@ export async function handleSubmit({
             if (parsedData?.thoughtSignature) {
               extraContent.thoughtSignature = parsedData.thoughtSignature;
             }
+            if (parsedData?.modelParts) {
+              extraContent.modelParts = parsedData.modelParts;
+            }
+
             if (parsedData?.openaiResponseOutput) {
               extraContent.openaiResponseOutput =
                 parsedData.openaiResponseOutput;
@@ -660,6 +667,12 @@ function getChain({
     };
     if (parentBot?.thoughtSignature) {
       assistant.thoughtSignature = parentBot?.thoughtSignature;
+    }
+    if (parentBot?.think) {
+      assistant.thought = parentBot.think;
+    }
+    if (parentBot?.modelParts) {
+      assistant.modelParts = parentBot.modelParts;
     }
     if (parentBot?.openaiResponseOutput) {
       assistant.openaiResponseOutput = parentBot?.openaiResponseOutput;

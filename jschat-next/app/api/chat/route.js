@@ -592,6 +592,8 @@ export async function POST(req) {
     const { history, newUserMessage, system } = convertToGoogleFormat(
       data.messages,
     );
+    // console.log("history", history);
+    // return;
     let streamConfig = {
       config: {
         systemInstruction: system?.content ? system.content : null,
@@ -756,8 +758,19 @@ export async function POST(req) {
               console.log(e);
             }
           }
-
-          // console.dir(chat.getHistory(), { depth: null, colors: true });
+          const newHistory = chat.getHistory();
+          const lastUserIndex = newHistory.findLastIndex(
+            (item) => item.role === "user",
+          );
+          const modelParts = newHistory.slice(lastUserIndex + 1);
+          // console.dir(modelParts, { depth: null, colors: true });
+          controller.enqueue(
+            encoder.encode(
+              JSON.stringify({
+                modelParts: JSON.stringify(modelParts),
+              }) + "\n",
+            ),
+          );
 
           controller.close(); // Close the stream
         } catch (err) {
@@ -1529,7 +1542,11 @@ function convertToOpenAIResponsesFormat({ agentic, messages }) {
       // console.log("openaiResponseOutput", openaiResponseOutput);
       converted.push(...openaiResponseOutput);
     } else {
-      converted.push(m);
+      const assistantM = {
+        role: "assistant",
+        content: [{ type: "output_text", text: m.content ? m.content : "" }],
+      };
+      converted.push(assistantM);
     }
   }
 
@@ -1645,7 +1662,41 @@ function convertToDeepInfraFormat(messages) {
   });
   return { convertedMessages: converted, hasImage: hasImage };
 }
+function addRegularAssistant(msg, convertedMessages) {
+  if (msg?.thought) {
+    // console.log(
+    //   "typeof msg?.thoughtSignature",
+    //   typeof msg?.thoughtSignature,
+    // );
+    const thoughtPart = {
+      role: "model",
+      parts: [{ text: msg.thought, thought: true }],
+    };
+    convertedMessages.push(thoughtPart);
+  }
+  const modelM = {
+    role: "model",
+    parts: [{ text: msg.content ? msg.content : "" }],
+  };
+  convertedMessages.push(modelM);
 
+  if (msg?.thoughtSignature) {
+    // console.log(
+    //   "typeof msg?.thoughtSignature",
+    //   typeof msg?.thoughtSignature,
+    // );
+    const thoughtSignaturePart = {
+      role: "model",
+      parts: [
+        {
+          text: "",
+          thoughtSignature: msg.thoughtSignature,
+        },
+      ],
+    };
+    convertedMessages.push(thoughtSignaturePart);
+  }
+}
 function convertToGoogleFormat(messages) {
   // console.log("messages", messages);
   const convertedMessages = [];
@@ -1664,18 +1715,16 @@ function convertToGoogleFormat(messages) {
       userM.parts.push({ text: msg.content.text ? msg.content.text : "" });
       convertedMessages.push(userM);
     } else if (msg.role === "assistant") {
-      const modelM = {
-        role: "model",
-        parts: [{ text: msg.content ? msg.content : "" }],
-      };
-      convertedMessages.push(modelM);
-
-      if (msg?.thoughtSignature) {
-        const thoughtSignaturePart = {
-          role: "model",
-          parts: [{ text: "", thoughtSignature: msg.thoughtSignature }],
-        };
-        convertedMessages.push(thoughtSignaturePart);
+      if (msg?.modelParts) {
+        try {
+          const modelParts = JSON.parse(msg?.modelParts);
+          // console.log("modelParts", modelParts);
+          convertedMessages.push(...modelParts);
+        } catch (error) {
+          addRegularAssistant(msg, convertedMessages);
+        }
+      } else {
+        addRegularAssistant(msg, convertedMessages);
       }
     }
   }

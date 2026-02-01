@@ -91,14 +91,6 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
     );
   }
 
-  // if (props?.annotations?.length > 0) {
-  //   const contentWithCitations = addCitationsToContentInlineOpenAI(
-  //     finalContent,
-  //     props.annotations,
-  //   );
-  //   finalContent = contentWithCitations;
-  // }
-
   if (props?.search_results?.length > 0) {
     // console.log("getting search results in markdown", props.search_results);
     const contentWithCitations = addCitationsToContentInlineSuperPerplexity(
@@ -107,16 +99,6 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
     );
     finalContent = contentWithCitations;
   }
-
-  // const processedText = preprocessMarkdown(finalContent);
-  // const mathProcessedText = preprocessLatexMath(processedText);
-  // console.log("mathProcessedText", mathProcessedText);
-  // finalContent = mathProcessedText;
-  // finalContent = processedText;
-  // console.log("finalContent", finalContent);
-  // console.log("openai_search_results", props.openai_search_results);
-  // console.log("props?.think", props?.think);
-  // console.log(props)
 
   return (
     <div ref={ref}>
@@ -705,172 +687,6 @@ function CustomMarkdown({ children, mode, props }) {
   );
 }
 
-function replaceLatexDelimsOutsideCode(md) {
-  // const inlineSymbolStart = "```inline-math";
-  // const inlineSymbolEnd = "```";
-  let out = "";
-  let i = 0;
-
-  let inFence = false;
-  let fenceMarker = ""; // ``` or ~~~
-  let fenceSize = 0;
-
-  let inlineTickSize = 0; // 0 means not in inline code
-
-  const isStartOfLine = (pos) => pos === 0 || md[pos - 1] === "\n";
-
-  const countRun = (pos, ch) => {
-    let k = pos;
-    while (k < md.length && md[k] === ch) k++;
-    return k - pos;
-  };
-
-  const isEscapedBackslash = (pos) => {
-    // pos points at a backslash. If it has an odd number of preceding backslashes,
-    // then this one is escaped (e.g. "\\(" should stay literal "\(").
-    let n = 0;
-    for (let j = pos - 1; j >= 0 && md[j] === "\\"; j--) n++;
-    return n % 2 === 1;
-  };
-
-  while (i < md.length) {
-    // Fenced code blocks (``` or ~~~) at start of line
-    if (inlineTickSize === 0 && isStartOfLine(i)) {
-      const tickRun = countRun(i, "`");
-      const tildeRun = countRun(i, "~");
-      const run = Math.max(tickRun, tildeRun);
-      const marker = tickRun >= 3 ? "`" : tildeRun >= 3 ? "~" : "";
-
-      if (marker) {
-        if (!inFence) {
-          inFence = true;
-          fenceMarker = marker;
-          fenceSize = run;
-        } else if (marker === fenceMarker && run >= fenceSize) {
-          inFence = false;
-          fenceMarker = "";
-          fenceSize = 0;
-        }
-
-        out += md.slice(i, i + run);
-        i += run;
-        continue;
-      }
-    }
-
-    // Inside fenced code: copy verbatim
-    if (inFence) {
-      out += md[i++];
-      continue;
-    }
-
-    // Inline code spans using backticks
-    if (md[i] === "`") {
-      const run = countRun(i, "`");
-      if (inlineTickSize === 0) {
-        inlineTickSize = run;
-      } else if (run === inlineTickSize) {
-        inlineTickSize = 0;
-      }
-      out += md.slice(i, i + run);
-      i += run;
-      continue;
-    }
-
-    // Inside inline code: copy verbatim
-    if (inlineTickSize !== 0) {
-      out += md[i++];
-      continue;
-    }
-
-    // Replace \[...\] and \( ... \) outside code (only if the "\" isn't itself escaped)
-    if (md[i] === "\\" && !isEscapedBackslash(i)) {
-      if (md[i + 1] === "[") {
-        const close = md.indexOf("\\]", i + 2);
-        if (close !== -1) {
-          const content = md.slice(i + 2, close);
-          out += `$$${content}$$`;
-          i = close + 2;
-          continue;
-        }
-      }
-
-      if (md[i + 1] === "(") {
-        const close = md.indexOf("\\)", i + 2);
-        if (close !== -1) {
-          const content = md.slice(i + 2, close);
-          // out += `${inlineSymbolStart}${content}${inlineSymbolEnd}`;
-          out += `\`math-inline:${content.trim()}\``;
-          // return `\`math-inline:${content.trim()}\``;
-          i = close + 2;
-          continue;
-        }
-      }
-    }
-
-    out += md[i++];
-  }
-
-  return out;
-}
-function processMarkdownWithMathSingleDollar(markdown) {
-  if (!markdown) return "";
-
-  const codeBlocks = [];
-
-  // 1. MASKING: Find code blocks and replace them with placeholders.
-  // Regex Breakdown:
-  // (`{3,})[\s\S]*?\1  -> Matches fenced code blocks (```...```) handling newlines
-  // |                  -> OR
-  // (`+)(?:(?!\2).)+\2 -> Matches inline code (`...`) ensuring we match same number of backticks
-  const codeRegex = /(`{3,})[\s\S]*?\1|(`+)(?:(?!\2).)+\2/g;
-
-  const maskedMarkdown = markdown.replace(codeRegex, (match) => {
-    const key = `__CODE_BLOCK_${codeBlocks.length}__`;
-    codeBlocks.push(match);
-    return key;
-  });
-
-  // 2. PROCESSING: Apply the Math vs Money logic on the masked text
-  const processedMarkdown = escapeInlineMath(maskedMarkdown);
-
-  // 3. RESTORING: Put the code blocks back
-  return processedMarkdown.replace(/__CODE_BLOCK_(\d+)__/g, (_, index) => {
-    return codeBlocks[index];
-  });
-}
-
-/**
- * The logic from the previous step (Money vs Math detection)
- */
-function escapeInlineMath(text) {
-  // Regex looks for $...$ but ensures no illegal whitespace or surrounding escapes
-  const mathRegex = /(?<!\\|\$)(\$)(?!\$)((?:[^$]|\\\$)+?)(?<!\\)(\$)(?!\$)/g;
-
-  return text.replace(mathRegex, (match, open, content, close) => {
-    const trimmed = content.trim();
-
-    // Heuristic A: Content is purely numeric/currency (e.g. "$10.50")
-    if (/^\d+(?:[.,]\d+)*$/.test(trimmed)) {
-      return match;
-    }
-
-    // Heuristic B: "Gap" between two prices (e.g. "$10 and $20")
-    // Logic: If it starts with a number AND ends with a space (captured), it's likely text.
-    if (/^\d/.test(content) && /\s$/.test(content)) {
-      return match;
-    }
-
-    // Heuristic C: Starts with digit but contains no math symbols (e.g. "$500 USD")
-    const hasMathSymbols = /[=+\-*/^_\\]/.test(trimmed);
-    if (/^\d/.test(trimmed) && !hasMathSymbols) {
-      return match;
-    }
-
-    // Replace with the unique syntax for your custom renderer
-    return `\`math-inline:${trimmed}\``;
-  });
-}
 function SimpleMarkdownOpenAI({ children }) {
   const style = a11yDark;
 
@@ -1090,24 +906,7 @@ function SimpleMarkdownGemini({ children }) {
           }
         },
         p({ node, children, ...props }) {
-          // const hasBlockChild = React.Children.toArray(children).some(
-          //   (child) => {
-          //     if (!child || !child.type) return false;
-          //     return problematicTags.includes(
-          //       child.type.displayName || child.type.name || child.type,
-          //     );
-          //   },
-          // );
-
           const paragraphClasses = "mb-4 leading-relaxed ";
-
-          // if (hasBlockChild) {
-          //   return (
-          //     <div {...props} className={paragraphClasses}>
-          //       {children}
-          //     </div>
-          //   );
-          // }
 
           return (
             <p {...props} className={paragraphClasses}>
@@ -1121,14 +920,7 @@ function SimpleMarkdownGemini({ children }) {
     </Markdown>
   );
 }
-// const someMD = `I can.
 
-// \`\`\`python
-// import \\(
-// \`\`\`
-
-// 1) **Differentiate** it (find \\( \\frac{dy}{dx} \\) or derivative w.r.t. some variable), or
-// `;
 function OpenAIMarkdown({ children, mode, props }) {
   const elementsToShow = [];
   const sources = [];
@@ -1216,6 +1008,172 @@ function GeminiMarkdown({ children, mode, props }) {
   return elementsToShow;
 }
 
+function replaceLatexDelimsOutsideCode(md) {
+  // const inlineSymbolStart = "```inline-math";
+  // const inlineSymbolEnd = "```";
+  let out = "";
+  let i = 0;
+
+  let inFence = false;
+  let fenceMarker = ""; // ``` or ~~~
+  let fenceSize = 0;
+
+  let inlineTickSize = 0; // 0 means not in inline code
+
+  const isStartOfLine = (pos) => pos === 0 || md[pos - 1] === "\n";
+
+  const countRun = (pos, ch) => {
+    let k = pos;
+    while (k < md.length && md[k] === ch) k++;
+    return k - pos;
+  };
+
+  const isEscapedBackslash = (pos) => {
+    // pos points at a backslash. If it has an odd number of preceding backslashes,
+    // then this one is escaped (e.g. "\\(" should stay literal "\(").
+    let n = 0;
+    for (let j = pos - 1; j >= 0 && md[j] === "\\"; j--) n++;
+    return n % 2 === 1;
+  };
+
+  while (i < md.length) {
+    // Fenced code blocks (``` or ~~~) at start of line
+    if (inlineTickSize === 0 && isStartOfLine(i)) {
+      const tickRun = countRun(i, "`");
+      const tildeRun = countRun(i, "~");
+      const run = Math.max(tickRun, tildeRun);
+      const marker = tickRun >= 3 ? "`" : tildeRun >= 3 ? "~" : "";
+
+      if (marker) {
+        if (!inFence) {
+          inFence = true;
+          fenceMarker = marker;
+          fenceSize = run;
+        } else if (marker === fenceMarker && run >= fenceSize) {
+          inFence = false;
+          fenceMarker = "";
+          fenceSize = 0;
+        }
+
+        out += md.slice(i, i + run);
+        i += run;
+        continue;
+      }
+    }
+
+    // Inside fenced code: copy verbatim
+    if (inFence) {
+      out += md[i++];
+      continue;
+    }
+
+    // Inline code spans using backticks
+    if (md[i] === "`") {
+      const run = countRun(i, "`");
+      if (inlineTickSize === 0) {
+        inlineTickSize = run;
+      } else if (run === inlineTickSize) {
+        inlineTickSize = 0;
+      }
+      out += md.slice(i, i + run);
+      i += run;
+      continue;
+    }
+
+    // Inside inline code: copy verbatim
+    if (inlineTickSize !== 0) {
+      out += md[i++];
+      continue;
+    }
+
+    // Replace \[...\] and \( ... \) outside code (only if the "\" isn't itself escaped)
+    if (md[i] === "\\" && !isEscapedBackslash(i)) {
+      if (md[i + 1] === "[") {
+        const close = md.indexOf("\\]", i + 2);
+        if (close !== -1) {
+          const content = md.slice(i + 2, close);
+          out += `$$${content}$$`;
+          i = close + 2;
+          continue;
+        }
+      }
+
+      if (md[i + 1] === "(") {
+        const close = md.indexOf("\\)", i + 2);
+        if (close !== -1) {
+          const content = md.slice(i + 2, close);
+          // out += `${inlineSymbolStart}${content}${inlineSymbolEnd}`;
+          out += `\`math-inline:${content.trim()}\``;
+          // return `\`math-inline:${content.trim()}\``;
+          i = close + 2;
+          continue;
+        }
+      }
+    }
+
+    out += md[i++];
+  }
+
+  return out;
+}
+function processMarkdownWithMathSingleDollar(markdown) {
+  if (!markdown) return "";
+
+  const codeBlocks = [];
+
+  // 1. MASKING: Find code blocks and replace them with placeholders.
+  // Regex Breakdown:
+  // (`{3,})[\s\S]*?\1  -> Matches fenced code blocks (```...```) handling newlines
+  // |                  -> OR
+  // (`+)(?:(?!\2).)+\2 -> Matches inline code (`...`) ensuring we match same number of backticks
+  const codeRegex = /(`{3,})[\s\S]*?\1|(`+)(?:(?!\2).)+\2/g;
+
+  const maskedMarkdown = markdown.replace(codeRegex, (match) => {
+    const key = `__CODE_BLOCK_${codeBlocks.length}__`;
+    codeBlocks.push(match);
+    return key;
+  });
+
+  // 2. PROCESSING: Apply the Math vs Money logic on the masked text
+  const processedMarkdown = escapeInlineMath(maskedMarkdown);
+
+  // 3. RESTORING: Put the code blocks back
+  return processedMarkdown.replace(/__CODE_BLOCK_(\d+)__/g, (_, index) => {
+    return codeBlocks[index];
+  });
+}
+
+/**
+ * The logic from the previous step (Money vs Math detection)
+ */
+function escapeInlineMath(text) {
+  // Regex looks for $...$ but ensures no illegal whitespace or surrounding escapes
+  const mathRegex = /(?<!\\|\$)(\$)(?!\$)((?:[^$]|\\\$)+?)(?<!\\)(\$)(?!\$)/g;
+
+  return text.replace(mathRegex, (match, open, content, close) => {
+    const trimmed = content.trim();
+
+    // Heuristic A: Content is purely numeric/currency (e.g. "$10.50")
+    if (/^\d+(?:[.,]\d+)*$/.test(trimmed)) {
+      return match;
+    }
+
+    // Heuristic B: "Gap" between two prices (e.g. "$10 and $20")
+    // Logic: If it starts with a number AND ends with a space (captured), it's likely text.
+    if (/^\d/.test(content) && /\s$/.test(content)) {
+      return match;
+    }
+
+    // Heuristic C: Starts with digit but contains no math symbols (e.g. "$500 USD")
+    const hasMathSymbols = /[=+\-*/^_\\]/.test(trimmed);
+    if (/^\d/.test(trimmed) && !hasMathSymbols) {
+      return match;
+    }
+
+    // Replace with the unique syntax for your custom renderer
+    return `\`math-inline:${trimmed}\``;
+  });
+}
 function TableWrapper({ node, ...props }) {
   // `props` will include any children, like <thead>, <tbody>, etc.
   return (

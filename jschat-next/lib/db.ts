@@ -20,7 +20,7 @@ let client: MongoClient;
 export async function connectToDatabase() {
   try {
     if (client) {
-      console.log("client exists returning");
+      // console.log("client exists returning");
       return client;
     }
     if (process.env.NODE_ENV === "development") {
