@@ -51,8 +51,8 @@ import { allModelsWithoutIcon } from "@/app/models";
 import { headers } from "next/headers";
 // import { host } from "@/auth";
 
-// // Allow streaming responses up to 30 seconds
-// export const maxDuration = 300;
+// // Allow streaming responses up to X seconds
+export const maxDuration = 9000;
 export const runtime = "edge";
 
 export async function POST(req) {
@@ -348,6 +348,12 @@ export async function POST(req) {
       async start(controller) {
         try {
           const encoder = new TextEncoder();
+
+          const heartbeatTimer = setInterval(() => {
+            controller.enqueue(
+              encoder.encode(JSON.stringify({ signal: "heartbeat" }) + "\n"),
+            );
+          }, 20000); // Run every 20 seconds
 
           console.log("openai", data.model.model);
           const agentic = data?.modelConfig?.agentic && data.model.hasAgentic;
@@ -1060,21 +1066,32 @@ export async function POST(req) {
 
     const stream = new ReadableStream({
       async start(controller) {
+        const encoder = new TextEncoder();
         try {
-          const encoder = new TextEncoder();
+          const heartbeatTimer = setInterval(() => {
+            controller.enqueue(
+              encoder.encode(JSON.stringify({ signal: "heartbeat" }) + "\n"),
+            );
+          }, 20000); // Run every 20 seconds
 
           // console.log(data.messages[data.messages.length - 1]);
-
+          // let counter = 0;
           for (let chunk of sampleEvents) {
-            await wait(5);
-            console.log("waited 5 seconds");
+            // if (counter === 1) {
+            //   throw new Error("🚨 SIMULATED STREAM ERROR 🚨");
+            // }
+            // counter++;
+
+            // console.log("waited 5 seconds");
             controller.enqueue(
               encoder.encode(
                 JSON.stringify({
-                  signal: "",
+                  signal: true,
                 }) + "\n",
               ),
             );
+            await wait(305000);
+
             // console.log("chunk", chunk);
             // try {
             if (chunk.type === "response.output_text.delta") {
@@ -1151,8 +1168,18 @@ export async function POST(req) {
           }
           controller.close(); // Close the stream
         } catch (err) {
-          // console.log("***streaming error***:", err.code);
-          // controller.error(error);
+          const errorPayload = {
+            message: err.message || "An unexpected error occurred",
+            name: err.name,
+          };
+          controller.enqueue(
+            encoder.encode(
+              JSON.stringify({
+                signal: JSON.stringify(errorPayload),
+              }) + "\n",
+            ),
+          );
+
           if (err.code === "ECONNRESET" || err.name === "AbortError") {
             console.log("🔌 Client disconnected / aborted");
           } else if (err.code === "ERR_INVALID_STATE") {
