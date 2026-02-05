@@ -83,21 +83,53 @@ export async function POST(req) {
     const { convertedMessages, system } = convertToAnthropicFormat(
       data.messages,
     );
+    let thinking = {};
     const stream = new ReadableStream({
       async start(controller) {
         try {
           const encoder = new TextEncoder();
-          const thinking =
-            data.model.hasReasoning && data.modelConfig.reasoning
-              ? { thinking: { type: "enabled", budget_tokens: 16000 } }
-              : {};
+          const maxTokens = data.model.model.includes("4-6") ? 127999 : 64000;
+          if (data.model.model.includes("4-6")) {
+            if (data.model.hasReasoning && data.modelConfig.reasoning) {
+              thinking = {
+                thinking: { type: "adaptive" },
+                output_config: {
+                  effort: "max",
+                },
+              };
+            }
+          } else {
+            if (data.model.hasReasoning && data.modelConfig.reasoning) {
+              thinking = {
+                thinking: { type: "enabled", budget_tokens: 63999 },
+              };
+            }
+          }
 
           // console.log("thinking", thinking);
+          // console.log("convertedMessages", convertedMessages);
+          // return;
+          // const dummyMessage = [
+          //   { role: "user", content: "Hi" },
+          //   {
+          //     role: "assistant",
+          //     content: [
+          //       {
+          //         type: "thinking",
+          //         thinking:
+          //           "The user said hi - a simple greeting. So I should say bye now.",
+          //         signature:
+          //           "EvsBCkYICxgCKkDjAyqlq3IQDbnEuRy12Gr4OryR0L7dgRwm4bMFonDJtND+Zfl3dbQps3uM0jJzwZKAG31S7Q7p7qFUfQj+hqL2Egyscy7EcnitADPW//IaDJHfJzqbrSnpoasDmSIwuLODUEmZgGJ05USEy1aEbW7heFFAlZmN6eYfsIXe9KW22R9PvlZhWqN+zMdfAo1eKmMaO/eqtAp0xFjyudUyEGmgvWCB6kzGUeLlzIkKQu6F3nSX9jdOY5vGyXB2W5vdlRQzy73quB88p4iEJvDt/tmQdasWJZMJCSS7GjWBIoSdIUwy5IlbELrVROwTWISPls0OikEYAQ==",
+          //       },
 
-          // console.log("messages", messages);
+          //       { type: "text", text: "Bye!!!" },
+          //     ],
+          //   },
+          //   { role: "user", content: "what did you say?" },
+          // ];
           // console.log("system", system);
           const streamResponse = await anthropic.messages.create({
-            max_tokens: 64000,
+            max_tokens: maxTokens,
             system: system && system?.content,
             messages: convertedMessages,
             model: data.model.model,
@@ -136,10 +168,17 @@ export async function POST(req) {
                     }) + "\n",
                   ),
                 );
-              } else {
-                // controller.enqueue(
-                //   encoder.encode(messageStreamEvent?.delta?.text)
-                // );
+              } else if (
+                messageStreamEvent?.delta?.type === "signature_delta"
+              ) {
+                controller.enqueue(
+                  encoder.encode(
+                    JSON.stringify({
+                      thoughtSignature: messageStreamEvent?.delta?.signature,
+                    }) + "\n",
+                  ),
+                );
+              } else if (messageStreamEvent?.delta?.type === "text_delta") {
                 controller.enqueue(
                   encoder.encode(
                     JSON.stringify({
@@ -1768,6 +1807,7 @@ function convertToGoogleFormat(messages) {
 }
 
 function convertToAnthropicFormat(messages) {
+  // console.log(messages);
   const convertedMessages = messages
     .filter((m) => m.role !== "system")
     .map((m) => {
@@ -1783,7 +1823,18 @@ function convertToAnthropicFormat(messages) {
         }
         return userM;
       } else if (m.role === "assistant") {
-        return m;
+        const assistantM = {
+          role: "assistant",
+          content: [
+            {
+              type: "thinking",
+              thinking: m.thought,
+              signature: m.thoughtSignature,
+            },
+            { type: "text", text: m.content },
+          ],
+        };
+        return assistantM;
       }
     });
   const system = messages.find((m) => m.role === "system");
