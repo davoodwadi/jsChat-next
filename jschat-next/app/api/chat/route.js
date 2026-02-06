@@ -83,6 +83,7 @@ export async function POST(req) {
     const { convertedMessages, system } = convertToAnthropicFormat(
       data.messages,
     );
+    // console.log("convertedMessages", convertedMessages);
     let thinking = {};
     const stream = new ReadableStream({
       async start(controller) {
@@ -106,28 +107,6 @@ export async function POST(req) {
             }
           }
 
-          // console.log("thinking", thinking);
-          // console.log("convertedMessages", convertedMessages);
-          // return;
-          // const dummyMessage = [
-          //   { role: "user", content: "Hi" },
-          //   {
-          //     role: "assistant",
-          //     content: [
-          //       {
-          //         type: "thinking",
-          //         thinking:
-          //           "The user said hi - a simple greeting. So I should say bye now.",
-          //         signature:
-          //           "EvsBCkYICxgCKkDjAyqlq3IQDbnEuRy12Gr4OryR0L7dgRwm4bMFonDJtND+Zfl3dbQps3uM0jJzwZKAG31S7Q7p7qFUfQj+hqL2Egyscy7EcnitADPW//IaDJHfJzqbrSnpoasDmSIwuLODUEmZgGJ05USEy1aEbW7heFFAlZmN6eYfsIXe9KW22R9PvlZhWqN+zMdfAo1eKmMaO/eqtAp0xFjyudUyEGmgvWCB6kzGUeLlzIkKQu6F3nSX9jdOY5vGyXB2W5vdlRQzy73quB88p4iEJvDt/tmQdasWJZMJCSS7GjWBIoSdIUwy5IlbELrVROwTWISPls0OikEYAQ==",
-          //       },
-
-          //       { type: "text", text: "Bye!!!" },
-          //     ],
-          //   },
-          //   { role: "user", content: "what did you say?" },
-          // ];
-          // console.log("system", system);
           const streamResponse = await anthropic.messages.create({
             max_tokens: maxTokens,
             system: system && system?.content,
@@ -174,7 +153,7 @@ export async function POST(req) {
                 controller.enqueue(
                   encoder.encode(
                     JSON.stringify({
-                      thoughtSignature: messageStreamEvent?.delta?.signature,
+                      signature: messageStreamEvent?.delta?.signature,
                     }) + "\n",
                   ),
                 );
@@ -385,15 +364,14 @@ export async function POST(req) {
   } else if (openaiModels.includes(data.model.model)) {
     const stream = new ReadableStream({
       async start(controller) {
+        const encoder = new TextEncoder();
+
+        const heartbeatTimer = setInterval(() => {
+          controller.enqueue(
+            encoder.encode(JSON.stringify({ signal: "heartbeat" }) + "\n"),
+          );
+        }, 20000); // Run every 20 seconds
         try {
-          const encoder = new TextEncoder();
-
-          const heartbeatTimer = setInterval(() => {
-            controller.enqueue(
-              encoder.encode(JSON.stringify({ signal: "heartbeat" }) + "\n"),
-            );
-          }, 20000); // Run every 20 seconds
-
           console.log("openai", data.model.model);
           const agentic = data?.modelConfig?.agentic && data.model.hasAgentic;
           const search = data?.modelConfig?.search && data.model.hasSearch;
@@ -505,6 +483,7 @@ export async function POST(req) {
             controller.close();
           } catch {}
         } finally {
+          clearInterval(heartbeatTimer);
           console.log("UPDATING TOKEN USAGE");
           console.log("mutables.total_tokens", mutables.total_tokens);
           // UPDATE TOKENS HERE START
@@ -1825,15 +1804,17 @@ function convertToAnthropicFormat(messages) {
       } else if (m.role === "assistant") {
         const assistantM = {
           role: "assistant",
-          content: [
-            {
-              type: "thinking",
-              thinking: m.thought,
-              signature: m.thoughtSignature,
-            },
-            { type: "text", text: m.content },
-          ],
+          content: [],
         };
+        if (m?.signature) {
+          assistantM.content.push({
+            type: "thinking",
+            thinking: m.thought,
+            signature: m.signature,
+          });
+        }
+        assistantM.content.push({ type: "text", text: m.content });
+
         return assistantM;
       }
     });

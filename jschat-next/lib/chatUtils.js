@@ -223,6 +223,9 @@ export async function handleSubmit({
                   ? parsedData.think
                   : extraContent.think + parsedData.think;
             }
+            if (parsedData?.signature) {
+              extraContent.signature = parsedData.signature;
+            }
             if (parsedData?.thoughtSignature) {
               extraContent.thoughtSignature = parsedData.thoughtSignature;
             }
@@ -484,6 +487,9 @@ export async function handleSubmit({
                   ? parsedData.think
                   : extraContent.think + parsedData.think;
             }
+            if (parsedData?.signature) {
+              extraContent.signature = parsedData.signature;
+            }
             if (parsedData?.thoughtSignature) {
               extraContent.thoughtSignature = parsedData.thoughtSignature;
             }
@@ -665,6 +671,9 @@ function getChain({
       content: parentBot.content,
       role: "assistant",
     };
+    if (parentBot?.signature) {
+      assistant.signature = parentBot?.signature;
+    }
     if (parentBot?.thoughtSignature) {
       assistant.thoughtSignature = parentBot?.thoughtSignature;
     }
