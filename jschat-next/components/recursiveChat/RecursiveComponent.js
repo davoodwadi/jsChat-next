@@ -46,7 +46,7 @@ export function RecursiveChatContainer(props) {
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [botMessageFinished, setBotMessageFinished] = useState(false);
   const [branchKeyToMaximize, setBranchKeyToMaximize] = useState(
-    JSON.stringify([1])
+    JSON.stringify([1]),
   );
   const createQueryString = useCallback(
     (name, value) => {
@@ -54,7 +54,7 @@ export function RecursiveChatContainer(props) {
       params.set(name, value);
       return params.toString();
     },
-    [searchParams]
+    [searchParams],
   );
   // loadHistory: props.chatId
   useEffect(() => {
@@ -244,14 +244,17 @@ function getBranchToMaxBasedOnSiblings({ key, userMessages }) {
 }
 //
 export function getBranchKeyToMaximize({ userMessages }) {
+  // console.log("userMessages", userMessages);
   const maxUID = getMaxGlobalIdUser(userMessages);
   // console.log("getBranchKeyToMaximize maxUID", maxUID);
   const userMessageWithMaxUID = userMessages.find(
-    (um) => um.globalIdUser === maxUID
+    (um) => um.globalIdUser === maxUID,
   );
   // console.log("userMessageWithMaxUID", userMessageWithMaxUID);
   const key = userMessageWithMaxUID.key;
-  const keyToMax = findSingleParent(key, userMessages);
+  // const keyToMax = findSingleParent(key, userMessages);
+  const keyToMax = JSON.stringify(JSON.parse(key).slice(0, -1));
+  // console.log("key", key);
   // console.log("keyToMax", keyToMax);
   return keyToMax;
 }

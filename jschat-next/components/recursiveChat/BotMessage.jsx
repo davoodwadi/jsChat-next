@@ -62,13 +62,18 @@ export default function BotMessage(props) {
     }
   }, [refRenderedText.current]);
   useEffect(() => {
-    // console.log("useEffect botmessage fired", props.branchKeyToMaximize);
+    console.log(
+      "useEffect botmessage fired props.branchKeyToMaximize",
+      props.branchKeyToMaximize,
+    );
+    console.log("useEffect botmessage fired props.id", props.id);
 
     if (isLatestBot && props?.refElementBot.current) {
-      // console.log("props.refElementBot.current", props.refElementBot.current);
+      console.log("props.refElementBot.current", props.refElementBot.current);
       props.refElementBot.current.scrollIntoView({
-        block: "start",
-        inline: "center",
+        block: "start", // Vertically aligns the top of the element to the top of the screen
+        inline: "center", // Horizontally aligns the center of the element to the center of the screen
+        behavior: "smooth", // Optional: makes the transition smooth instead of a jump
       });
     }
   }, [isLatestBot, props.refElementBot, props.branchKeyToMaximize]);

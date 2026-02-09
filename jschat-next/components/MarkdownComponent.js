@@ -1209,7 +1209,7 @@ function ThinkingBlock({ children, ...rest }) {
   // console.log("ThinkingBlock children type:", typeof children);
   // console.log("ThinkingBlock children length:", React.Children.count(children));
   useEffect(() => {
-    console.log(rest.props.botMessage.status, "changed");
+    // console.log(rest.props.botMessage.status, "changed");
     if (rest.props.botMessage.status === "done") {
       setIsExpanded(false);
     }
