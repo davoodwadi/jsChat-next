@@ -27,12 +27,14 @@ const googleAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const perplexityClient = new OpenAI({
   apiKey: process.env.PERPLEXITY_API_KEY,
   baseURL: "https://api.perplexity.ai",
+  timeout: 360000,
 });
 
 const alibabaClient = new OpenAI({
   // If environment variables are not configured, replace the following line with: apiKey: "sk-xxx",
   apiKey: process.env.DASHSCOPE_API_KEY,
   baseURL: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+  timeout: 360000,
 });
 
 import {
@@ -1108,10 +1110,19 @@ export async function POST(req) {
                 }) + "\n",
               ),
             );
-            await wait(305000);
+            await wait(1000);
 
             // console.log("chunk", chunk);
             // try {
+            if (chunk.type === "response.reasoning.delta") {
+              controller.enqueue(
+                encoder.encode(
+                  JSON.stringify({
+                    think: chunk.delta,
+                  }) + "\n",
+                ),
+              );
+            }
             if (chunk.type === "response.output_text.delta") {
               controller.enqueue(
                 encoder.encode(
@@ -1881,6 +1892,24 @@ const openAI_tools = [
 ];
 
 let sampleEvents = [];
+sampleEvents.push({
+  type: "response.reasoning.delta",
+  item_id: "msg_123",
+  output_index: 0,
+  content_index: 0,
+  delta: "I need to think first. ",
+  sequence_number: 1,
+});
+
+sampleEvents.push({
+  type: "response.reasoning.delta",
+  item_id: "msg_123",
+  output_index: 0,
+  content_index: 0,
+  delta: "I am done thinking",
+  sequence_number: 1,
+});
+
 sampleEvents.push({
   type: "response.output_text.delta",
   item_id: "msg_123",

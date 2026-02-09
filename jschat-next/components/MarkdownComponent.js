@@ -693,7 +693,7 @@ function SimpleMarkdownOpenAI({ children }) {
   return (
     <Markdown
       remarkPlugins={[remarkMath, remarkGfm]}
-      rehypePlugins={[rehypeKatex, rehypeRaw]}
+      rehypePlugins={[[rehypeKatex, { strict: false }], rehypeRaw]}
       // prose prose-zinc dark:prose-invert !max-w-none
       className={` pb-4 break-words prose prose-zinc dark:prose-invert !max-w-none`}
       components={{
@@ -781,24 +781,7 @@ function SimpleMarkdownOpenAI({ children }) {
           }
         },
         p({ node, children, ...props }) {
-          // const hasBlockChild = React.Children.toArray(children).some(
-          //   (child) => {
-          //     if (!child || !child.type) return false;
-          //     return problematicTags.includes(
-          //       child.type.displayName || child.type.name || child.type,
-          //     );
-          //   },
-          // );
-
           const paragraphClasses = "mb-4 leading-relaxed ";
-
-          // if (hasBlockChild) {
-          //   return (
-          //     <div {...props} className={paragraphClasses}>
-          //       {children}
-          //     </div>
-          //   );
-          // }
 
           return (
             <p {...props} className={paragraphClasses}>
@@ -824,8 +807,6 @@ function SimpleMarkdownGemini({ children }) {
       components={{
         sup(props) {
           const { children } = props;
-          // const fullText = getTextContent(children);
-          // console.log("fullText", fullText);
           return (
             <sup className="" style={{ marginLeft: "0.3em" }}>
               {children}
@@ -848,10 +829,6 @@ function SimpleMarkdownGemini({ children }) {
         code(props) {
           const { children, className, node, ...rest } = props;
           const text = children;
-          // console.log("node", node);
-          // console.log("className", className);
-          // console.log("rest", rest);
-          // console.log("children", children);
           if (text && text.startsWith("math-inline:")) {
             const math = text.slice("math-inline:".length);
             // console.log("math", math);
@@ -863,9 +840,6 @@ function SimpleMarkdownGemini({ children }) {
             const language = match[1];
             // known code block
             function CustomPreTag({ children, ...rest }) {
-              // console.log("children", children)
-              // console.log("rest", rest);
-              // console.log(cn(className, "overflow-x-auto w-full  min-w-0"));
               return (
                 <div
                   {...rest}
@@ -879,8 +853,6 @@ function SimpleMarkdownGemini({ children }) {
                 </div>
               );
             }
-            // console.log("children", typeof children);
-            // console.log("language", language);
 
             return (
               <>
@@ -1231,12 +1203,17 @@ function ToolBlock({ children, ...props }) {
   );
 }
 
-function ThinkingBlock({ children, ...props }) {
+function ThinkingBlock({ children, ...rest }) {
   const [isExpanded, setIsExpanded] = useState(true);
-  // console.log("ThinkingBlock children:", children);
+  // console.log("ThinkingBlock props:", rest.props.botMessage.status);
   // console.log("ThinkingBlock children type:", typeof children);
   // console.log("ThinkingBlock children length:", React.Children.count(children));
-
+  useEffect(() => {
+    console.log(rest.props.botMessage.status, "changed");
+    if (rest.props.botMessage.status === "done") {
+      setIsExpanded(false);
+    }
+  }, [rest.props.botMessage.status]);
   return (
     <div className="  overflow-x-auto rounded-lg bg-muted/30 mb-8">
       <button
