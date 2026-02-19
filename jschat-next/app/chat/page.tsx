@@ -5,12 +5,12 @@ import { redirect } from "next/navigation";
 import { getAuth } from "@/lib/actions";
 // import { delay } from "@/lib/myTools";
 
-export default async function Home({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined };
-}) {
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default async function Home(props: { searchParams: SearchParams }) {
   // console.log("loading ChatContainer");
+  const searchParams = await props.searchParams;
+
   const authStatus = await getAuth();
   console.log("authStatus ", authStatus);
   if (authStatus === 400) {

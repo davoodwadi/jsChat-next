@@ -35,8 +35,8 @@ export default function HeroPage() {
 
           <p className="text-lg text-slate-600 max-w-lg">
             Spreed is the omni-model workspace. Ask GPT-4 a question, follow up
-            with Claude, and branch the conversation with Llama. Don't let a
-            single model limit your thinking.
+            with Claude, and branch the conversation with Llama. Don&apos;t let
+            a single model limit your thinking.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4">
