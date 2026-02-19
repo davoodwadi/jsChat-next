@@ -6,7 +6,6 @@ import {
 } from "@/lib/actions";
 import { readStreamableValue } from "@/lib/aiRSCUtils";
 import { wait } from "@/lib/actions";
-import { v4 as uuidv4 } from "uuid";
 import { toast } from "sonner";
 
 // import { useTransition } from "react";
@@ -100,12 +99,12 @@ export async function handleSubmit({
     setIsTopupDialogOpen(true);
     return;
   }
+  // AUTH CHECKS END
 
   let newGlobalIdUser;
   let newNewGlobalIdUser;
   let newUserMessage;
   let isNew;
-  // AUTH CHECKS END
 
   // check OLD vs. NEW START
   // check if event.target.id in userMessages

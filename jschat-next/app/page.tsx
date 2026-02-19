@@ -1,7 +1,6 @@
 "use client";
 
-import ChatSkeleton from "@/app/chat-skeleton/page";
-
+import HeroPage from "./HeroPage";
 import { generateChatId } from "@/lib/chatUtils";
 // import { redirect } from "next/navigation";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
@@ -20,20 +19,20 @@ export default function Home({}: {}) {
       params.set(name, value);
       return params.toString();
     },
-    [searchParams]
+    [searchParams],
   );
   // redirect(`/chat/${chatId}`); // redirect throws client side exception
 
   const queryString =
     `/chat/${chatId}` + "?" + createQueryString("new", "true");
   // console.log("queryString", queryString);
-  useEffect(() => {
-    router.push(queryString);
-  }, []);
+  // useEffect(() => {
+  //   router.push(queryString);
+  // }, []);
 
   return (
     <>
-      <ChatSkeleton />
+      <HeroPage />
     </>
   );
 }

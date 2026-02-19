@@ -1,37 +1,50 @@
-"use client";
-
 import ChatSkeleton from "@/app/chat-skeleton/page";
 
 import { generateChatId } from "@/lib/chatUtils";
-// import { redirect } from "next/navigation";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useCallback } from "react";
-
+import { redirect } from "next/navigation";
+import { getAuth } from "@/lib/actions";
 // import { delay } from "@/lib/myTools";
 
-export default function Home({}: {}) {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
   // console.log("loading ChatContainer");
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const createQueryString = useCallback(
-    (name: string, value: string) => {
-      const params = new URLSearchParams(searchParams.toString());
-      params.set(name, value);
-      return params.toString();
-    },
-    [searchParams]
-  );
-  const chatId = generateChatId();
-  // console.log("chatId ", chatId);
-  // redirect(`/chat/${chatId}`); // redirect throws client side exception
+  const authStatus = await getAuth();
+  console.log("authStatus ", authStatus);
+  if (authStatus === 400) {
+    // Redirect to signin immediately
+    redirect("/signin?callbackUrl=/chat");
+  }
 
-  const queryString =
-    `/chat/${chatId}` + "?" + createQueryString("new", "true");
-  // console.log("queryString", queryString);
-  useEffect(() => {
-    router.push(queryString);
-  }, []);
+  // 3. Handle Authenticated
+  if (typeof authStatus === "string") {
+    const chatId = generateChatId();
+
+    // --- FIX STARTS HERE ---
+    // Create a new URLSearchParams instance
+    const params = new URLSearchParams();
+
+    // Safely add existing search params
+    if (searchParams) {
+      Object.entries(searchParams).forEach(([key, value]) => {
+        if (typeof value === "string") {
+          params.set(key, value);
+        } else if (Array.isArray(value)) {
+          // If it's an array, take the first value or join them, depending on your needs
+          // Usually taking the first one is safe for simple params
+          if (value.length > 0) params.set(key, value[0]);
+        }
+      });
+    }
+
+    // Add your specific param
+    params.set("new", "true");
+    // --- FIX ENDS HERE ---
+
+    redirect(`/chat/${chatId}?${params.toString()}`);
+  }
 
   return (
     <>

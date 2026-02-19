@@ -18,17 +18,10 @@ const ChatContainer = dynamic(
   () => import("@/components/recursiveChat/RecursiveComponent"),
   {
     loading: () => <ChatSkeleton />,
-  }
+  },
 );
 
-import { useState, useRef, useEffect, useTransition } from "react";
-
-import {
-  useParams,
-  useRouter,
-  useSearchParams,
-  usePathname,
-} from "next/navigation";
+import { useState } from "react";
 
 import {
   alibabaModelsWithMeta,
@@ -94,10 +87,6 @@ export default function ChatClient({ chatId, bookmarked }) {
 
   return (
     <Suspense fallback={ChatSkeleton}>
-      {/* <FloatingSettingsButton
-        systemPrompt={systemPrompt}
-        setSystemPrompt={setSystemPrompt}
-      /> */}
       <ChatContainer
         chatId={chatId}
         systemPrompt={systemPrompt}

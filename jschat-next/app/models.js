@@ -497,12 +497,23 @@ export const geminiModelsWithMeta = [
 
 export const alibabaModelsWithMeta = [
   {
+    name: "Qwen 3.5 Plus",
+    model: "qwen3.5-plus",
+    meta: "The Qwen 3 series Max model has undergone specialized upgrades in agent programming and tool invocation compared to the preview version. The officially released model this time has achieved state-of-the-art (SOTA) performance in its field and is better suited to meet the demands of agents operating in more complex scenarios.",
+    new: true,
+    vision: true,
+    hasReasoning: true,
+    hasDeepResearch: false,
+    hasSearch: false,
+    icon: DetailedIcon,
+  },
+  {
     name: "Qwen3 Max",
     model: "qwen3-max-preview",
     meta: "The Qwen 3 series Max model has undergone specialized upgrades in agent programming and tool invocation compared to the preview version. The officially released model this time has achieved state-of-the-art (SOTA) performance in its field and is better suited to meet the demands of agents operating in more complex scenarios.",
     new: true,
     vision: false,
-    hasReasoning: false,
+    hasReasoning: true,
     hasDeepResearch: false,
     hasSearch: false,
     icon: DetailedIcon,

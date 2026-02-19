@@ -973,10 +973,13 @@ export async function POST(req) {
     // let extraConfigs = {
     //   web_search_options: { search_context_size: "low" },
     // };
-    const extraConfigs = data.model.reasoning ? { enable_thinking: true } : {};
+    const extraConfigs = {};
+    if (data.model.hasReasoning && data.modelConfig.reasoning) {
+      extraConfigs.enable_thinking = true;
+    }
     // console.log("extraConfigs", extraConfigs);
     // console.log("data.model", data.model);
-
+    // return;
     // console.log("data.model.model", data.model.model);
     // return;
 
