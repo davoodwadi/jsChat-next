@@ -447,10 +447,23 @@ export const xAIModelsWithMeta = [
 ];
 export const geminiModelsWithMeta = [
   {
+    name: "gemini-3.1-pro-preview",
+    model: "models/gemini-3.1-pro-preview",
+    meta: "Google's Latest LLM With Web Search and Thinking Capabilities",
+    new: true,
+    vision: false,
+    hasReasoning: true,
+    hasDeepResearch: false,
+    hasSearch: true,
+    icon: BrainIcon,
+    default: false,
+  },
+
+  {
     name: "Gemini 3 Pro",
     model: "models/gemini-3-pro-preview",
     meta: "Google's Latest LLM With Web Search and Thinking Capabilities",
-    new: true,
+    new: false,
     vision: false,
     hasReasoning: true,
     hasDeepResearch: false,
