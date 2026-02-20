@@ -447,7 +447,7 @@ export const xAIModelsWithMeta = [
 ];
 export const geminiModelsWithMeta = [
   {
-    name: "gemini-3.1-pro-preview",
+    name: "Gemini 3.1 Pro",
     model: "models/gemini-3.1-pro-preview",
     meta: "Google's Latest LLM With Web Search and Thinking Capabilities",
     new: true,
