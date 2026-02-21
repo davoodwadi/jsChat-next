@@ -343,6 +343,15 @@ export const anthropicModelsWithMeta = [
     icon: BrainIcon,
   },
   {
+    name: "Claude Sonnet 4.6",
+    model: "claude-sonnet-4-6",
+    meta: "Anthropic's Most Intelligent Model for Complext Agents and Coding, Capable of Reasoning",
+    new: true,
+    vision: true,
+    hasReasoning: true,
+    icon: BrainIcon,
+  },
+  {
     name: "Claude Sonnet 4.5",
     model: "claude-sonnet-4-5",
     meta: "Anthropic's Model for Complext Agents and Coding, Capable of Reasoning",

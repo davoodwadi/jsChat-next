@@ -14,8 +14,8 @@ export default function HeroPage() {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
             </span>
             <div className="text-sm">
-              Now supporting GPT-5.2 High Reasoning, Claude 4.7 Opus, and Qwen 3
-              Max
+              Now supporting Gemini 3.1 Pro, GPT-5.2 High Reasoning, Claude 4.6
+              Opus, and Qwen 3 Max
             </div>
           </div>
 
