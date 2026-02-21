@@ -49,6 +49,16 @@ module.exports = {
           4: "hsl(var(--chart-4))",
           5: "hsl(var(--chart-5))",
         },
+        spreed: {
+          blue: {
+            DEFAULT: "#1F9FFF",
+            dark: "#3AB0FF",
+          },
+          yellow: {
+            DEFAULT: "#FFC050",
+            dark: "#FFD580",
+          },
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

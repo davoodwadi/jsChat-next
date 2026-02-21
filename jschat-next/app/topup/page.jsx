@@ -2,12 +2,13 @@
 
 import axios from "axios";
 import { useState } from "react";
+import Link from "next/link";
 import { loadStripe } from "@stripe/stripe-js";
 import { Button } from "@/components/ui/button"; // Assuming you're using shadcn/ui or similar for UI components
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { creditPacks } from "@/components/payment/PaymentConfig";
-import { Sparkles, Zap, Crown, Star } from "lucide-react";
+import { Sparkles, Zap, Crown, Star, ArrowLeft } from "lucide-react";
 
 // Initialize Stripe with your publishable key
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY);
@@ -53,27 +54,26 @@ export default function TopUpPage() {
   const getPackIcon = (index) => {
     const icons = [Sparkles, Zap, Crown];
     const IconComponent = icons[index] || Star;
-    return <IconComponent className="w-8 h-8" />;
+    return <IconComponent className="w-4 h-4" />;
   };
   // Helper function to get pack styling
   const getPackStyling = (index, isPopular) => {
     if (isPopular) {
       return {
         cardClass:
-          "relative shadow-xl hover:shadow-2xl transition-all duration-300 border-2 border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950 dark:to-indigo-950 transform hover:scale-105",
-        iconColor: "text-blue-600",
-        priceColor: "text-blue-700 dark:text-blue-300",
+          "relative glass-strong shadow-xl transition-all duration-500 border-2 border-spreed-blue/50 transform hover:shadow-[0_0_40px_rgba(31,159,255,0.25)] dark:hover:shadow-[0_0_50px_rgba(31,159,255,0.15)]",
+        iconColor: "text-spreed-blue",
+        priceColor: "text-spreed-blue dark:text-spreed-blue-dark",
         buttonClass:
-          "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg",
+          "bg-gradient-to-r from-spreed-blue to-spreed-blue-dark hover:brightness-110 text-white shadow-lg",
       };
     }
     return {
       cardClass:
-        "shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 hover:scale-102",
-      iconColor: "text-gray-600 dark:text-gray-400",
-      priceColor: "text-gray-900 dark:text-gray-100",
-      buttonClass:
-        "bg-gradient-to-r from-gray-800 to-gray-900 hover:from-gray-900 hover:to-black text-white",
+        "glass shadow-lg transition-all duration-500 border border-white/20 dark:border-white/10 hover:shadow-[0_0_30px_rgba(255,192,80,0.15)] dark:hover:shadow-[0_0_40px_rgba(255,192,80,0.1)]",
+      iconColor: "text-muted-foreground",
+      priceColor: "text-foreground",
+      buttonClass: "glass-button-dark",
     };
   };
 
@@ -81,23 +81,35 @@ export default function TopUpPage() {
   const isPopular = (index) => index === 1; // Make middle pack popular
 
   return (
-    <div className="min-h-screen ">
-      <div className="container mx-auto px-4 py-12 max-w-6xl">
+    <div className="min-h-screen bg-transparent">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        {/* Back Button */}
+        <div className="mb-8">
+          <Link href="/">
+            <Button
+              variant="ghost"
+              className="group flex items-center gap-2 text-muted-foreground hover:text-foreground transition-all duration-300 px-0 hover:bg-transparent"
+            >
+              <div className="p-2 rounded-full glass-subtle group-hover:bg-spreed-blue/10 group-hover:text-spreed-blue transition-all duration-300">
+                <ArrowLeft className="w-4 h-4" />
+              </div>
+              <span className="text-sm font-medium tracking-wide"></span>
+            </Button>
+          </Link>
+        </div>
+
         {/* Header Section */}
         <div className="text-center mb-12">
-          {/* <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full mb-6">
-            <Sparkles className="w-8 h-8 text-white" />
-          </div> */}
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent mb-4">
+          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-spreed-blue via-spreed-yellow to-spreed-blue bg-clip-text text-transparent mb-3 tracking-tight">
             Top Up Credits
           </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Choose the credit pack to use Spreed.
+          <p className="text-base text-muted-foreground max-w-2xl mx-auto">
+            Choose a credit pack to continue your non-linear conversation.
           </p>
         </div>
 
         {/* Credit Packs Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {creditPacks.map((pack, index) => {
             const popular = isPopular(index);
             const styling = getPackStyling(index, popular);
@@ -105,20 +117,11 @@ export default function TopUpPage() {
 
             return (
               <div key={pack.id} className="relative">
-                {/* Popular Badge */}
-                {/* {popular && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
-                    <Badge className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-1 text-sm font-semibold shadow-lg">
-                      ⭐ Most Popular
-                    </Badge>
-                  </div>
-                )} */}
-
                 <Card className={styling.cardClass}>
-                  <CardHeader className="text-center pb-4">
+                  <CardHeader className="text-center pb-2">
                     {/* Icon */}
                     <div
-                      className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${popular ? "bg-blue-100 dark:bg-blue-900" : "bg-gray-100 dark:bg-gray-800"}`}
+                      className={`inline-flex items-center justify-center w-10 h-10 rounded-full mb-3 ${popular ? "bg-spreed-blue/10 dark:bg-spreed-blue/20" : "bg-white/5 dark:bg-black/20"}`}
                     >
                       <div className={styling.iconColor}>
                         {getPackIcon(index)}
@@ -126,36 +129,27 @@ export default function TopUpPage() {
                     </div>
 
                     {/* Credits Title */}
-                    <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    <CardTitle className="text-xl font-semibold mb-1 tracking-tight">
                       {pack.credits.toLocaleString()} Credits
                     </CardTitle>
 
                     {/* Price */}
                     <div
-                      className={`text-4xl font-bold ${styling.priceColor} mb-2`}
+                      className={`text-3xl font-bold ${styling.priceColor} mb-1`}
                     >
                       ${pack.price.toFixed(2)}
                     </div>
-
-                    {/* Price per credit */}
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      ${(pack.price / pack.credits).toFixed(4)} per credit
-                    </p>
                   </CardHeader>
 
-                  <CardContent className="pt-0">
+                  <CardContent className="pt-2">
                     {/* Features or benefits could go here */}
                     <div className="space-y-2 mb-6">
-                      <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                        <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      <div className="flex items-center text-xs text-muted-foreground/80">
+                        <div className="w-1.5 h-1.5 bg-spreed-blue/60 rounded-full mr-2"></div>
                         Instant delivery
                       </div>
-                      {/* <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                        <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                        No expiration
-                      </div> */}
-                      <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                        <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      <div className="flex items-center text-xs text-muted-foreground/80">
+                        <div className="w-1.5 h-1.5 bg-spreed-yellow/60 rounded-full mr-2"></div>
                         Secure payment
                       </div>
                     </div>
@@ -164,15 +158,15 @@ export default function TopUpPage() {
                     <Button
                       onClick={() => handlePurchase(pack.id)}
                       disabled={loading}
-                      className={`w-full py-3 text-lg font-semibold transition-all duration-200 ${styling.buttonClass} disabled:opacity-50`}
+                      className={`w-full py-5 text-sm font-medium transition-all duration-200 ${styling.buttonClass} disabled:opacity-50 rounded-lg`}
                     >
                       {isCurrentlyLoading ? (
                         <div className="flex items-center justify-center">
-                          <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
                           Processing...
                         </div>
                       ) : (
-                        `Purchase Credits`
+                        `Select`
                       )}
                     </Button>
                   </CardContent>
@@ -184,16 +178,16 @@ export default function TopUpPage() {
 
         {/* Footer Section */}
         <div className="text-center mt-12">
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             Secure payments powered by Stripe
           </p>
           <div className="flex justify-center items-center space-x-6">
-            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-              <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+            <div className="flex items-center text-xs text-muted-foreground">
+              <div className="w-2 h-2 bg-spreed-blue rounded-full mr-2"></div>
               SSL Encrypted
             </div>
-            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-              <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+            <div className="flex items-center text-xs text-muted-foreground">
+              <div className="w-2 h-2 bg-spreed-yellow rounded-full mr-2"></div>
               PCI Compliant
             </div>
           </div>

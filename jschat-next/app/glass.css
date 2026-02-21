@@ -676,3 +676,17 @@
     rgba(255, 255, 255, 0) 100%
   );
 }
+
+/* Glass Text Effects */
+.glass-morphic-text {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-spreed-blue to-spreed-yellow;
+  @apply dark:from-spreed-blue-dark dark:to-spreed-yellow-dark;
+  filter: drop-shadow(0 0 15px theme('colors.spreed.blue.DEFAULT / 30%'));
+  background-size: 200% auto;
+  transition: all 0.5s ease;
+}
+
+.glass-morphic-text:hover {
+  filter: drop-shadow(0 0 25px theme('colors.spreed.yellow.DEFAULT / 50%'));
+  background-position: right center;
+}
