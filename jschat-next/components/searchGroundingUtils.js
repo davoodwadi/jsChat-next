@@ -338,6 +338,7 @@ function findTextPositions(bigText, searchText) {
   const endIndex = startIndex + searchText.length;
   return { startIndex, endIndex };
 }
+
 export async function updateGroundingChunksWithActualLinksAndTitles(
   groundingChunks,
 ) {
@@ -380,4 +381,202 @@ export async function updateGroundingChunksWithActualLinksAndTitles(
   );
 
   return updatedChunks;
+}
+
+/**
+ * Extract domain and metadata from a URL for display purposes.
+ * Handles Google's grounding-api-redirect URLs and regular URLs.
+ * @param {string} url - The URL to parse
+ * @returns {Object} - { domain, displayUrl, favicon }
+ */
+export function extractUrlMetadata(url) {
+  if (!url) {
+    return { domain: "Unknown Source", displayUrl: "", favicon: null };
+  }
+
+  try {
+    // Handle Google's grounding-api-redirect URLs
+    if (
+      url.includes("vertexaisearch.cloud.google.com/grounding-api-redirect")
+    ) {
+      // Try to extract any visible domain info from the URL path
+      const urlObj = new URL(url);
+      const pathParts = urlObj.pathname.split("/");
+      // Use generic display for Google redirect URLs
+      return {
+        domain: "Google Search Result",
+        displayUrl: url,
+        favicon: null,
+      };
+    }
+
+    // Regular URL parsing
+    const urlObj = new URL(url);
+    const domain = urlObj.hostname.replace(/^www\./, "");
+
+    return {
+      domain: domain,
+      displayUrl: url,
+      favicon: `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
+    };
+  } catch (error) {
+    // Fallback for invalid URLs
+    console.warn("Failed to parse URL:", url, error);
+    return {
+      domain: url.substring(0, 50) + (url.length > 50 ? "..." : ""),
+      displayUrl: url,
+      favicon: null,
+    };
+  }
+}
+
+/**
+ * Parse sources from the markdown "Sources:" section.
+ * Extracts numbered list items like "1. [domain](url)".
+ * @param {string} markdown - The markdown content
+ * @returns {Array} - Array of {citationNumber, domain, source} objects
+ */
+export function parseSourcesFromMarkdown(markdown) {
+  if (!markdown) {
+    return [];
+  }
+
+  try {
+    // Find the "Sources:" section (may have ** around it)
+    const sourcesRegex = /\*{0,2}Sources:\*{0,2}\s*\n([\s\S]+?)(?:\n\n|$)/;
+    const sourcesMatch = markdown.match(sourcesRegex);
+
+    if (!sourcesMatch) {
+      return [];
+    }
+
+    const sourcesSection = sourcesMatch[1];
+
+    // Extract numbered list items: "1. [domain](url)"
+    const itemRegex = /^\s*(\d+)\.\s*\[([^\]]+)\]\(([^)]+)\)/gm;
+    const sources = [];
+    let match;
+
+    while ((match = itemRegex.exec(sourcesSection)) !== null) {
+      sources.push({
+        citationNumber: parseInt(match[1], 10),
+        domain: match[2],
+        source: match[3],
+      });
+    }
+
+    return sources;
+  } catch (error) {
+    console.warn("Failed to parse sources from markdown:", error);
+    return [];
+  }
+}
+
+/**
+ * Extract ordered deep research sources and remove the Sources section.
+ * Keeps markdown source order from the numbered list.
+ * @param {string} markdown - Full markdown content
+ * @returns {{ contentWithoutSources: string, sources: Array }}
+ */
+export function extractDeepResearchSourcesAndContent(markdown) {
+  if (!markdown) {
+    return { contentWithoutSources: "", sources: [] };
+  }
+
+  try {
+    const lines = markdown.split(/\r?\n/);
+    const headerRegex = /^\s*\*{0,2}Sources:\*{0,2}\s*$/i;
+    const itemRegex = /^\s*(\d+)\.\s*\[([^\]]+)\]\(([^)]+)\)\s*$/;
+
+    const headerIndex = lines.findIndex((line) => headerRegex.test(line));
+    if (headerIndex === -1) {
+      return { contentWithoutSources: markdown, sources: [] };
+    }
+
+    const sources = [];
+    let scanIndex = headerIndex + 1;
+
+    // Skip empty lines between header and first source item.
+    while (scanIndex < lines.length && lines[scanIndex].trim() === "") {
+      scanIndex++;
+    }
+
+    const listStart = scanIndex;
+
+    // Parse contiguous numbered list items in order.
+    while (scanIndex < lines.length) {
+      const match = lines[scanIndex].match(itemRegex);
+      if (!match) {
+        break;
+      }
+
+      sources.push({
+        citationNumber: parseInt(match[1], 10),
+        domain: match[2],
+        source: match[3],
+      });
+      scanIndex++;
+    }
+
+    // If no list was found, do not modify content.
+    if (sources.length === 0 || listStart === scanIndex) {
+      return { contentWithoutSources: markdown, sources: [] };
+    }
+
+    let blockEnd = scanIndex;
+    // Remove trailing blank lines after the sources block.
+    while (blockEnd < lines.length && lines[blockEnd].trim() === "") {
+      blockEnd++;
+    }
+
+    const keptLines = [...lines.slice(0, headerIndex), ...lines.slice(blockEnd)];
+    const contentWithoutSources = keptLines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+
+    return { contentWithoutSources, sources };
+  } catch (error) {
+    console.warn("Failed to extract deep research sources:", error);
+    return { contentWithoutSources: markdown, sources: [] };
+  }
+}
+
+/**
+ * Process Google Deep Research markdown content with [cite: N, M] patterns
+ * and replace them with clickable superscript citation links.
+ * @param {string} content - The markdown content with [cite: ...] patterns
+ * @param {number} maxCitationNumber - Maximum citation number to validate against
+ * @returns {string} - Processed content with citation links
+ */
+export function addCitationsForDeepResearch(content, maxCitationNumber = 100) {
+  if (!content) {
+    return content;
+  }
+
+  // Regex to match [cite: 1, 2, 3] or [cite: 1] patterns
+  const citationRegex = /\[cite:\s*([\d,\s]+)\]/gi;
+
+  const result = content.replace(citationRegex, (match, citationNumbers) => {
+    // Split by comma and trim whitespace, then parse to integers
+    const numbers = citationNumbers
+      .split(",")
+      .map((n) => parseInt(n.trim(), 10))
+      .filter((n) => !isNaN(n) && n > 0 && n <= maxCitationNumber);
+
+    if (numbers.length === 0) {
+      // If no valid citation numbers, keep the original pattern
+      return match;
+    }
+
+    // Generate clickable superscript links for each citation number
+    const citationLinks = numbers
+      .map((num) => {
+        const escapedNum = escapeHtmlAttr(String(num));
+        return `<a href="#citation-${escapedNum}" class="citation-link deep-research-citation" data-citation="${escapedNum}">${escapedNum}</a>`;
+      })
+      .join(", ");
+
+    // Wrap in <sup> tag
+    return `<span>${citationLinks}. </span>`;
+  });
+
+  return result;
 }

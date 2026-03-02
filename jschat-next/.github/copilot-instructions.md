@@ -17,13 +17,13 @@ Before making any changes to the application:
 
 ## Tech Stack Overview
 
-jsChat-next is a **Next.js 15 AI chat application** built with:
+jsChat-next is a **Next.js AI chat application** built with:
 
 **Core Framework & Routing**
 
-- Next.js 15.3.8 with App Router
+- Next.js with App Router
 - TypeScript with strict mode (ES2017 target)
-- TailwindCSS + Radix UI for consistent, accessible components
+- TailwindCSS + Shadcn for consistent, accessible components
 - Custom Glass morphism plugin for modern UI effects
 
 **AI & LLM Integrations**
@@ -38,7 +38,7 @@ jsChat-next is a **Next.js 15 AI chat application** built with:
 
 **Authentication & Data**
 
-- NextAuth 5 + MongoDB Adapter
+- NextAuth + MongoDB Adapter
 - MongoDB database
 - Session management via `session.js`
 

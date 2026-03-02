@@ -57,7 +57,7 @@ const modelMeta = [
 if (test) {
   modelMeta.unshift({ desc: "Test LLMs", models: testModels });
 }
-export default function ChatClient({ chatId, bookmarked }) {
+export default function ChatClient({ chatId, bookmarked, email }) {
   // const { icon, ...startingModel } = test
   //   ? testModels[0]
   //   : geminiModelsWithMeta.find((m) => m.model.includes("gemini-2.5-pro")) ||
@@ -94,6 +94,7 @@ export default function ChatClient({ chatId, bookmarked }) {
         bookmarked={bookmarked}
         globalModelInfo={globalModelInfo}
         setGlobalModelInfo={setGlobalModelInfo}
+        email={email}
       />
     </Suspense>
   );

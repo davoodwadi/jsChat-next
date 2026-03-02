@@ -103,3 +103,60 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Smooth scroll behavior for citation navigation */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Deep Research Citation Styles */
+.citation-link {
+  color: hsl(var(--primary));
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  padding: 0 2px;
+}
+
+.citation-link:hover {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  transform: scale(1.1);
+}
+
+.deep-research-citation {
+  position: relative;
+  cursor: pointer;
+}
+
+/* Citation anchor scroll offset */
+.citation-anchor {
+  scroll-margin-top: 100px;
+}
+
+/* Superscript citation styling */
+sup {
+  font-size: 0.75em;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+  top: -0.5em;
+}
+
+sup a.citation-link {
+  margin: 0 1px;
+}
+
+/* Animation for highlighted citations */
+@keyframes highlightPulse {
+  0%, 100% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: hsl(var(--primary) / 0.2);
+  }
+}
+
+.citation-highlight {
+  animation: highlightPulse 2s ease-in-out;
+}

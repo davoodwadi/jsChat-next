@@ -1,7 +1,6 @@
 "use client";
 
 // export const maxDuration = 55;
-
 import React from "react";
 import { useState, useRef, useEffect, useTransition, useCallback } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
@@ -184,6 +183,7 @@ export function RecursiveChatContainer(props) {
 export default function ChatContainer(props) {
   // has chatId prop
   // console.log("ChatContainer props", props);
+
   const refUser = useRef(null);
   const refBot = useRef(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);

@@ -20,6 +20,9 @@ import {
   addCitationsToContentInlineSuper,
   addCitationsToContentInlineSuperPerplexity,
   addCitationsToContentInlineOpenAI,
+  addCitationsForDeepResearch,
+  extractUrlMetadata,
+  extractDeepResearchSourcesAndContent,
 } from "@/components/searchGroundingUtils";
 import SearchResult from "@/components/SearchResult";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -80,7 +83,10 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
   }
   // console.log("NOT OpenAI");
 
-  const isGemini = Boolean(geminiModels.includes(props.botMessage.model.model));
+  const isGemini = Boolean(
+    geminiModels.includes(props.botMessage.model.model) ||
+    props.botMessage.model.model === "test-llm",
+  );
   if (isGemini) {
     // console.log("isGemini");
 
@@ -137,6 +143,27 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
 
 export default MarkdownComponent;
 
+const sourcePanelShellClass =
+  "mt-8 rounded-2xl border border-border/60 bg-gradient-to-br from-muted/60 via-muted/35 to-background p-[1px] shadow-[0_20px_50px_-28px_rgba(10,20,40,0.45)] backdrop-blur-xl";
+
+const sourcePanelBodyClass =
+  "rounded-2xl bg-background/70 backdrop-blur-md px-4 py-4";
+
+const sourceHeaderButtonClass =
+  "w-full flex items-center gap-3 rounded-xl px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-700/90 dark:text-slate-300/90 transition-colors hover:bg-white/45 dark:hover:bg-slate-800/45";
+
+const sourceHeaderBadgeClass =
+  "rounded-md border border-primary/25 bg-primary/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary";
+
+const sourceHeaderDividerClass =
+  "h-px flex-1 bg-gradient-to-r from-primary/40 via-slate-400/30 to-transparent";
+
+const sourceItemCardClass =
+  "group relative overflow-hidden rounded-xl border border-border/70 bg-gradient-to-br from-muted/45 to-background/75 p-4 text-xs shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] transition-colors duration-300 hover:border-primary/45 hover:bg-accent/35";
+
+const sourceMutedTextClass =
+  "text-[11px] text-slate-600/90 dark:text-slate-300/75";
+
 function TavilySourcesComponent({ children, ...props }) {
   const [isExpanded, setIsExpanded] = useState(true);
 
@@ -175,11 +202,7 @@ function TavilySourcesComponent({ children, ...props }) {
 
       {/* Results */}
       {isExpanded && (
-        <div
-          // --- CHANGES START HERE ---
-          className="overflow-x-auto divide-y divide-white/20 dark:divide-white/10"
-          // --- CHANGES END HERE ---
-        >
+        <div className="overflow-x-auto divide-y divide-white/20 dark:divide-white/10">
           {parsedResults ? (
             parsedResults.length > 0 ? (
               parsedResults.map((r, i) => {
@@ -193,11 +216,7 @@ function TavilySourcesComponent({ children, ...props }) {
               </p>
             )
           ) : (
-            <pre
-              // --- CHANGES START HERE ---
-              className="m-4 whitespace-pre-wrap text-xs text-black/70 dark:text-white/70 bg-black/5 dark:bg-white/5 rounded-md p-3 overflow-auto"
-              // --- CHANGES END HERE ---
-            >
+            <pre className="m-4 whitespace-pre-wrap text-xs text-black/70 dark:text-white/70 bg-black/5 dark:bg-white/5 rounded-md p-3 overflow-auto">
               {typeof children === "string"
                 ? children
                 : JSON.stringify(children, null, 2)}
@@ -228,28 +247,20 @@ function PerplexitySourcesComponent({ children, ...props }) {
   }
 
   return (
-    <div
-      {...props}
-      className=" mt-8 rounded-xl border bg-gradient-to-br from-muted/40 to-background p-[1px] shadow-md"
-    >
-      <div className="rounded-xl bg-card p-6">
+    <div {...props} className={sourcePanelShellClass}>
+      <div className={sourcePanelBodyClass}>
         {/* Section heading */}
         <div className="mb-5 flex items-center gap-2">
-          <span className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
-            Sources
-          </span>
-          <div className="h-px flex-1 bg-gradient-to-r from-primary/40 to-transparent" />
+          <span className={sourceHeaderBadgeClass}>Sources</span>
+          <div className={sourceHeaderDividerClass} />
         </div>
 
-        <ul className=" overflow-x-auto  grid gap-4 sm:grid-cols-2">
+        <ul className="overflow-x-auto grid gap-4 sm:grid-cols-2">
           {sources.map((source, idx) => {
             const domain = getDomain(source.url);
 
             return (
-              <li
-                key={idx}
-                className="rounded-lg border bg-muted/30 p-4 text-xs truncate hover:border-primary/40 hover:bg-accent hover:text-accent-foreground transition-colors"
-              >
+              <li key={idx} className={sourceItemCardClass}>
                 <a
                   href={source.url}
                   target="_blank"
@@ -257,27 +268,27 @@ function PerplexitySourcesComponent({ children, ...props }) {
                   className="flex flex-col h-full group"
                 >
                   {/* Title with numeric badge */}
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex flex-col items-start gap-2 flex-1">
-                      <span className="shrink-0 inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">
+                  <div className="flex min-w-0 items-start justify-between gap-2">
+                    <div className="flex min-w-0 flex-col items-start gap-2 flex-1">
+                      <span className="shrink-0 inline-flex h-7 w-7 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-primary text-xs font-bold">
                         {idx + 1}
                       </span>
-                      <h3 className="font-medium leading-snug line-clamp-2 flex-1">
+                      <h3 className="w-full min-w-0 truncate font-semibold leading-snug flex-1 text-slate-800 dark:text-slate-100">
                         {source.title}
                       </h3>
                     </div>
-                    <ExternalLink className="h-4 w-4 shrink-0 opacity-60 group-hover:opacity-100 mt-1" />
+                    <ExternalLink className="h-4 w-4 shrink-0 opacity-60 group-hover:opacity-100 mt-1 text-slate-600 dark:text-slate-300" />
                   </div>
 
                   {/* Snippet */}
                   {source.snippet && (
-                    <p className="mt-2 text-muted-foreground line-clamp-3 text-xs">
+                    <p className="mt-2 line-clamp-3 text-xs text-slate-600 dark:text-slate-300/80">
                       {source.snippet}
                     </p>
                   )}
 
                   {/* Footer */}
-                  <div className="mt-3 flex flex-col gap-1 text-xs text-muted-foreground">
+                  <div className="mt-3 flex flex-col gap-1 text-xs text-slate-600 dark:text-slate-300/75">
                     <div className="flex items-center justify-between">
                       <span className="truncate">{domain}</span>
                     </div>
@@ -313,57 +324,181 @@ function GeminiSourcesComponent({ children, ...props }) {
     return null; // nothing will render
   }
   return (
-    <div className="  mt-8 rounded-xl border bg-gradient-to-br from-muted/40 to-background p-[1px] shadow-md">
-      <div className="rounded-xl bg-card p-4">
+    <div className={sourcePanelShellClass}>
+      <div className={sourcePanelBodyClass}>
         {/* Header Toggle */}
-        <div className=" flex items-center gap-2">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="w-full flex items-center px-4 py-3 text-xs font-semibold uppercase tracking-wider transition-colors hover:bg-gray-100 dark:hover:bg-[#2a2a2a]"
+            className={sourceHeaderButtonClass}
           >
-            <span className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
-              Sources
-            </span>
-            <div className="h-px flex-1 bg-gradient-to-r from-primary/40 to-transparent" />
+            <span className={sourceHeaderBadgeClass}>Sources</span>
+            <div className={sourceHeaderDividerClass} />
             {isExpanded ? (
-              <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              <ChevronDown className="h-4 w-4 text-slate-500 dark:text-slate-400" />
             ) : (
-              <ChevronRight className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              <ChevronRight className="h-4 w-4 text-slate-500 dark:text-slate-400" />
             )}
           </button>
         </div>
         {/* Results */}
         {isExpanded && (
-          <ul className=" overflow-x-auto grid gap-3 sm:grid-cols-2 !px-6 mt-5">
+          <ul className="overflow-x-auto grid gap-3 sm:grid-cols-2 px-2 mt-5">
             {children.map((source, idx) => {
               const itemUrl = source.web.uri;
               const domain = getDomain(itemUrl);
               const itemTitle = source.web.title || domain;
+              const badgeContent = source.citationNumber
+                ? source.citationNumber
+                : itemTitle[0]?.toUpperCase();
               return (
                 <li key={idx}>
-                  <div className="group flex h-full items-center justify-between rounded-lg border bg-muted/30 p-3 text-xs hover:border-primary/40 hover:bg-accent hover:text-accent-foreground transition-colors">
-                    <div className="flex flex-1 items-center gap-3">
-                      <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-bold">
-                        {domain[0]?.toUpperCase()}
+                  <div
+                    className={cn(
+                      sourceItemCardClass,
+                      "flex min-w-0 items-center justify-between gap-3",
+                    )}
+                  >
+                    <div className="flex flex-1 min-w-0 items-center gap-3">
+                      <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-primary text-sm font-bold">
+                        {badgeContent}
                       </span>
 
-                      <div className="flex flex-col">
-                        <p className="text-ellipsis overflow-hidden text-sm font-medium">
+                      <div className="flex min-w-0 flex-col">
+                        <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">
                           {itemTitle}
                         </p>
                         <a
                           href={itemUrl}
                           target="_blank"
                           rel="noopener noreferrer"
+                          className={cn(
+                            "truncate hover:underline",
+                            sourceMutedTextClass,
+                          )}
                         >
                           {domain}
                         </a>
                       </div>
                     </div>
-                    <a href={itemUrl} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="h-4 w-4 flex-shrink-0 opacity-60 group-hover:opacity-100" />
+                    <a
+                      href={itemUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-3 flex-shrink-0"
+                    >
+                      <ExternalLink className="h-4 w-4 flex-shrink-0 opacity-60 group-hover:opacity-100 text-slate-600 dark:text-slate-300" />
                     </a>
                   </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DeepResearchAnnotationsComponent({ children, ...props }) {
+  const [isExpanded, setIsExpanded] = useState(true);
+  const [highlightedCitation, setHighlightedCitation] = useState(null);
+
+  useEffect(() => {
+    // Handle highlighting when scrolled to via anchor link
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash.startsWith("#citation-")) {
+        const citationNum = hash.replace("#citation-", "");
+        setHighlightedCitation(citationNum);
+        setTimeout(() => setHighlightedCitation(null), 2000);
+      }
+    };
+
+    handleHashChange(); // Check on mount
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, []);
+
+  if (!Array.isArray(children) || children.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className={sourcePanelShellClass}>
+      <div className={sourcePanelBodyClass}>
+        {/* Header Toggle */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className={sourceHeaderButtonClass}
+          >
+            <span className={sourceHeaderBadgeClass}>
+              Deep Research Sources ({children.length})
+            </span>
+            <div className={sourceHeaderDividerClass} />
+            {isExpanded ? (
+              <ChevronDown className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+            ) : (
+              <ChevronRight className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+            )}
+          </button>
+        </div>
+
+        {/* Results */}
+        {isExpanded && (
+          <ul className="overflow-x-auto grid gap-3 sm:grid-cols-2 lg:grid-cols-3 px-2 mt-5">
+            {children.map((sourceItem, idx) => {
+              const itemUrl = sourceItem.source;
+              const citationNumber = sourceItem.citationNumber;
+              const sourceDomain = sourceItem.domain;
+              const { favicon } = extractUrlMetadata(itemUrl);
+              const isHighlighted =
+                highlightedCitation === String(citationNumber);
+
+              return (
+                <li
+                  key={idx}
+                  id={`citation-${citationNumber}`}
+                  className="citation-anchor"
+                  style={{ scrollMarginTop: "100px" }}
+                >
+                  <a
+                    href={itemUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`group flex h-full items-center justify-between rounded-lg border p-4 text-xs transition-all duration-300 ${
+                      isHighlighted
+                        ? "border-primary/50 bg-primary/10 shadow-[0_12px_26px_-16px_rgba(25,40,85,0.7)] scale-[1.02]"
+                        : "border-border/70 bg-gradient-to-br from-muted/45 to-background/75 hover:border-primary/45 hover:bg-accent/35"
+                    }`}
+                  >
+                    <div className="flex flex-1 min-w-0 items-center gap-3">
+                      <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-primary/30 bg-primary/15 text-primary text-base font-bold ring-2 ring-primary/25">
+                        {citationNumber}
+                      </span>
+
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold mb-1 text-slate-800 dark:text-slate-100">
+                          Citation {citationNumber}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          {favicon && (
+                            <img
+                              src={favicon}
+                              alt=""
+                              className="w-4 h-4 flex-shrink-0"
+                              onError={(e) => (e.target.style.display = "none")}
+                            />
+                          )}
+                          <p className={cn("truncate", sourceMutedTextClass)}>
+                            {sourceDomain}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <ExternalLink className="h-4 w-4 flex-shrink-0 opacity-60 group-hover:opacity-100 ml-2 text-slate-600 dark:text-slate-300" />
+                  </a>
                 </li>
               );
             })}
@@ -382,29 +517,27 @@ function OpenAISourcesComponent({ children, ...props }) {
   }
 
   return (
-    <div className="mt-8 rounded-xl border bg-gradient-to-br from-muted/40 to-background p-[1px] shadow-md">
-      <div className="rounded-xl bg-card p-4">
+    <div className={sourcePanelShellClass}>
+      <div className={sourcePanelBodyClass}>
         {/* Header Toggle */}
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="w-full flex items-center px-4 py-3 text-xs font-semibold uppercase tracking-wider transition-colors hover:bg-gray-100 dark:hover:bg-[#2a2a2a]"
+            className={sourceHeaderButtonClass}
           >
-            <span className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
-              Sources
-            </span>
-            <div className="h-px flex-1 bg-gradient-to-r from-primary/40 to-transparent" />
+            <span className={sourceHeaderBadgeClass}>Sources</span>
+            <div className={sourceHeaderDividerClass} />
             {isExpanded ? (
-              <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              <ChevronDown className="h-4 w-4 text-slate-500 dark:text-slate-400" />
             ) : (
-              <ChevronRight className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              <ChevronRight className="h-4 w-4 text-slate-500 dark:text-slate-400" />
             )}
           </button>
         </div>
 
         {/* Results */}
         {isExpanded && (
-          <ul className="overflow-x-auto grid gap-3 sm:grid-cols-2 !px-6 mt-5">
+          <ul className="overflow-x-auto grid gap-3 sm:grid-cols-2 px-2 mt-5">
             {children.map((source, idx) => {
               // console.log("source", source);
               const isApi = source.type === "api" || !source.url;
@@ -416,15 +549,20 @@ function OpenAISourcesComponent({ children, ...props }) {
 
               return (
                 <li key={idx}>
-                  <div className="group flex h-full items-center justify-between rounded-lg border bg-muted/30 p-3 text-xs hover:border-primary/40 hover:bg-accent hover:text-accent-foreground transition-colors">
-                    <div className="flex flex-1 items-center gap-3">
-                      <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-bold">
+                  <div
+                    className={cn(
+                      sourceItemCardClass,
+                      "flex min-w-0 items-center justify-between gap-3",
+                    )}
+                  >
+                    <div className="flex flex-1 min-w-0 items-center gap-3">
+                      <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-primary text-sm font-bold">
                         {isApi ? <Cog className="h-4 w-4" /> : iconLetter}
                       </span>
 
                       <div className="flex flex-col min-w-0">
                         {isApi && (
-                          <p className="text-ellipsis overflow-hidden text-sm font-medium whitespace-nowrap">
+                          <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">
                             System Tool
                           </p>
                         )}
@@ -433,12 +571,17 @@ function OpenAISourcesComponent({ children, ...props }) {
                             href={itemUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-muted-foreground hover:underline truncate"
+                            className={cn(
+                              "truncate hover:underline",
+                              sourceMutedTextClass,
+                            )}
                           >
                             {displayName}
                           </a>
                         ) : (
-                          <span className="text-muted-foreground truncate">
+                          <span
+                            className={cn("truncate", sourceMutedTextClass)}
+                          >
                             {displayName}
                           </span>
                         )}
@@ -452,7 +595,7 @@ function OpenAISourcesComponent({ children, ...props }) {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        <ExternalLink className="h-4 w-4 flex-shrink-0 opacity-60 group-hover:opacity-100" />
+                        <ExternalLink className="h-4 w-4 flex-shrink-0 opacity-60 group-hover:opacity-100 text-slate-600 dark:text-slate-300" />
                       </a>
                     )}
                   </div>
@@ -475,7 +618,7 @@ const getTextContent = (children) => {
   return "";
 };
 
-function CustomMarkdown({ children, mode, props }) {
+export function CustomMarkdown({ children, mode, props, className }) {
   const problematicTags = ["div", "pre", "tool", "output", "think"];
   const markdownChildren = children;
   const style = a11yDark;
@@ -490,7 +633,10 @@ function CustomMarkdown({ children, mode, props }) {
       ]}
       rehypePlugins={[rehypeKatex, rehypeRaw]}
       // prose prose-zinc dark:prose-invert !max-w-none
-      className={` pb-4 break-words prose prose-zinc dark:prose-invert !max-w-none`}
+      className={cn(
+        ` pb-4 break-words prose prose-zinc dark:prose-invert !max-w-none`,
+        className,
+      )}
       components={{
         sup(props) {
           const { children } = props;
@@ -949,10 +1095,32 @@ function GeminiMarkdown({ children, mode, props }) {
   }
   let finalText = props.botMessage.content;
 
-  if (
+  // Check if this is Deep Research output (annotations is the reliable signal)
+  const hasDeepResearchAnnotations = props?.annotations?.length > 0;
+
+  // Parse once: ordered sources + markdown content with Sources section removed.
+  const deepResearchExtraction = hasDeepResearchAnnotations
+    ? extractDeepResearchSourcesAndContent(finalText)
+    : { contentWithoutSources: finalText, sources: [] };
+
+  const parsedSources = deepResearchExtraction.sources;
+
+  if (hasDeepResearchAnnotations) {
+    finalText = deepResearchExtraction.contentWithoutSources;
+
+    // Use parsed sources for correct citation numbering
+    const maxCitationNumber =
+      parsedSources.length > 0
+        ? Math.max(...parsedSources.map((s) => s.citationNumber), 0)
+        : props.annotations.length;
+
+    // Process Deep Research citations [cite: 1, 2, 3]
+    finalText = addCitationsForDeepResearch(finalText, maxCitationNumber);
+  } else if (
     props?.groundingChunks?.length > 0 &&
     props?.groundingSupports?.length > 0
   ) {
+    // Process regular Gemini grounding chunks
     // console.log("there is groundingChunks");
     const contentWithCitations = addCitationsToContentInlineSuper(
       finalText,
@@ -961,14 +1129,40 @@ function GeminiMarkdown({ children, mode, props }) {
     );
     finalText = contentWithCitations;
   }
-  // console.log("GeminiMarkdown", finalText);
+
   // replace $ math with inline
   finalText = processMarkdownWithMathSingleDollar(finalText);
   // console.log("finalText", finalText);
   elementsToShow.push(
     <SimpleMarkdownGemini key={0}>{finalText}</SimpleMarkdownGemini>,
   );
-  if (props?.groundingChunks?.length > 0) {
+
+  // Add sources component based on the type of grounding
+  if (hasDeepResearchAnnotations) {
+    // Reuse GeminiSourcesComponent by adapting parsed sources to groundingChunks shape.
+    const sourcesToDisplay =
+      parsedSources.length > 0
+        ? parsedSources
+        : props.annotations.map((annotation, idx) => ({
+            citationNumber: idx + 1,
+            domain: extractUrlMetadata(annotation.source).domain,
+            source: annotation.source,
+          }));
+
+    const adaptedGeminiSources = sourcesToDisplay.map((source) => ({
+      citationNumber: source.citationNumber,
+      web: {
+        uri: source.source,
+        title: source.domain,
+      },
+    }));
+
+    elementsToShow.push(
+      <GeminiSourcesComponent props={props} key={"sources"}>
+        {adaptedGeminiSources}
+      </GeminiSourcesComponent>,
+    );
+  } else if (props?.groundingChunks?.length > 0) {
     elementsToShow.push(
       <GeminiSourcesComponent props={props} key={"sources"}>
         {props?.groundingChunks}

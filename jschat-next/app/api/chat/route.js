@@ -57,6 +57,9 @@ import { headers } from "next/headers";
 export const maxDuration = 9000;
 export const runtime = "edge";
 
+// Task store (in-memory, at the top of route.js with other imports)
+const taskStore = new Map(); // taskId -> { createdAt, status, progress, content }
+
 export async function POST(req) {
   const data = await req.json();
 
@@ -367,13 +370,18 @@ export async function POST(req) {
     const stream = new ReadableStream({
       async start(controller) {
         const encoder = new TextEncoder();
-
-        const heartbeatTimer = setInterval(() => {
-          controller.enqueue(
-            encoder.encode(JSON.stringify({ signal: "heartbeat" }) + "\n"),
-          );
-        }, 20000); // Run every 20 seconds
+        let heartbeatTimer;
         try {
+          heartbeatTimer = setInterval(() => {
+            try {
+              controller.enqueue(
+                encoder.encode(JSON.stringify({ signal: "heartbeat" }) + "\n"),
+              );
+            } catch (err) {
+              // Controller might be closed, stop the heartbeat
+              clearInterval(heartbeatTimer);
+            }
+          }, 20000); // Run every 20 seconds
           console.log("openai", data.model.model);
           const agentic = data?.modelConfig?.agentic && data.model.hasAgentic;
           const search = data?.modelConfig?.search && data.model.hasSearch;
@@ -611,6 +619,44 @@ export async function POST(req) {
       },
     });
   } else if (geminiModels.includes(data.model.model)) {
+    if (data.modelConfig?.deepResearch) {
+      const stream = new ReadableStream({
+        async start(controller) {
+          const encoder = new TextEncoder();
+          const lastUserMessage = data.messages[data.messages.length - 1];
+          const userInput =
+            lastUserMessage.content.text || lastUserMessage.content;
+          console.log("userInput for Deep Research", userInput);
+
+          try {
+            const interaction = await googleAI.interactions.create({
+              input: userInput,
+              agent: "deep-research-pro-preview-12-2025",
+              background: true,
+            });
+
+            const taskId = interaction.id;
+            console.log("Created Gemini Deep Research task:", taskId);
+            controller.enqueue(
+              encoder.encode(
+                JSON.stringify({
+                  interactionID: taskId,
+                }) + "\n",
+              ),
+            );
+            controller.close();
+          } catch (err) {
+            console.error("Error creating deep research task", err);
+            controller.error(err);
+          }
+        },
+      });
+      return new Response(stream, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    }
     console.log("Gemini model", data.model.model);
     // const modelList = await googleAI.models.list();
     // console.log("Gemini modelList", modelList);
@@ -674,8 +720,6 @@ export async function POST(req) {
       mutables.total_tokens += searchCost;
       console.log("adding searchCost", mutables.total_tokens);
     }
-    // console.log(streamConfig);
-    // return;
 
     const stream = new ReadableStream({
       async start(controller) {
@@ -1090,15 +1134,59 @@ export async function POST(req) {
     const stream = new ReadableStream({
       async start(controller) {
         const encoder = new TextEncoder();
+        let heartbeatTimer;
         try {
-          const heartbeatTimer = setInterval(() => {
-            controller.enqueue(
-              encoder.encode(JSON.stringify({ signal: "heartbeat" }) + "\n"),
-            );
-          }, 20000); // Run every 20 seconds
+          heartbeatTimer = setInterval(() => {
+            try {
+              controller.enqueue(
+                encoder.encode(JSON.stringify({ signal: "heartbeat" }) + "\n"),
+              );
+            } catch (err) {
+              // Controller might be closed, stop the heartbeat
+              console.log("cleared interval");
+              clearInterval(heartbeatTimer);
+            }
+          }, 2000); // Run every 20 seconds
 
           // console.log(data.messages[data.messages.length - 1]);
           // let counter = 0;
+          if (deepResearch) {
+            // Submit background task using Gemini Interactions API (not chat API)
+            const lastUserMessage = data.messages[data.messages.length - 1];
+            const userInput =
+              lastUserMessage.content.text || lastUserMessage.content;
+            console.log("userInput", userInput);
+            try {
+              // Create background task using Interactions API
+              const interaction = await googleAI.interactions.create({
+                input: userInput,
+                agent: "deep-research-pro-preview-12-2025",
+                background: true,
+              });
+              const taskId = interaction.id;
+              console.log("Created Gemini Deep Research task:", taskId);
+              controller.enqueue(
+                encoder.encode(
+                  JSON.stringify({
+                    interactionID: taskId,
+                  }) + "\n",
+                ),
+              );
+              controller.close();
+            } catch (error) {
+              console.error("Error creating Gemini Deep Research task:", error);
+              controller.enqueue(
+                encoder.encode(
+                  JSON.stringify({
+                    error: "Failed to create background task",
+                    details: error.message,
+                  }) + "\n",
+                ),
+              );
+              controller.close();
+            }
+          }
+          // for regular API calls
           for (let chunk of sampleEvents) {
             // if (counter === 1) {
             //   throw new Error("🚨 SIMULATED STREAM ERROR 🚨");
@@ -1204,13 +1292,17 @@ export async function POST(req) {
             message: err.message || "An unexpected error occurred",
             name: err.name,
           };
-          controller.enqueue(
-            encoder.encode(
-              JSON.stringify({
-                signal: JSON.stringify(errorPayload),
-              }) + "\n",
-            ),
-          );
+          try {
+            controller.enqueue(
+              encoder.encode(
+                JSON.stringify({
+                  signal: JSON.stringify(errorPayload),
+                }) + "\n",
+              ),
+            );
+          } catch {
+            console.log("error in sending errorPayload");
+          }
 
           if (err.code === "ECONNRESET" || err.name === "AbortError") {
             console.log("🔌 Client disconnected / aborted");
@@ -1223,6 +1315,9 @@ export async function POST(req) {
             controller.close();
           } catch {}
         } finally {
+          console.log("finally cleared interval", heartbeatTimer);
+
+          clearInterval(heartbeatTimer);
           console.log("UPDATING TOKEN USAGE");
           console.log("mutables.total_tokens", mutables.total_tokens);
           // UPDATE TOKENS HERE START
@@ -1253,41 +1348,119 @@ export async function POST(req) {
   }
 }
 
+// Helper function to simulate task progress
+function getTaskProgress(createdAtMs) {
+  const elapsedMs = Date.now() - createdAtMs;
+  const elapsedSecs = elapsedMs / 1000;
+
+  if (elapsedSecs < 3) {
+    return { status: "pending", progress: 0 };
+  } else if (elapsedSecs < 10) {
+    // Simulate processing: 0% -> 100% over 7 seconds
+    const progressSecs = elapsedSecs - 3;
+    const progress = Math.min(Math.floor((progressSecs / 7) * 100), 99);
+    return { status: "processing", progress };
+  } else {
+    return {
+      status: "completed",
+      progress: 100,
+      content:
+        "This is a completed background task response. The task finished successfully!",
+    };
+  }
+}
+async function getTaskProgressGemini(taskId, email, baseUrl) {
+  try {
+    const interaction = await googleAI.interactions.get(taskId);
+
+    let content;
+    let annotations;
+    let status = "in_progress";
+
+    if (interaction.status === "completed") {
+      status = "completed";
+      // Extract text from outputs
+      // console.log("interaction", interaction);
+      if (interaction.outputs && interaction.outputs.length > 0) {
+        content = interaction.outputs[interaction.outputs.length - 1].text;
+      }
+
+      annotations =
+        interaction.outputs[interaction.outputs.length - 1].annotations;
+      // UPDATE TOKENS HERE START
+      console.log("UPDATING TOKEN USAGE");
+      console.log("total_tokens", interaction?.usage?.total_tokens);
+      fetch(`${baseUrl}/api/tokens`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          amount: interaction?.usage?.total_tokens,
+          email: email,
+        }),
+      });
+      // UPDATE TOKENS HERE END
+    } else if (interaction.status === "failed") {
+      status = "failed";
+      content = interaction.error?.message || "Research task failed";
+    }
+    return {
+      status,
+      content,
+      annotations,
+    };
+  } catch (error) {
+    console.error("Error polling Gemini interaction:", error);
+    return {
+      status: "failed",
+      content: error.message,
+      annotations: null,
+    };
+  }
+}
+
 export async function GET(req) {
-  // console.log("header:", req.headers);
-  console.log("runtime", process.env.NEXT_RUNTIME);
+  const url = new URL(req.url);
+  const taskId = url.searchParams.get("taskId");
+  const model = url.searchParams.get("model");
+  const email = url.searchParams.get("email");
 
-  // return Response.json({name: 'hello'}, {status:200})
-  const stream = new ReadableStream({
-    start(controller) {
-      // Function to enqueue data with a delay
-      const enqueueWithDelay = (data, delay) => {
-        return new Promise((resolve) => {
-          setTimeout(() => {
-            controller.enqueue(new TextEncoder().encode(data));
-            resolve();
-          }, delay);
-        });
-      };
+  // 1. Get the host from headers
+  const head = await headers();
+  const host = head.get("host");
+  const protocol = host.includes("local") ? "http://" : "https://";
+  const baseUrl = protocol + host;
 
-      // Create an async function to handle the streaming
-      const streamData = async () => {
-        for (let i = 0; i < 80; i++) {
-          await enqueueWithDelay(`${i}s`, 1000);
-        }
-        controller.close(); // Close the stream
-      };
+  console.log(
+    "GET /api/chat - polling taskId:",
+    taskId,
+    "model:",
+    model,
+    "email:",
+    email,
+  );
 
-      // Start streaming the data
-      streamData();
-    },
-  });
-  // Return a new Response with the stream
-  return new Response(stream, {
-    headers: {
-      "Content-Type": "text/plain",
-    },
-  });
+  if (!taskId) {
+    return Response.json(
+      { error: "taskId query parameter required" },
+      { status: 400 },
+    );
+  }
+
+  if (geminiModels.includes(model) || model === "test-llm") {
+    const { status, content, annotations } = await getTaskProgressGemini(
+      taskId,
+      email,
+      baseUrl,
+    );
+    return Response.json({
+      taskId,
+      status,
+      content,
+      annotations,
+    });
+  }
 }
 async function wait(duration) {
   return new Promise((resolve) => setTimeout(resolve, duration));

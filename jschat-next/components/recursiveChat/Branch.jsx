@@ -13,6 +13,7 @@ import RecursiveBranch from "./RecursiveBranch";
 
 export default function Branch({ tm, ...props }) {
   const { open } = useSidebar();
+  // console.log("props", props);
   // const [isHorizontallyMaxed, setIsHorizontallyMaxed] = useState(false);
   const thisBotRef = useRef(null);
   const branchRef = useRef(null);
@@ -126,7 +127,7 @@ export default function Branch({ tm, ...props }) {
             botRef,
             targetId,
             multimediaMessage,
-            userMessageModelInfo
+            userMessageModelInfo,
           ) => {
             handleSubmit({
               ...props,
@@ -162,6 +163,12 @@ export default function Branch({ tm, ...props }) {
               branchKeyToMaximize={props.branchKeyToMaximize}
               setBranchKeyToMaximize={props.setBranchKeyToMaximize}
               userMessages={props.userMessages}
+              botMessages={props.botMessages}
+              setBotMessages={props.setBotMessages}
+              chatId={props.chatId}
+              systemPrompt={props.systemPrompt}
+              globalModelInfo={props.globalModelInfo}
+              {...props}
             >
               {getBotMessageForKey(tm.key).content}
             </BotMessage>
@@ -199,14 +206,14 @@ function onRemoveBranchClick({ event, currentGlobalIdUser, ...mainProps }) {
       !(
         JSON.stringify(JSON.parse(um.key).slice(0, selectedKeyArr.length)) ===
         selectedKey
-      )
+      ),
   );
   const keptBotMessages = mainProps.botMessages.filter(
     (bm) =>
       !(
         JSON.stringify(JSON.parse(bm.key).slice(0, selectedKeyArr.length)) ===
         selectedKey
-      )
+      ),
   );
   // console.log("keptBotMessages", keptBotMessages);
   // return;
@@ -291,7 +298,7 @@ export function hasSiblings({ selectedKey, userMessages }) {
   const siblings = userMessages.filter(
     (um) =>
       JSON.stringify(JSON.parse(um.key).slice(0, -1)) === parentString &&
-      um.key !== selectedKey
+      um.key !== selectedKey,
   );
   // console.log("siblings", siblings);
   if (siblings.length > 0) {

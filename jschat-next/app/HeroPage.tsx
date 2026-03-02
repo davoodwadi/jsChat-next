@@ -5,10 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
+// @ts-ignore
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+// @ts-ignore
+import { a11yDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 export default function HeroPage() {
   return (
-    <section className="min-h-[90vh] flex items-center  text-foreground">
+    <section className="min-h-[90vh] flex items-center  text-foreground py-12">
       <div className="container mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
         {/* Left Content */}
         <div className="space-y-8">
@@ -27,18 +31,20 @@ export default function HeroPage() {
           <div className="flex flex-col">
             {/* Line 1: Standard Foreground Color */}
             <h1 className="text-6xl md:text-7xl font-extrabold tracking-tight text-foreground leading-none">
-              One Prompt.
+              One Interface.
             </h1>
             {/* Line 2: Contrasting Gradient & Glass Effect */}
             <h1 className="text-6xl md:text-7xl font-extrabold tracking-tight leading-none relative mt-2">
-              <span className="glass-morphic-text">Infinite Paths.</span>
+              <span className="glass-morphic-text">All Models.</span>
             </h1>
           </div>
 
           <p className="text-lg text-muted-foreground max-w-lg">
-            Spreed is the omni-model workspace. Ask GPT-4 a question, follow up
-            with Claude, and branch the conversation with Llama. Don&apos;t let
-            a single model limit your thinking.
+            Spreed is an omni-model workspace that lets you compare models
+            side-by-side. Spawn multiple conversation branches from a single
+            prompt, evaluate responses from GPT-5.2, Gemini 3.1 Pro, Grok 4.1,
+            and Claude, and continue down the path that works best for you.
+            Don&apos;t let a single model limit your workflow.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4">
@@ -92,52 +98,100 @@ export default function HeroPage() {
             </CardHeader>
 
             <CardContent className="flex-1 p-0 relative">
-              <ScrollArea className="h-[450px] p-6">
-                <div className="space-y-6">
-                  {/* User Message */}
-                  <div className="flex items-center justify-center gap-4">
-                    <div className="flex-1 space-y-2">
-                      <Avatar className="h-8 w-8 mx-auto">
-                        <AvatarImage src="/avatars/user.png" />
-                        <AvatarFallback className="bg-primary text-primary-foreground">
-                          <User className="h-4 w-4" />
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="glass-active p-3 rounded-lg text-sm">
+              <ScrollArea className="h-[450px] p-4 w-full">
+                <div className="flex gap-2 min-w-[350px] overflow-x-auto pb-2 px-2">
+                  {/* Branch 1 */}
+                  <div className="w-[160px] shrink-0 space-y-3">
+                    {/* User Prompt */}
+                    <div className="flex flex-col p-3 m-0.5 rounded-xl glass-subtle text-[11px] shadow-sm">
+                      <div className="text-[10px] text-muted-foreground mb-1 font-medium">
+                        User
+                      </div>
+                      <div className="text-foreground/90">
                         Write a python function to scrape a website.
+                      </div>
+                    </div>
+                    {/* AI Response 1 */}
+                    <div className="p-3 m-0.5 relative rounded-xl glass shadow-md">
+                      <div className="flex flex-row justify-between text-[11px] mb-2 border-b border-border/50 pb-2">
+                        <p className="text-[11px] antialiased italic font-bold text-spreed-blue drop-shadow-sm">
+                          Gemini 3.1 Pro
+                        </p>
+                      </div>
+                      <div className="text-[10px] text-foreground/80 leading-relaxed">
+                        Here is a concise Python function using the{" "}
+                        <code className="bg-foreground/10 px-0.5  rounded font-mono text-[8px] border border-foreground/5">
+                          requests
+                        </code>{" "}
+                        and{" "}
+                        <code className="bg-foreground/10 px-0.5  rounded font-mono text-[8px] border border-foreground/5">
+                          BeautifulSoup
+                        </code>{" "}
+                        libraries...
+                      </div>
+                    </div>
+                    {/* Next Input */}
+                    <div className="flex flex-col p-2 m-0.5 rounded-xl glass-subtle opacity-80 text-[9px] text-muted-foreground border-dashed border-2 hover:opacity-100 transition-opacity cursor-text">
+                      <div className="flex justify-between items-center w-full">
+                        <span className="pl-1 truncate">
+                          Type your message...
+                        </span>
+                        <Badge
+                          variant="secondary"
+                          className="text-[9px] scale-90 -mr-1 px-2 h-5 bg-background/50 backdrop-blur-sm"
+                        >
+                          Grok 4.1
+                        </Badge>
                       </div>
                     </div>
                   </div>
 
-                  {/* AI Responses */}
-                  <div className="grid grid-cols-2 gap-4">
-                    {/* Response 1 */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-center gap-2">
-                        <Badge
-                          variant="outline"
-                          className="text-spreed-blue border-spreed-blue/20 bg-spreed-blue/5 dark:border-spreed-blue/30 dark:bg-spreed-blue/10"
-                        >
-                          GPT-5.2
-                        </Badge>
+                  {/* Branch 2 */}
+                  <div className="flex-1 min-w-[220px] space-y-3">
+                    {/* User Prompt */}
+                    <div className="flex flex-col p-3 m-0.5 rounded-xl glass-subtle text-[11px] shadow-sm">
+                      <div className="text-[10px] text-muted-foreground mb-1 font-medium">
+                        User
                       </div>
-                      <div className="glass-subtle p-3 rounded-lg text-xs text-muted-foreground shadow-sm">
-                        Here is a script using BeautifulSoup...
+                      <div className="text-foreground/90">
+                        Write a python function to scrape a website.
                       </div>
                     </div>
+                    {/* AI Response 2 */}
+                    <div className="p-3 m-0.5 relative rounded-xl glass shadow-md">
+                      <div className="flex flex-row justify-between text-[11px] mb-2 border-b border-border/50 pb-2">
+                        <p className="text-[11px] antialiased italic font-bold text-emerald-500 drop-shadow-sm">
+                          GPT-5.2
+                        </p>
+                      </div>
+                      <div className="text-[10px] text-foreground/80 overflow-hidden [&_pre]:!m-0 [&_pre]:!p-2 [&_pre]:!bg-foreground/5 [&_pre]:!rounded-lg [&_pre]:!border [&_pre]:!border-foreground/10 [&_pre]:!shadow-inner">
+                        <SyntaxHighlighter
+                          language="python"
+                          style={a11yDark}
+                          customStyle={{
+                            margin: 0,
+                            fontSize: "10px",
+                            backgroundColor: "transparent",
+                          }}
+                        >
+                          {`import requests
+from bs4 import BeautifulSoup
 
-                    {/* Response 2 */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-center  gap-2">
+def scrape(url: str):
+    # Fetch page...`}
+                        </SyntaxHighlighter>
+                      </div>
+                    </div>
+                    {/* Next Input */}
+                    <div className="flex flex-col p-2.5 m-0.5 rounded-xl glass-subtle opacity-80 text-[10px] text-muted-foreground border-dashed border-2 hover:opacity-100 transition-opacity cursor-text">
+                      <div className="flex justify-between items-center w-full">
+                        <span className="pl-1">Type your message...</span>
                         <Badge
-                          variant="outline"
-                          className="text-spreed-yellow border-spreed-yellow/20 bg-spreed-yellow/5 dark:border-spreed-yellow/30 dark:bg-spreed-yellow/10"
+                          variant="secondary"
+                          className="text-[9px] scale-90 -mr-1 px-2 h-5 bg-background/50 backdrop-blur-sm"
                         >
                           Claude Opus 4.6
                         </Badge>
-                      </div>
-                      <div className="glass-subtle p-3 rounded-lg text-xs text-muted-foreground shadow-sm">
-                        I recommend using Scrapy for scale...
                       </div>
                     </div>
                   </div>

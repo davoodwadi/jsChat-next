@@ -69,6 +69,8 @@ export async function handleSubmit({
     annotations: [],
     queries: [],
     results: [],
+    interaction: {},
+    errors: {},
   };
 
   const array = JSON.parse(targetId);
@@ -212,6 +214,19 @@ export async function handleSubmit({
                 `[${new Date().toLocaleTimeString()}] ${parsedData.signal}`,
               );
             }
+            if (parsedData?.interactionID) {
+              extraContent.interaction = {
+                interactionID: parsedData.interactionID,
+                status: "pending",
+              };
+            }
+            if (parsedData?.error) {
+              extraContent.errors = {
+                error: parsedData.error,
+                details: parsedData?.details,
+              };
+            }
+
             if (parsedData?.text) {
               tempChunks += parsedData?.text;
             }
@@ -475,6 +490,18 @@ export async function handleSubmit({
               console.log(
                 `[${new Date().toLocaleTimeString()}] ${parsedData.signal}`,
               );
+            }
+            if (parsedData?.interactionID) {
+              extraContent.interaction = {
+                interactionID: parsedData.interactionID,
+                status: "pending",
+              };
+            }
+            if (parsedData?.error) {
+              extraContent.errors = {
+                error: parsedData.error,
+                details: parsedData?.details,
+              };
             }
             if (parsedData?.text) {
               tempChunks += parsedData?.text;
