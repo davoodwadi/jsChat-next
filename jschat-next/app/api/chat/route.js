@@ -715,7 +715,9 @@ export async function POST(req) {
         },
       });
     }
+
     console.log("Gemini model", data.model.model);
+    console.log("data.modelConfig", data.modelConfig);
     // const modelList = await googleAI.models.list();
     // console.log("Gemini modelList", modelList);
 

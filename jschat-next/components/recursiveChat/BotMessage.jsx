@@ -43,7 +43,7 @@ let baseBotClass = ` p-4 m-1 relative
 
 export default function BotMessage(props) {
   // console.log("props?.botMessage.model.model", props?.botMessage.model.model);
-  // console.log("Bot props", props);
+  console.log("Bot props", props);
   // console.log("props?.botMessage?.status", props?.botMessage?.status);
   const isLatestBot = props.id === props.branchKeyToMaximize;
   const refRenderedText = useRef(null);
@@ -52,21 +52,27 @@ export default function BotMessage(props) {
   const [textToSpeak, setTextToSpeak] = useState();
   const botMessageStatus = props?.botMessage?.status;
   const botInteractionStatus = props?.botMessage?.interaction?.status;
+  const botMessageModelId = props?.botMessage?.model?.model;
+  const botMessageModelConfig = props?.botMessage?.modelConfig;
+
+  const isOpenAIGpt52Family =
+    botMessageModelId === "gpt-5.2" || botMessageModelId === "gpt-5.2-pro";
+  const isReasoningMessage = Boolean(botMessageModelConfig?.reasoning);
+  const isDeepResearchMessage = Boolean(botMessageModelConfig?.deepResearch);
+  const canShowInteractionPending =
+    (isOpenAIGpt52Family && isReasoningMessage) || isDeepResearchMessage;
+
   const [interactionData, setInteractionData] = useState(() => ({
-    status: botInteractionStatus
-      ? botInteractionStatus
-      : botMessageStatus
-        ? botMessageStatus
-        : null,
+    status: botInteractionStatus ? botInteractionStatus : null,
     taskId: props?.botMessage?.interaction?.interactionID,
     content: props?.botMessage?.content,
     annotations: props.botMessage?.annotations,
   }));
-  const isDeepResearchOrXHigh = props?.globalModelInfo?.modelConfig.deepResearch
+  const isDeepResearchOrXHigh = isDeepResearchMessage
     ? "Deep Research"
-    : props?.globalModelInfo?.modelConfig.reasoning
+    : isReasoningMessage
       ? "xHigh Reasoning"
-      : "neither deep research nor reasoning";
+      : "Background Task";
   // console.log("isDeepResearchOrXHigh", isDeepResearchOrXHigh);
   useEffect(() => {
     if (refRenderedText.current) {
@@ -142,11 +148,17 @@ export default function BotMessage(props) {
   };
 
   // console.log("props?.botMessage.interaction", props?.botMessage.interaction);
+  const interactionStatus = botInteractionStatus || interactionData?.status;
+  const interactionStatusLabel = !interactionStatus
+    ? "Pending"
+    : interactionStatus === "in_progress"
+      ? "In Progress"
+      : interactionStatus.charAt(0).toUpperCase() + interactionStatus.slice(1);
   const interactionPending =
-    interactionData.status === "pending" ||
-    interactionData.status === "in_progress";
-  // console.log("interactionPending", interactionPending);
-  // console.log("interactionData", interactionData);
+    canShowInteractionPending &&
+    (interactionStatus === "pending" || interactionStatus === "in_progress");
+  console.log("interactionPending", interactionPending);
+  console.log("interactionData", interactionData);
   return (
     <div className={botClass} ref={props.thisBotRef}>
       <div className="flex flex-row justify-between text-xs mb-4">
@@ -217,11 +229,7 @@ export default function BotMessage(props) {
             {interactionData ? (
               <div className="mt-4 p-4 bg-muted/50 rounded-lg w-full max-w-md text-left">
                 <p className="font-semibold text-sm mb-1">
-                  Status:{" "}
-                  {interactionData.status === "in_progress"
-                    ? "In Progress"
-                    : interactionData.status?.charAt(0).toUpperCase() +
-                      interactionData.status?.slice(1)}
+                  Status: {interactionStatusLabel}
                 </p>
                 {interactionData.progress && (
                   <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mt-2">
