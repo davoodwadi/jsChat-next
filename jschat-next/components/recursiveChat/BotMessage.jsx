@@ -43,19 +43,31 @@ let baseBotClass = ` p-4 m-1 relative
 
 export default function BotMessage(props) {
   // console.log("props?.botMessage.model.model", props?.botMessage.model.model);
-  console.log("Bot props", props);
+  // console.log("Bot props", props);
   // console.log("props?.botMessage?.status", props?.botMessage?.status);
   const isLatestBot = props.id === props.branchKeyToMaximize;
   const refRenderedText = useRef(null);
   // console.log("refRenderedText.current", refRenderedText.current);
   const [botClass, setBotClass] = useState(baseBotClass);
   const [textToSpeak, setTextToSpeak] = useState();
-
-  const [interactionData, setInteractionData] = useState(() => {
-    {
-    }
-  });
-
+  const botMessageStatus = props?.botMessage?.status;
+  const botInteractionStatus = props?.botMessage?.interaction?.status;
+  const [interactionData, setInteractionData] = useState(() => ({
+    status: botInteractionStatus
+      ? botInteractionStatus
+      : botMessageStatus
+        ? botMessageStatus
+        : null,
+    taskId: props?.botMessage?.interaction?.interactionID,
+    content: props?.botMessage?.content,
+    annotations: props.botMessage?.annotations,
+  }));
+  const isDeepResearchOrXHigh = props?.globalModelInfo?.modelConfig.deepResearch
+    ? "Deep Research"
+    : props?.globalModelInfo?.modelConfig.reasoning
+      ? "xHigh Reasoning"
+      : "neither deep research nor reasoning";
+  // console.log("isDeepResearchOrXHigh", isDeepResearchOrXHigh);
   useEffect(() => {
     if (refRenderedText.current) {
       // console.log("refRenderedText.current", refRenderedText.current);
@@ -123,6 +135,7 @@ export default function BotMessage(props) {
         });
       }
       setInteractionData(data);
+      console.log("interactionData:", interactionData);
     } catch (error) {
       console.error("Error polling task:", error);
     }
@@ -130,8 +143,10 @@ export default function BotMessage(props) {
 
   // console.log("props?.botMessage.interaction", props?.botMessage.interaction);
   const interactionPending =
-    props?.botMessage?.interaction?.status !== "completed";
+    interactionData.status === "pending" ||
+    interactionData.status === "in_progress";
   // console.log("interactionPending", interactionPending);
+  // console.log("interactionData", interactionData);
   return (
     <div className={botClass} ref={props.thisBotRef}>
       <div className="flex flex-row justify-between text-xs mb-4">
@@ -176,13 +191,16 @@ export default function BotMessage(props) {
             <div className="animate-pulse">
               <Microscope size={48} className=" mb-4 mx-auto" />
               <h3 className="text-xl font-bold mb-2">
-                Deep Research in Progress
+                {isDeepResearchOrXHigh} in Progress
               </h3>
-              <p className="text-muted-foreground max-w-md">
-                This task is running in the background. It may take several
-                minutes to complete depending on the depth of research required.
-                Check the status periodically.
-              </p>
+              <div className="flex flex-col text-muted-foreground max-w-md gap-4">
+                <div>
+                  This task is running in the background. It may take several
+                  minutes to complete depending on the depth of research
+                  required.
+                </div>
+                <div>Check the status periodically.</div>
+              </div>
             </div>
 
             <div className="mt-6 flex flex-col items-center gap-2">
@@ -194,15 +212,16 @@ export default function BotMessage(props) {
                 <Search size={16} />
                 Check Status
               </Button>
-              {/* <span className="text-xs text-muted-foreground font-mono mt-2">
-                Task ID: {props?.botMessage.interaction.interactionID}
-              </span> */}
             </div>
 
             {interactionData ? (
               <div className="mt-4 p-4 bg-muted/50 rounded-lg w-full max-w-md text-left">
                 <p className="font-semibold text-sm mb-1">
-                  Status: {interactionData.status}
+                  Status:{" "}
+                  {interactionData.status === "in_progress"
+                    ? "In Progress"
+                    : interactionData.status?.charAt(0).toUpperCase() +
+                      interactionData.status?.slice(1)}
                 </p>
                 {interactionData.progress && (
                   <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mt-2">
@@ -242,7 +261,7 @@ export default function BotMessage(props) {
           </MarkdownComponent>
         ) : null}
         {props?.botMessage?.errors?.error ? (
-          <div className="mt-4 p-3 rounded-lg border-l-4 border-red-500 bg-red-50 dark:bg-red-950/30 dark:border-red-600">
+          <div className="flex flex-col justify-center my-4 p-3 rounded-lg border-l-4 border-red-500 bg-red-50 dark:bg-red-950/30 dark:border-red-600">
             <div className="flex gap-3">
               <div className="flex-shrink-0">
                 <AlertCircle

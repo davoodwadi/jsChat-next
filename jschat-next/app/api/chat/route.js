@@ -367,6 +367,73 @@ export async function POST(req) {
       },
     });
   } else if (openaiModels.includes(data.model.model)) {
+    if (
+      data.model.name.includes("5.2") &&
+      data.modelConfig.reasoning &&
+      data.model.hasReasoning
+    ) {
+      console.log("OpenAI Background Mode for 5.2 Reasoning");
+      const stream = new ReadableStream({
+        async start(controller) {
+          const encoder = new TextEncoder();
+          try {
+            const { convertedMessages } = convertToOpenAIResponsesFormat({
+              messages: data.messages,
+              agentic: false,
+            });
+            // "effort" : "xhigh"
+            const reasoning = { reasoning: { effort: "xhigh" } };
+            let extraConfigs = {
+              tools: [],
+              max_output_tokens: 127000,
+              include: ["reasoning.encrypted_content"],
+            };
+            const search = data?.modelConfig?.search && data.model.hasSearch;
+            if (search) {
+              extraConfigs["tools"].push({
+                type: "web_search",
+                search_context_size: "high",
+              });
+              extraConfigs["include"].push("web_search_call.action.sources");
+            }
+            const response = await openai.responses.create({
+              model: data.model.model,
+              input: convertedMessages,
+              background: true,
+              ...reasoning,
+              ...extraConfigs,
+            });
+
+            const taskId = response.id;
+
+            console.log("Created OpenAI Background task:", taskId);
+            controller.enqueue(
+              encoder.encode(
+                JSON.stringify({
+                  interactionID: taskId,
+                }) + "\n",
+              ),
+            );
+            controller.close();
+          } catch (err) {
+            console.error("Error creating OpenAI background task", err);
+            controller.enqueue(
+              encoder.encode(
+                JSON.stringify({
+                  error: err.message,
+                }) + "\n",
+              ),
+            );
+            controller.close();
+          }
+        },
+      });
+      return new Response(stream, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    }
     const stream = new ReadableStream({
       async start(controller) {
         const encoder = new TextEncoder();
@@ -408,16 +475,7 @@ export async function POST(req) {
           }
           // return;
           if (data.modelConfig.reasoning && data.model.hasReasoning) {
-            if (data.model.name.includes("5.2")) {
-              if (baseUrl.includes("spreed")) {
-                // prevent 5 minute timeout on spreed
-                reasoning = { reasoning: { effort: "high" } };
-              } else {
-                reasoning = { reasoning: { effort: "xhigh" } };
-              }
-            } else {
-              reasoning = { reasoning: { effort: "high" } };
-            }
+            reasoning = { reasoning: { effort: "high" } };
             extraConfigs.include.push("reasoning.encrypted_content");
           }
 
@@ -1419,6 +1477,75 @@ async function getTaskProgressGemini(taskId, email, baseUrl) {
     };
   }
 }
+async function getTaskProgressOpenAI(taskId, email, baseUrl) {
+  try {
+    const response = await openai.responses.retrieve(taskId);
+    // console.log("response", response);
+
+    let content;
+    let annotations;
+    let status = "in_progress";
+
+    if (response.status === "completed") {
+      status = "completed";
+      // Extract text from output
+      if (response.output) {
+        // Assuming output structure matches response.output from stream
+        // response.output is an array of message objects
+        const lastMessage = response.output.find(
+          (item) => item.role === "assistant",
+        );
+        // console.log("lastMessage", lastMessage);
+        if (lastMessage && lastMessage.content) {
+          const textContent = lastMessage.content.find(
+            (c) => c.type === "output_text",
+          );
+          if (textContent) {
+            content = textContent.text;
+          }
+        }
+      }
+
+      // annotations = ... (if applicable)
+
+      // UPDATE TOKENS HERE START
+      console.log("UPDATING TOKEN USAGE OPENAI");
+      console.log("total_tokens", response?.usage?.total_tokens);
+      if (response?.usage?.total_tokens) {
+        fetch(`${baseUrl}/api/tokens`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            amount: response.usage.total_tokens,
+            email: email,
+          }),
+        });
+      }
+      // UPDATE TOKENS HERE END
+    } else if (
+      response.status === "failed" ||
+      response.status === "cancelled"
+    ) {
+      status = "failed";
+      content = response.error?.message || "Task failed or cancelled";
+    }
+
+    return {
+      status,
+      content,
+      annotations,
+    };
+  } catch (error) {
+    console.error("Error polling OpenAI response:", error);
+    return {
+      status: "failed",
+      content: error.message,
+      annotations: null,
+    };
+  }
+}
 
 export async function GET(req) {
   const url = new URL(req.url);
@@ -1450,6 +1577,20 @@ export async function GET(req) {
 
   if (geminiModels.includes(model) || model === "test-llm") {
     const { status, content, annotations } = await getTaskProgressGemini(
+      taskId,
+      email,
+      baseUrl,
+    );
+    return Response.json({
+      taskId,
+      status,
+      content,
+      annotations,
+    });
+  }
+
+  if (openaiModels.includes(model)) {
+    const { status, content, annotations } = await getTaskProgressOpenAI(
       taskId,
       email,
       baseUrl,
