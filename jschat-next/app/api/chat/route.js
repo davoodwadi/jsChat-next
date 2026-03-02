@@ -1432,7 +1432,7 @@ function getTaskProgress(createdAtMs) {
 async function getTaskProgressGemini(taskId, email, baseUrl) {
   try {
     const interaction = await googleAI.interactions.get(taskId);
-
+    // console.log("interaction", interaction);
     let content;
     let annotations;
     let status = "in_progress";
@@ -1561,14 +1561,14 @@ export async function GET(req) {
   const protocol = host.includes("local") ? "http://" : "https://";
   const baseUrl = protocol + host;
 
-  console.log(
-    "GET /api/chat - polling taskId:",
-    taskId,
-    "model:",
-    model,
-    "email:",
-    email,
-  );
+  // console.log(
+  //   "GET /api/chat - polling taskId:",
+  //   taskId,
+  //   "model:",
+  //   model,
+  //   "email:",
+  //   email,
+  // );
 
   if (!taskId) {
     return Response.json(

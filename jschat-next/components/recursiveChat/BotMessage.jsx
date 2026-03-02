@@ -16,7 +16,9 @@ import {
   X,
   Microscope,
   Search,
+  Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   useRef,
@@ -47,9 +49,13 @@ export default function BotMessage(props) {
   // console.log("props?.botMessage?.status", props?.botMessage?.status);
   const isLatestBot = props.id === props.branchKeyToMaximize;
   const refRenderedText = useRef(null);
+  const isPollingRef = useRef(false);
   // console.log("refRenderedText.current", refRenderedText.current);
   const [botClass, setBotClass] = useState(baseBotClass);
   const [textToSpeak, setTextToSpeak] = useState();
+  const [isManualChecking, setIsManualChecking] = useState(false);
+  const [lastCheckedAt, setLastCheckedAt] = useState(null);
+  const [manualCheckMessage, setManualCheckMessage] = useState("");
   const botMessageStatus = props?.botMessage?.status;
   const botInteractionStatus = props?.botMessage?.interaction?.status;
   const botMessageModelId = props?.botMessage?.model?.model;
@@ -59,6 +65,7 @@ export default function BotMessage(props) {
     botMessageModelId === "gpt-5.2" || botMessageModelId === "gpt-5.2-pro";
   const isReasoningMessage = Boolean(botMessageModelConfig?.reasoning);
   const isDeepResearchMessage = Boolean(botMessageModelConfig?.deepResearch);
+  console.log("isDeepResearchMessage", isDeepResearchMessage);
   const canShowInteractionPending =
     (isOpenAIGpt52Family && isReasoningMessage) || isDeepResearchMessage;
 
@@ -85,12 +92,6 @@ export default function BotMessage(props) {
     }
   }, [refRenderedText.current]);
   useEffect(() => {
-    // console.log(
-    //   "useEffect botmessage fired props.branchKeyToMaximize",
-    //   props.branchKeyToMaximize,
-    // );
-    // console.log("useEffect botmessage fired props.id", props.id);
-
     if (isLatestBot && props?.refElementBot.current) {
       // console.log("props.refElementBot.current", props.refElementBot.current);
       props.refElementBot.current.scrollIntoView({
@@ -101,54 +102,125 @@ export default function BotMessage(props) {
     }
   }, [isLatestBot, props.refElementBot, props.branchKeyToMaximize]);
 
-  const handleCheckMessage = async () => {
-    const taskId = props?.botMessage?.interaction?.interactionID;
-    const modelName = props?.botMessage?.model?.model;
+  const handleCheckMessage = useCallback(
+    async (trigger = "auto") => {
+      const taskId = props?.botMessage?.interaction?.interactionID;
+      const modelName = props?.botMessage?.model?.model;
+      const startedAt = Date.now();
+      let polledStatus = "unknown";
+      const previousStatus =
+        interactionData?.status || botInteractionStatus || null;
+      const isManualTrigger = trigger === "manual";
+      const toastId = taskId ? `poll-${taskId}` : "poll-unknown";
 
-    if (!taskId) return;
-    try {
-      const response = await fetch(
-        `/api/chat?taskId=${taskId}&model=${modelName}&email=${props?.email}`,
-      );
-      const data = await response.json();
+      if (!taskId) return;
 
-      // console.log("Poll response:", data);
-      if (data.status === "completed") {
-        // set botMessages content for this key to data.content
-        // props.setBotMessages
-        const thisMessageKey = props.botMessage.key;
-        console.log("settings bot message for ", thisMessageKey);
-        // Calculate updated messages
-        const updatedBotMessages = props.botMessages.map((bm) =>
-          bm.key === thisMessageKey
-            ? {
-                ...bm,
-                content: data.content,
-                annotations: data.annotations,
-                interaction: { ...bm.interaction, status: "completed" },
-              }
-            : bm,
-        );
-        // Update state
-        props.setBotMessages(updatedBotMessages);
-        // Save with the updated messages
-        saveChatSession({
-          chatId: props.chatId,
-          userMessages: props.userMessages,
-          botMessages: updatedBotMessages,
-          systemPrompt: props.systemPrompt,
-          globalModelInfo: props.globalModelInfo,
-        });
+      if (isPollingRef.current) {
+        if (isManualTrigger) {
+          setManualCheckMessage("A status check is already in progress...");
+          toast.info("Status check already in progress", { id: toastId });
+        }
+        return;
       }
-      setInteractionData(data);
-      console.log("interactionData:", interactionData);
-    } catch (error) {
-      console.error("Error polling task:", error);
-    }
-  };
+
+      if (isManualTrigger) {
+        setIsManualChecking(true);
+        setManualCheckMessage("Checking status...");
+        toast.loading("Checking status...", { id: toastId });
+      }
+
+      isPollingRef.current = true;
+      try {
+        const response = await fetch(
+          `/api/chat?taskId=${taskId}&model=${modelName}&email=${props?.email}`,
+        );
+        const data = await response.json();
+        polledStatus = data?.status || "unknown";
+
+        // console.log("Poll response:", data);
+        if (data.status === "completed") {
+          // set botMessages content for this key to data.content
+          // props.setBotMessages
+          const thisMessageKey = props.botMessage.key;
+          console.log("settings bot message for ", thisMessageKey);
+          // Calculate updated messages
+          const updatedBotMessages = props.botMessages.map((bm) =>
+            bm.key === thisMessageKey
+              ? {
+                  ...bm,
+                  content: data.content,
+                  annotations: data.annotations,
+                  interaction: { ...bm.interaction, status: "completed" },
+                }
+              : bm,
+          );
+          // Update state
+          props.setBotMessages(updatedBotMessages);
+          // Save with the updated messages
+          saveChatSession({
+            chatId: props.chatId,
+            userMessages: props.userMessages,
+            botMessages: updatedBotMessages,
+            systemPrompt: props.systemPrompt,
+            globalModelInfo: props.globalModelInfo,
+          });
+        }
+        setInteractionData(data);
+        setLastCheckedAt(new Date());
+
+        if (isManualTrigger) {
+          const hasStatusChange = previousStatus !== polledStatus;
+          const nextManualMessage = hasStatusChange
+            ? `Status updated: ${
+                polledStatus === "in_progress"
+                  ? "In Progress"
+                  : polledStatus.charAt(0).toUpperCase() + polledStatus.slice(1)
+              }`
+            : "No change since last check.";
+          setManualCheckMessage(nextManualMessage);
+          toast.success(nextManualMessage, { id: toastId });
+        }
+        // console.log("interactionData:", interactionData);
+      } catch (error) {
+        polledStatus = "error";
+        console.error("Error polling task:", error);
+        setLastCheckedAt(new Date());
+        if (isManualTrigger) {
+          const errorMessage = "Status check failed. Please try again.";
+          setManualCheckMessage(errorMessage);
+          toast.error(errorMessage, { id: toastId });
+        }
+      } finally {
+        // console.log("[BotMessage] Polling completed", {
+        //   taskId,
+        //   modelName,
+        //   status: polledStatus,
+        //   durationMs: Date.now() - startedAt,
+        // });
+        if (isManualTrigger) {
+          setIsManualChecking(false);
+        }
+        isPollingRef.current = false;
+      }
+    },
+    [
+      props?.botMessage?.interaction?.interactionID,
+      props?.botMessage?.model?.model,
+      props?.email,
+      interactionData?.status,
+      botInteractionStatus,
+      props.botMessage?.key,
+      props.botMessages,
+      props.setBotMessages,
+      props.chatId,
+      props.userMessages,
+      props.systemPrompt,
+      props.globalModelInfo,
+    ],
+  );
 
   // console.log("props?.botMessage.interaction", props?.botMessage.interaction);
-  const interactionStatus = botInteractionStatus || interactionData?.status;
+  const interactionStatus = interactionData?.status || botInteractionStatus;
   const interactionStatusLabel = !interactionStatus
     ? "Pending"
     : interactionStatus === "in_progress"
@@ -157,8 +229,20 @@ export default function BotMessage(props) {
   const interactionPending =
     canShowInteractionPending &&
     (interactionStatus === "pending" || interactionStatus === "in_progress");
-  console.log("interactionPending", interactionPending);
-  console.log("interactionData", interactionData);
+  const pollIntervalMs = isDeepResearchMessage ? 10000 : 3000;
+
+  useEffect(() => {
+    if (!interactionPending) return;
+
+    const intervalId = setInterval(() => {
+      handleCheckMessage("auto");
+    }, pollIntervalMs);
+
+    return () => clearInterval(intervalId);
+  }, [interactionPending, handleCheckMessage, pollIntervalMs]);
+
+  // console.log("interactionPending", interactionPending);
+  // console.log("interactionData", interactionData);
   return (
     <div className={botClass} ref={props.thisBotRef}>
       <div className="flex flex-row justify-between text-xs mb-4">
@@ -211,18 +295,27 @@ export default function BotMessage(props) {
                   minutes to complete depending on the depth of research
                   required.
                 </div>
-                <div>Check the status periodically.</div>
+                <div>
+                  Status checks run automatically every{" "}
+                  {isDeepResearchMessage ? "10" : "3"} seconds. You can also
+                  check manually.
+                </div>
               </div>
             </div>
 
             <div className="mt-6 flex flex-col items-center gap-2">
               <Button
-                onClick={handleCheckMessage}
+                onClick={() => handleCheckMessage("manual")}
                 className="glass-button-dark flex items-center gap-2"
                 variant="outline"
+                disabled={isManualChecking}
               >
-                <Search size={16} />
-                Check Status
+                {isManualChecking ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Search size={16} />
+                )}
+                {isManualChecking ? "Checking..." : "Check Status"}
               </Button>
             </div>
 
@@ -231,6 +324,16 @@ export default function BotMessage(props) {
                 <p className="font-semibold text-sm mb-1">
                   Status: {interactionStatusLabel}
                 </p>
+                {manualCheckMessage ? (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {manualCheckMessage}
+                  </p>
+                ) : null}
+                {lastCheckedAt ? (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Last checked: {lastCheckedAt.toLocaleTimeString()}
+                  </p>
+                ) : null}
                 {interactionData.progress && (
                   <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mt-2">
                     <div
