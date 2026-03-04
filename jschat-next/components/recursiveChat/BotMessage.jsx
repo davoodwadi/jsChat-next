@@ -45,7 +45,7 @@ let baseBotClass = ` p-4 m-1 relative md:space-y-8
 
 export default function BotMessage(props) {
   // console.log("props?.botMessage.model.model", props?.botMessage.model.model);
-  console.log("Bot props", props);
+  // console.log("Bot props", props);
   // console.log("props?.botMessage?.status", props?.botMessage?.status);
   const isLatestBot = props.id === props.branchKeyToMaximize;
   const refRenderedText = useRef(null);
@@ -65,7 +65,7 @@ export default function BotMessage(props) {
     botMessageModelId === "gpt-5.2" || botMessageModelId === "gpt-5.2-pro";
   const isReasoningMessage = Boolean(botMessageModelConfig?.reasoning);
   const isDeepResearchMessage = Boolean(botMessageModelConfig?.deepResearch);
-  console.log("isDeepResearchMessage", isDeepResearchMessage);
+  // console.log("isDeepResearchMessage", isDeepResearchMessage);
   const canShowInteractionPending =
     (isOpenAIGpt52Family && isReasoningMessage) || isDeepResearchMessage;
 
@@ -142,7 +142,7 @@ export default function BotMessage(props) {
           // set botMessages content for this key to data.content
           // props.setBotMessages
           const thisMessageKey = props.botMessage.key;
-          console.log("settings bot message for ", thisMessageKey);
+          // console.log("settings bot message for ", thisMessageKey);
           // Calculate updated messages
           const updatedBotMessages = props.botMessages.map((bm) =>
             bm.key === thisMessageKey
@@ -400,7 +400,7 @@ export default function BotMessage(props) {
 const fullscreenBotMessage =
   "fixed inset-0 z-50 bg-white flex flex-col p-8 overflow-auto";
 export function maximizeBotMessage(e, botClass, setBotClass) {
-  console.log("e", e);
+  // console.log("e", e);
   botClass === baseBotClass
     ? setBotClass(fullscreenBotMessage)
     : setBotClass(baseBotClass);

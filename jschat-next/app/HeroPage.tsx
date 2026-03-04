@@ -1,6 +1,7 @@
 "use client";
 
 import { useTheme } from "next-themes";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowRight, GitBranch, Cpu, User, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,13 @@ import {
 
 export default function HeroPage() {
   const { resolvedTheme } = useTheme();
-  const syntaxTheme = resolvedTheme === "dark" ? a11yDark : oneLight;
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const syntaxTheme = mounted && resolvedTheme === "dark" ? a11yDark : oneLight;
 
   return (
     <section className="min-h-[90vh] flex items-center text-foreground py-8 lg:py-12 overflow-x-hidden w-full">
