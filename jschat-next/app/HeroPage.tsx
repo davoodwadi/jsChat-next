@@ -12,34 +12,36 @@ import { a11yDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 export default function HeroPage() {
   return (
-    <section className="min-h-[90vh] flex items-center  text-foreground py-12">
-      <div className="container mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
+    <section className="min-h-[90vh] flex items-center text-foreground py-8 lg:py-12 overflow-x-hidden w-full">
+      <div className="container mx-auto px-4 sm:px-6 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center w-full max-w-full">
         {/* Left Content */}
-        <div className="space-y-8">
+        <div className="space-y-8 min-w-0">
           <Badge
             variant="secondary"
-            className="px-3 py-1 text-sm font-medium border-spreed-blue/20 bg-spreed-blue/5 text-spreed-blue hover:bg-spreed-blue/10 transition-colors dark:bg-spreed-blue/10 dark:text-spreed-blue-dark"
+            className="px-3 py-1.5 text-sm font-medium border-spreed-blue/20 bg-spreed-blue/5 text-spreed-blue hover:bg-spreed-blue/10 transition-colors dark:bg-spreed-blue/10 dark:text-spreed-blue-dark h-auto whitespace-normal text-left flex items-start gap-2 w-full max-w-full"
           >
-            <span className="relative flex h-2 w-2 mr-2">
+            <span className="relative flex h-2 w-2 shrink-0 mt-1.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-spreed-blue/40 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-spreed-blue"></span>
             </span>
-            Now supporting Gemini 3.1 Pro, GPT-5.2 High Reasoning, Claude 4.6
-            Opus, and Qwen 3 Max
+            <span className="flex-1 min-w-0 break-words">
+              Now supporting Gemini 3.1 Pro, GPT-5.2 High Reasoning, Claude 4.6
+              Opus, and Qwen 3 Max
+            </span>
           </Badge>
 
           <div className="flex flex-col">
             {/* Line 1: Standard Foreground Color */}
-            <h1 className="text-6xl md:text-7xl font-extrabold tracking-tight text-foreground leading-none">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-foreground leading-none">
               One Interface.
             </h1>
             {/* Line 2: Contrasting Gradient & Glass Effect */}
-            <h1 className="text-6xl md:text-7xl font-extrabold tracking-tight leading-none relative mt-2">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-none relative mt-2">
               <span className="glass-morphic-text">All Models.</span>
             </h1>
           </div>
 
-          <p className="text-lg text-muted-foreground max-w-lg">
+          <p className="text-base sm:text-lg text-muted-foreground max-w-lg">
             Spreed is an omni-model workspace that lets you compare models
             side-by-side. Spawn multiple conversation branches from a single
             prompt, evaluate responses from GPT-5.2, Gemini 3.1 Pro, Grok 4.1,
@@ -55,7 +57,7 @@ export default function HeroPage() {
             </Link>
           </div>
 
-          <div className="pt-8 border-t border-border grid grid-cols-2 gap-6">
+          <div className="pt-8 border-t border-border grid grid-cols-1 sm:grid-cols-2 gap-6">
             <Card className="border-none shadow-none bg-transparent">
               <CardContent className="p-0 flex gap-3 items-start">
                 <GitBranch className="w-6 h-6 text-spreed-blue mt-1" />
@@ -82,9 +84,9 @@ export default function HeroPage() {
         </div>
 
         {/* Right Visual */}
-        <div className="relative">
+        <div className="relative min-w-0 w-full max-w-full">
           <div className="absolute inset-0 bg-gradient-to-tr from-spreed-blue/20 to-spreed-yellow/20 rounded-3xl -rotate-2 scale-95 -z-10 dark:from-spreed-blue/10 dark:to-spreed-yellow/10" />
-          <Card className="glass min-h-[500px] flex flex-col overflow-hidden shadow-2xl">
+          <Card className="glass min-h-[400px] lg:min-h-[500px] flex flex-col overflow-hidden shadow-2xl w-full max-w-full">
             {/* Mock Chat Interface */}
             <CardHeader className="border-b border-white/10 dark:border-white/5 px-6 py-4 flex flex-row items-center justify-between space-y-0">
               <div className="flex items-center gap-2">
@@ -98,8 +100,8 @@ export default function HeroPage() {
             </CardHeader>
 
             <CardContent className="flex-1 p-0 relative">
-              <ScrollArea className="h-[450px] p-4 w-full">
-                <div className="flex gap-2 min-w-[350px] overflow-x-auto pb-2 px-2">
+              <ScrollArea className="h-[350px] lg:h-[450px] p-4 w-full">
+                <div className="flex gap-2 min-w-[350px] overflow-x-auto pb-2 px-2 origin-top-left transform scale-[0.85] sm:scale-100 w-[118%] sm:w-full">
                   {/* Branch 1 */}
                   <div className="w-[160px] shrink-0 space-y-3">
                     {/* User Prompt */}
