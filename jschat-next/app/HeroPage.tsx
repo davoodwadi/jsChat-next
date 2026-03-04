@@ -8,9 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-// @ts-ignore
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-// @ts-ignore
 import {
   a11yDark,
   oneLight,
