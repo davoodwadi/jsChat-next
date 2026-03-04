@@ -86,7 +86,7 @@ export default function ChatClient({ chatId, bookmarked, email }) {
     "flex flex-row justify-between  px-1 pb-2 items-center border-b hover:cursor-pointer rounded-lg bg-sky-200 dark:bg-sky-900 ";
 
   return (
-    <Suspense fallback={ChatSkeleton}>
+    <Suspense fallback={<ChatSkeleton />}>
       <ChatContainer
         chatId={chatId}
         systemPrompt={systemPrompt}

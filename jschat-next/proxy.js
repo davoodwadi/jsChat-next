@@ -1,28 +1,14 @@
 import { NextResponse } from "next/server";
-// import { auth } from "@/auth"
 import NextAuth from "next-auth";
 import { authConfig } from "@/auth.config";
 
 const environment = "production"; // test | production
-// function midd(request) {
-//   if (environment === "test") {
-//     console.log("middleware bypass:", request.url)
-//     return NextResponse.next()
-//   }
-
-//   console.log("isAuthenticated", request.auth)
-
-//   // const redirectURL = new URL("/signin", request.url)
-//   // console.log('new URL("/signin", request.url)', redirectURL)
-//   // return NextResponse.redirect(redirectURL)
-//   return NextResponse.next()
-// }
 
 // export default auth(midd)
 const { auth } = NextAuth(authConfig); // use config without database adapter
 
-export default auth((req) => {
-  console.log("middleware inside:", req.url);
+export const proxy = auth((req) => {
+  // console.log("middleware inside:", req.url);
   // Allow landing page without auth
   if (req.nextUrl.pathname === "/") {
     return NextResponse.next();
@@ -36,11 +22,6 @@ export default auth((req) => {
     return NextResponse.next();
   }
 });
-
-// export function middleware(request) {
-//   console.log("middleware")
-//   return NextResponse.next()
-// }
 
 export const config = {
   matcher: [
