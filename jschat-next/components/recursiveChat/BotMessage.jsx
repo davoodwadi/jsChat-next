@@ -35,7 +35,7 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { TTS } from "@/components/TTS";
 import { Maximize } from "lucide-react";
 
-let baseBotClass = ` p-4 m-1 relative   
+let baseBotClass = ` p-4 m-1 relative md:space-y-8    
     text-gray-900 rounded-xl  
     border-2 border-gray-100
     focus:ring-blue-500 focus:border-blue-500 

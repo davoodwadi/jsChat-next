@@ -23,8 +23,11 @@ const { auth } = NextAuth(authConfig); // use config without database adapter
 
 export default auth((req) => {
   console.log("middleware inside:", req.url);
+  // Allow landing page without auth
+  if (req.nextUrl.pathname === "/") {
+    return NextResponse.next();
+  }
   if (!req.auth) {
-    // && req.nextUrl.pathname !== "/signin"
     console.log("needs auth");
     const newUrl = new URL("/api/auth/signin", req.nextUrl.origin);
     return Response.redirect(newUrl);
