@@ -7,6 +7,7 @@ import {
 import { readStreamableValue } from "@/lib/aiRSCUtils";
 import { wait } from "@/lib/actions";
 import { toast } from "sonner";
+import { logError } from "@/lib/errorLogger";
 
 // import { useTransition } from "react";
 
@@ -188,6 +189,18 @@ export async function handleSubmit({
       if (!data.ok) {
         // Handle 400/500 responses from the server BEFORE the stream
         const errorData = await data.json();
+        // Log API error
+        await logError({
+          error: new Error(errorData.error || "API request failed"),
+          context: "chat-send-api-error",
+          metadata: {
+            status: data.status,
+            statusText: data.statusText,
+            model,
+            endpoint,
+            isOldMessage: false,
+          },
+        });
         // console.log("Error:", errorData.error);
         toast("Error", {
           // title: "Error",
@@ -329,6 +342,21 @@ export async function handleSubmit({
           description: "Generation stopped by user",
         });
       } else {
+        // Log the error before re-throwing
+        await logError({
+          error,
+          context: "chat-send-stream-error",
+          metadata: {
+            model,
+            endpoint,
+            isOldMessage: false,
+            fetchStatus: data?.status,
+            hasReader: !!data?.body?.getReader,
+          },
+        });
+        toast("Error", {
+          description: `Failed to process response: ${error.message}`,
+        });
         throw error; // Re-throw other errors
       }
     } finally {
@@ -449,6 +477,18 @@ export async function handleSubmit({
       if (!data.ok) {
         // Handle 400/500 responses from the server BEFORE the stream
         const errorData = await data.json();
+        // Log API error
+        await logError({
+          error: new Error(errorData.error || "API request failed"),
+          context: "chat-send-api-error",
+          metadata: {
+            status: data.status,
+            statusText: data.statusText,
+            model,
+            endpoint,
+            isOldMessage: true,
+          },
+        });
         console.log("Error:", errorData.error);
         toast("Error", {
           // title: "Error",
@@ -602,6 +642,21 @@ export async function handleSubmit({
           description: "Generation stopped by user",
         });
       } else {
+        // Log the error before re-throwing
+        await logError({
+          error,
+          context: "chat-send-stream-error",
+          metadata: {
+            model,
+            endpoint,
+            isOldMessage: true,
+            fetchStatus: data?.status,
+            hasReader: !!data?.body?.getReader,
+          },
+        });
+        toast("Error", {
+          description: `Failed to process response: ${error.message}`,
+        });
         throw error; // Re-throw other errors
       }
     } finally {

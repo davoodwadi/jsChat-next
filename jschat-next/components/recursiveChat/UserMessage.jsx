@@ -21,10 +21,12 @@ import {
   Microscope,
   Search,
   Brain,
+  Bug,
 } from "lucide-react";
 import { HatGlasses, GraduationCap, ChevronsLeftRight } from "lucide-react";
 import { ModelSelector, CompactModelSelector } from "./ModelSelector";
 import { test } from "@/lib/test";
+import { getStoredErrors, clearStoredErrors } from "@/lib/errorLogger";
 
 // Disable SSR for the ImageUploader component
 const ImageUploader = dynamic(() => import("./ImageUploader"), {
@@ -97,6 +99,10 @@ min-h-[2.5rem] overflow-y-auto
   const isLatestUser = props.maxGlobalIdUser === props.globalIdUser;
 
   const refUser = isLatestUser ? props.refElementUser : refThisUser;
+
+  // Debug error viewer state
+  const [showErrorLogs, setShowErrorLogs] = useState(false);
+  const [errorLogs, setErrorLogs] = useState([]);
 
   if (props.children?.text && finalValue === undefined) {
     // set new value for new branch
@@ -452,7 +458,104 @@ min-h-[2.5rem] overflow-y-auto
           {/* stop START */}
           {/* <Button onClick={stopStream}>STOP</Button> */}
           {/* stop END */}
+
+          {/* Debug error viewer (development only) START */}
+          {process.env.NODE_ENV === "development" && isLatestUser && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="glass-button !rounded-full w-8 h-8 p-0"
+              onClick={() => {
+                const errors = getStoredErrors();
+                setErrorLogs(errors);
+                setShowErrorLogs(!showErrorLogs);
+              }}
+              title="View Error Logs"
+            >
+              <span className="inline-flex text-sm items-center text-red-600 hover:text-red-400">
+                <Bug className="w-4 h-4" />
+              </span>
+            </Button>
+          )}
+          {/* Debug error viewer END */}
         </div>
+
+        {/* Error logs panel START */}
+        {showErrorLogs && (
+          <div className="mt-4 w-full max-w-4xl p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-sm font-semibold text-red-800 dark:text-red-200">
+                Error Logs ({errorLogs.length})
+              </h3>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    clearStoredErrors();
+                    setErrorLogs([]);
+                  }}
+                  className="text-xs"
+                >
+                  Clear
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowErrorLogs(false)}
+                  className="text-xs"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+            {errorLogs.length === 0 ? (
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                No errors logged yet.
+              </p>
+            ) : (
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {errorLogs.map((log, index) => (
+                  <div
+                    key={index}
+                    className="p-3 bg-white dark:bg-zinc-800 rounded border border-red-200 dark:border-red-700"
+                  >
+                    <div className="flex justify-between items-start mb-1">
+                      <span className="text-xs font-mono text-red-600 dark:text-red-400">
+                        {log.context}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {new Date(log.timestamp).toLocaleTimeString()}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-800 dark:text-gray-200 mb-2">
+                      {log.error.message}
+                    </p>
+                    {log.deviceInfo?.isBrave && (
+                      <span className="inline-block px-2 py-0.5 text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-200 rounded">
+                        Brave Browser
+                      </span>
+                    )}
+                    {log.deviceInfo?.userAgent?.includes("iPhone") && (
+                      <span className="inline-block ml-2 px-2 py-0.5 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded">
+                        iOS
+                      </span>
+                    )}
+                    <details className="mt-2">
+                      <summary className="text-xs text-gray-600 dark:text-gray-400 cursor-pointer">
+                        Technical Details
+                      </summary>
+                      <pre className="mt-2 p-2 bg-gray-100 dark:bg-gray-900 rounded text-xs overflow-x-auto">
+                        {JSON.stringify(log, null, 2)}
+                      </pre>
+                    </details>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        {/* Error logs panel END */}
       </div>
     </>
   );
