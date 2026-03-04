@@ -30,7 +30,7 @@ export default auth((req) => {
     return Response.redirect(newUrl);
   } else {
     console.log("already auth or on signin page");
-    NextResponse.next();
+    return NextResponse.next();
   }
 });
 
@@ -48,7 +48,6 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico, sitemap.xml, robots.txt (metadata files)
      */
-    // "/((?!api|_next/static|_next/image|favicon.ico|icon.svg|sitemap.xml|robots.txt).*)",
-    // "/api/chat/:path*",
+    "/((?!api|_next/static|_next/image|favicon.ico|icon.svg|sitemap.xml|robots.txt).*)",
   ],
 };
