@@ -1,3 +1,6 @@
+"use client";
+
+import { useTheme } from "next-themes";
 import Link from "next/link";
 import { ArrowRight, GitBranch, Cpu, User, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,9 +11,15 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 // @ts-ignore
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 // @ts-ignore
-import { a11yDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import {
+  a11yDark,
+  oneLight,
+} from "react-syntax-highlighter/dist/esm/styles/prism";
 
 export default function HeroPage() {
+  const { resolvedTheme } = useTheme();
+  const syntaxTheme = resolvedTheme === "dark" ? a11yDark : oneLight;
+
   return (
     <section className="min-h-[90vh] flex items-center text-foreground py-8 lg:py-12 overflow-x-hidden w-full">
       <div className="container mx-auto px-4 sm:px-6 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center w-full max-w-full">
@@ -95,7 +104,7 @@ export default function HeroPage() {
                 <div className="w-3 h-3 rounded-full bg-foreground/10 transition-all duration-500 hover:bg-spreed-blue/40 hover:shadow-[0_0_12px_rgba(31,159,255,0.4)] cursor-pointer" />
               </div>
               <div className="text-xs text-muted-foreground font-mono">
-                spreedsheet-alpha
+                spreedsheet
               </div>
             </CardHeader>
 
@@ -169,11 +178,11 @@ export default function HeroPage() {
                       <div className="text-[10px] text-foreground/80 overflow-hidden [&_pre]:!m-0 [&_pre]:!p-2 [&_pre]:!bg-foreground/5 [&_pre]:!rounded-lg [&_pre]:!border [&_pre]:!border-foreground/10 [&_pre]:!shadow-inner">
                         <SyntaxHighlighter
                           language="python"
-                          style={a11yDark}
+                          style={syntaxTheme}
                           customStyle={{
                             margin: 0,
                             fontSize: "10px",
-                            backgroundColor: "transparent",
+                            background: "transparent",
                           }}
                         >
                           {`import requests
