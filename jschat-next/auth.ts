@@ -106,12 +106,27 @@ export async function createOrUpdateUser({
   return toReturn;
 }
 
-const client = await connectToDatabase();
-let adapter;
-if (client) {
-  adapter = MongoDBAdapter(client, { databaseName: "next" });
-} else {
-  adapter = undefined;
+let adapterPromise:
+  | Promise<ReturnType<typeof MongoDBAdapter> | undefined>
+  | undefined;
+
+async function getAdapter() {
+  if (!adapterPromise) {
+    adapterPromise = connectToDatabase()
+      .then((client) => {
+        if (!client) {
+          return undefined;
+        }
+
+        return MongoDBAdapter(client, { databaseName: "next" });
+      })
+      .catch((error) => {
+        console.error("Failed to initialize auth adapter", error);
+        return undefined;
+      });
+  }
+
+  return adapterPromise;
 }
 
 export let providerMap = [];
@@ -178,16 +193,8 @@ export const getProviders = async () => {
 
 export const { handlers, signIn, signOut, auth } = NextAuth(async (req) => {
   const providers = await getProviders();
+  const adapter = await getAdapter();
 
-  // filter providers
-  // const filteredProviders = authConfig.providers.filter((provider) => {
-  //   // Providers in Auth.js can be objects or functions that return objects
-  //   const p = typeof provider === "function" ? provider() : provider;
-  //   return p.id === "google" || p.options?.id === gitHubType;
-  // });
-  // console.log("Current host detected:", host, gitHubType, providers);
-  // const isDevDomain = host.includes("spreed.dev");
-  // console.log(authConfig);
   return {
     // ...authConfig,
     providers: providers,

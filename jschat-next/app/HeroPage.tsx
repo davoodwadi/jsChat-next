@@ -1,30 +1,11 @@
-"use client";
-
-import { useTheme } from "next-themes";
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowRight, GitBranch, Cpu, User, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import {
-  a11yDark,
-  oneLight,
-} from "react-syntax-highlighter/dist/esm/styles/prism";
 
 export default function HeroPage() {
-  const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const syntaxTheme = mounted && resolvedTheme === "dark" ? a11yDark : oneLight;
-
   return (
     <section className="min-h-[90vh] flex items-center text-foreground py-8 lg:py-12 overflow-x-hidden w-full">
       <div className="container mx-auto px-4 sm:px-6 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center w-full max-w-full">
@@ -180,22 +161,14 @@ export default function HeroPage() {
                           GPT-5.2
                         </p>
                       </div>
-                      <div className="text-[10px] text-foreground/80 overflow-hidden [&_pre]:!m-0 [&_pre]:!p-2 [&_pre]:!bg-foreground/5 [&_pre]:!rounded-lg [&_pre]:!border [&_pre]:!border-foreground/10 [&_pre]:!shadow-inner">
-                        <SyntaxHighlighter
-                          language="python"
-                          style={syntaxTheme}
-                          customStyle={{
-                            margin: 0,
-                            fontSize: "10px",
-                            background: "transparent",
-                          }}
-                        >
-                          {`import requests
+                      <div className="overflow-hidden rounded-lg border border-foreground/10 bg-foreground/5 p-2 font-mono text-[10px] text-foreground/80 shadow-inner">
+                        <pre className="m-0 overflow-x-auto bg-transparent p-0 leading-relaxed">
+                          <code>{`import requests
 from bs4 import BeautifulSoup
 
 def scrape(url: str):
-    # Fetch page...`}
-                        </SyntaxHighlighter>
+    # Fetch page...`}</code>
+                        </pre>
                       </div>
                     </div>
                     {/* Next Input */}

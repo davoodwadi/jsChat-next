@@ -368,11 +368,11 @@ export async function POST(req) {
     });
   } else if (openaiModels.includes(data.model.model)) {
     if (
-      data.model.name.includes("5.2") &&
+      (data.model.name.includes("5.2") || data.model.name.includes("5.4")) &&
       data.modelConfig.reasoning &&
       data.model.hasReasoning
     ) {
-      console.log("OpenAI Background Mode for 5.2 Reasoning");
+      console.log("OpenAI Background Mode for 5.2/5.4 Reasoning");
       const stream = new ReadableStream({
         async start(controller) {
           const encoder = new TextEncoder();
@@ -460,7 +460,6 @@ export async function POST(req) {
             max_output_tokens: 16384,
             include: [],
           };
-          // console.log("key", process.env["OPENAI_KEY"]);
           const { convertedMessages, hasImage } =
             convertToOpenAIResponsesFormat({
               messages: data.messages,
@@ -468,20 +467,16 @@ export async function POST(req) {
             });
           // console.dir(convertedMessages, { depth: null });
           // return;
-          // const legacyMessages = convertToOpenAIFormat(data.messages);
-          // console.log("data.model", data.model);
-          if (data.model.name.includes("5.2")) {
+          if (
+            data.model.name.includes("5.2") ||
+            data.model.name.includes("5.4")
+          ) {
             extraConfigs.max_output_tokens = 127000;
           }
-          // return;
           if (data.modelConfig.reasoning && data.model.hasReasoning) {
             reasoning = { reasoning: { effort: "high" } };
             extraConfigs.include.push("reasoning.encrypted_content");
           }
-
-          // console.log("data.model", data.model);
-          // console.log("reasoning", reasoning);
-          // return;
 
           if (search) {
             extraConfigs["tools"].push({
