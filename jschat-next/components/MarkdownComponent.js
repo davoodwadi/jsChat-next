@@ -95,8 +95,8 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
   // console.log("NOT OpenAI");
 
   const isGemini = Boolean(
-    geminiModels.includes(props.botMessage.model.model) ||
-    props.botMessage.model.model === "test-llm",
+    geminiModels.includes(props.botMessage.model.model),
+    // || props.botMessage.model.model === "test-llm",
   );
   if (isGemini) {
     // console.log("isGemini");
@@ -621,411 +621,22 @@ const getTextContent = (children) => {
 };
 
 export function CustomMarkdown({ children, mode, props, className }) {
-  const problematicTags = ["div", "pre", "tool", "output", "think"];
   const markdownChildren = children;
-  const style = a11yDark;
   return (
-    <Markdown
-      remarkPlugins={[
-        // remarkLLMLatexMath,
-        // debugAfterRemarkMath,
-        remarkMath,
-        // debugAfterRemarkMath,
-        remarkGfm,
-      ]}
-      rehypePlugins={[rehypeKatex, rehypeRaw]}
-      // prose prose-zinc dark:prose-invert !max-w-none
-      className={cn(
-        ` pb-4 break-words prose prose-zinc dark:prose-invert !max-w-none`,
-        className,
-      )}
-      components={{
-        sup(props) {
-          const { children } = props;
-          // const fullText = getTextContent(children);
-          // console.log("fullText", fullText);
-          return (
-            <sup className="" style={{ marginLeft: "0.3em" }}>
-              {children}
-            </sup>
-          );
-        },
-        a(props) {
-          const { children, className, node, ...rest } = props;
-          if (!rest.href.includes("http")) {
-            return <a href={rest.href}>{children}</a>;
-          } else {
-            return <LinkTooltip rest={rest}>{children}</LinkTooltip>;
-          }
-        },
-        table: TableWrapper,
-        pre({ node, children, ...props }) {
-          // If the only child is "code" with `language-search`, skip wrapping in <pre>
-          if (
-            node.children &&
-            node.children[0]?.tagName === "code" &&
-            (node.children[0]?.properties?.className?.includes(
-              "language-search",
-            ) ||
-              node.children[0]?.properties?.className?.includes(
-                "language-query",
-              ) ||
-              node.children[0]?.properties?.className?.includes(
-                "language-tool",
-              ) ||
-              node.children[0]?.properties?.className?.includes(
-                "language-output",
-              ))
-          ) {
-            // Just render the children directly (SearchBlock will take over)
-            return <>{children}</>;
-          }
-          // Default: keep pre
-          return <pre {...props}>{children}</pre>;
-        },
-        code(props) {
-          const { children, className, node, ...rest } = props;
-          const text = children;
-          // console.log("node", node);
-          // console.log("className", className);
-          // console.log("rest", rest);
-          // console.log("children", children);
-
-          // --- HANDLE INLINE CODE (` ... `) ---
-          // This is inline code because it does NOT have a `language-*` class.
-          // Check if the text matches our special inline math prefix.
-          if (text && text.startsWith("math-inline:")) {
-            const math = text.slice("math-inline:".length);
-            // console.log("math", math);
-            return <InlineMath>{math}</InlineMath>;
-          }
-          //
-          const match = /language-(\w+)/.exec(className || "");
-          if (match) {
-            // set language
-            const language = match[1];
-            // known code block
-            function CustomPreTag({ children, ...rest }) {
-              // console.log("children", children)
-              // console.log("rest", rest);
-              // console.log(cn(className, "overflow-x-auto w-full  min-w-0"));
-              return (
-                <div
-                  {...rest}
-                  className="flex flex-col overflow-x-auto w-full  min-w-0"
-                >
-                  <div className="flex flex-row justify-between text-xs mb-4">
-                    <div>{language}</div>
-                    <CopyText text={text} />
-                  </div>
-                  {children}
-                </div>
-              );
-            }
-            // console.log("children", typeof children);
-            // console.log("language", language);
-            if (language === "search") {
-              return (
-                <SearchBlock
-                  {...rest}
-                  className={cn(className, "overflow-x-auto w-full  min-w-0")}
-                >
-                  {children}
-                </SearchBlock>
-              );
-            }
-            if (language === "tool") {
-              return (
-                <ToolBlock
-                  {...rest}
-                  className={cn(className, "overflow-x-auto w-full  min-w-0")}
-                >
-                  {children}
-                </ToolBlock>
-              );
-            }
-            if (language === "query") {
-              return (
-                <QueryBlock
-                  {...rest}
-                  className={cn(className, "overflow-x-auto w-full  min-w-0")}
-                >
-                  {children}
-                </QueryBlock>
-              );
-            }
-            if (language === "output") {
-              return (
-                <OutputBlock
-                  {...rest}
-                  className={cn(className, "overflow-x-auto w-full  min-w-0")}
-                >
-                  {children}
-                </OutputBlock>
-              );
-            }
-            return (
-              <>
-                <SyntaxHighlighter
-                  {...rest}
-                  PreTag={CustomPreTag} //"div"
-                  children={String(children).replace(/\n$/, "")}
-                  language={match[1]}
-                  style={style}
-                  // showLineNumbers
-                />
-              </>
-            );
-          } else {
-            return (
-              <code
-                {...rest}
-                className={cn(className, "overflow-x-auto w-full  min-w-0")}
-              >
-                {children}
-              </code>
-            );
-          }
-        },
-        tool({ node, children, ...props }) {
-          return <ToolBlock {...props}>{children}</ToolBlock>;
-        },
-        output({ node, children, ...props }) {
-          return <OutputBlock {...props}>{children}</OutputBlock>;
-        },
-        query({ node, children, ...props }) {
-          return <QueryBlock {...props}>{children}</QueryBlock>;
-        },
-        search({ node, children, ...props }) {
-          return <SearchBlock {...props}>{children}</SearchBlock>;
-        },
-        think({ node, children, ...props }) {
-          return <ThinkingBlock {...props}>{children}</ThinkingBlock>;
-        },
-        p({ node, children, ...props }) {
-          const hasBlockChild = React.Children.toArray(children).some(
-            (child) => {
-              if (!child || !child.type) return false;
-              return problematicTags.includes(
-                child.type.displayName || child.type.name || child.type,
-              );
-            },
-          );
-
-          const paragraphClasses = "mb-4 leading-relaxed ";
-
-          if (hasBlockChild) {
-            return (
-              <div {...props} className={paragraphClasses}>
-                {children}
-              </div>
-            );
-          }
-
-          return (
-            <p {...props} className={paragraphClasses}>
-              {children}
-            </p>
-          );
-        },
-      }}
-    >
+    <SimpleMarkdown status={props.status} mappingName="Custom">
       {markdownChildren}
-    </Markdown>
+    </SimpleMarkdown>
   );
 }
 
-function SimpleMarkdownOpenAI({ children }) {
-  const style = a11yDark;
-
+function SimpleMarkdown({ children, status, mappingName }) {
   return (
-    <Markdown
-      remarkPlugins={[remarkMath, remarkGfm]}
-      rehypePlugins={[[rehypeKatex, { strict: false }], rehypeRaw]}
-      // prose prose-zinc dark:prose-invert !max-w-none
-      className={` pb-4 break-words prose prose-zinc dark:prose-invert !max-w-none`}
-      components={{
-        sup(props) {
-          const { children } = props;
-          // const fullText = getTextContent(children);
-          // console.log("fullText", fullText);
-          return (
-            <sup className="" style={{ marginLeft: "0.3em" }}>
-              {children}
-            </sup>
-          );
-        },
-        a(props) {
-          const { children, className, node, ...rest } = props;
-          if (!rest.href.includes("http")) {
-            return <a href={rest.href}>{children}</a>;
-          } else {
-            return <LinkTooltip rest={rest}>{children}</LinkTooltip>;
-          }
-        },
-        table: TableWrapper,
-        pre({ node, children, ...props }) {
-          // Default: keep pre
-          return <pre {...props}>{children}</pre>;
-        },
-        code(props) {
-          const { children, className, node, ...rest } = props;
-          const text = children;
-          // console.log("node", node);
-          // console.log("className", className);
-          // console.log("rest", rest);
-          // console.log("children", children);
-          if (text && text.startsWith("math-inline:")) {
-            const math = text.slice("math-inline:".length);
-            // console.log("math", math);
-            return <InlineMath>{math}</InlineMath>;
-          }
-          const match = /language-(\w+)/.exec(className || "");
-          if (match) {
-            // set language
-            const language = match[1];
-            // known code block
-            function CustomPreTag({ children, ...rest }) {
-              // console.log("children", children)
-              // console.log("rest", rest);
-              // console.log(cn(className, "overflow-x-auto w-full  min-w-0"));
-              return (
-                <div
-                  {...rest}
-                  className="flex flex-col overflow-x-auto w-full  min-w-0"
-                >
-                  <div className="flex flex-row justify-between text-xs mb-4">
-                    <div>{language}</div>
-                    <CopyText text={text} />
-                  </div>
-                  {children}
-                </div>
-              );
-            }
-            // console.log("children", typeof children);
-            // console.log("language", language);
-
-            return (
-              <>
-                <SyntaxHighlighter
-                  {...rest}
-                  PreTag={CustomPreTag} //"div"
-                  children={String(children).replace(/\n$/, "")}
-                  language={match[1]}
-                  style={style}
-                  // showLineNumbers
-                />
-              </>
-            );
-          } else {
-            return (
-              <code
-                {...rest}
-                className={cn(className, "overflow-x-auto w-full  min-w-0")}
-              >
-                {children}
-              </code>
-            );
-          }
-        },
-        p({ node, children, ...props }) {
-          const paragraphClasses = "mb-4 leading-relaxed ";
-
-          return (
-            <p {...props} className={paragraphClasses}>
-              {children}
-            </p>
-          );
-        },
-      }}
-    >
-      {children}
-    </Markdown>
+    <AnimatedMarkdown
+      content={children}
+      status={status}
+      mappingName={mappingName}
+    />
   );
-}
-const CustomPreTagGemini = ({ children, ...rest }) => {
-  // We can access properties passed by SyntaxHighlighter or just render it.
-  // Actually, passing extra props to PreTag from SyntaxHighlighter is tricky,
-  // but we can just use a normal div. The problem is we need the language and text for CopyText.
-  // Let's create a wrapper for SyntaxHighlighter instead!
-  return (
-    <div {...rest} className="flex flex-col overflow-x-auto w-full min-w-0">
-      {children}
-    </div>
-  );
-};
-
-const geminiComponentsMap = {
-  sup(props) {
-    const { children } = props;
-    return (
-      <sup className="" style={{ marginLeft: "0.3em" }}>
-        {children}
-      </sup>
-    );
-  },
-  a(props) {
-    const { children, className, node, ...rest } = props;
-    if (!rest.href.includes("http")) {
-      return <a href={rest.href}>{children}</a>;
-    } else {
-      return <LinkTooltip rest={rest}>{children}</LinkTooltip>;
-    }
-  },
-  table: TableWrapper,
-  pre({ node, children, ...props }) {
-    return <pre {...props}>{children}</pre>;
-  },
-  code(props) {
-    const { children, className, node, ...rest } = props;
-    const text = children;
-    if (text && typeof text === "string" && text.startsWith("math-inline:")) {
-      const math = text.slice("math-inline:".length);
-      return <InlineMath>{math}</InlineMath>;
-    }
-    const match = /language-(\w+)/.exec(className || "");
-    if (match) {
-      const language = match[1];
-      return (
-        <div className="flex flex-col overflow-x-auto w-full min-w-0">
-          <div className="flex flex-row justify-between text-xs mb-4">
-            <div>{language}</div>
-            <CopyText text={text} />
-          </div>
-          <SyntaxHighlighter
-            {...rest}
-            PreTag={CustomPreTagGemini}
-            children={String(children).replace(/\n$/, "")}
-            language={language}
-            style={a11yDark}
-          />
-        </div>
-      );
-    } else {
-      return (
-        <code
-          {...rest}
-          className={cn(className, "overflow-x-auto w-full min-w-0")}
-        >
-          {children}
-        </code>
-      );
-    }
-  },
-  p({ node, children, ...props }) {
-    const paragraphClasses = "mb-4 leading-relaxed ";
-    return (
-      <p {...props} className={paragraphClasses}>
-        {children}
-      </p>
-    );
-  },
-};
-
-function SimpleMarkdown({ children, status }) {
-  // console.log(children, status);
-
-  return <AnimatedMarkdown content={children} status={status} />;
 }
 
 function OpenAIMarkdown({ children, mode, props }) {
@@ -1046,7 +657,7 @@ function OpenAIMarkdown({ children, mode, props }) {
         // const after = text;
         // console.log("AFTER", after);
         elementsToShow.push(
-          <SimpleMarkdown key={index} status={status}>
+          <SimpleMarkdown key={0} status={status} mappingName="OpenAI">
             {after}
           </SimpleMarkdown>,
         );
@@ -1069,7 +680,7 @@ function OpenAIMarkdown({ children, mode, props }) {
     const text = children || props.botMessage.content;
     const after = replaceLatexDelimsOutsideCode(text);
     elementsToShow.push(
-      <SimpleMarkdown key={0} status={status}>
+      <SimpleMarkdown key={0} status={status} mappingName="OpenAI">
         {after}
       </SimpleMarkdown>,
     );
@@ -1128,7 +739,11 @@ function GeminiMarkdown({ children, mode, props }) {
   finalText = processMarkdownWithMathSingleDollar(finalText);
   // console.log("finalText", finalText);
   elementsToShow.push(
-    <SimpleMarkdown key={0} status={props?.botMessage?.status}>
+    <SimpleMarkdown
+      key={0}
+      status={props?.botMessage?.status}
+      mappingName="Gemini"
+    >
       {finalText}
     </SimpleMarkdown>,
   );
@@ -1336,16 +951,8 @@ function escapeInlineMath(text) {
     return `\`math-inline:${trimmed}\``;
   });
 }
-function TableWrapper({ node, ...props }) {
-  // `props` will include any children, like <thead>, <tbody>, etc.
-  return (
-    <div className="overflow-x-auto my-4  w-full  min-w-0 ">
-      <table {...props} className="w-full text-sm " />
-    </div>
-  );
-}
 
-function ToolBlock({ children, ...props }) {
+export function ToolBlock({ children, ...props }) {
   const [isExpanded, setIsExpanded] = useState(true);
 
   return (
@@ -1393,12 +1000,12 @@ function ToolBlock({ children, ...props }) {
   );
 }
 
-function ThinkingBlock({ children, ...rest }) {
+export function ThinkingBlock({ children, ...rest }) {
   const [isExpanded, setIsExpanded] = useState(true);
-  // console.log("ThinkingBlock props:", rest.props.content);
+  // console.log("ThinkingBlock props:", rest.props);
   // console.log("ThinkingBlock children type:", typeof children);
   // console.log("ThinkingBlock children length:", React.Children.count(children));
-  let status = rest.props.botMessage.status;
+  let status = rest.props?.botMessage?.status || rest?.status;
   if (rest.props?.content) {
     status = "done";
   }
@@ -1432,14 +1039,18 @@ function ThinkingBlock({ children, ...rest }) {
       {isExpanded && (
         <div className=" px-4  pt-4 text-sm text-muted-foreground">
           {/* <Markdown>{children}</Markdown> */}
-          <AnimatedMarkdown status={status} content={children} />
+          <AnimatedMarkdown
+            status={status}
+            content={children}
+            mappingName="Gemini"
+          />
         </div>
       )}
     </div>
   );
 }
 // Search block component
-function SearchBlock({ children, ...props }) {
+export function SearchBlock({ children, ...props }) {
   const [isExpanded, setIsExpanded] = useState(true);
 
   // console.log("SearchBlock children", children);
@@ -1502,7 +1113,7 @@ function SearchBlock({ children, ...props }) {
   );
 }
 // Query block component
-function QueryBlock({ children, ...props }) {
+export function QueryBlock({ children, ...props }) {
   const [isExpanded, setIsExpanded] = useState(true);
   // console.log("children", children);
   return (
@@ -1598,7 +1209,7 @@ function QueryBlock({ children, ...props }) {
   );
 }
 // Output block component
-function OutputBlock({ children, ...props }) {
+export function OutputBlock({ children, ...props }) {
   return (
     <div
       {...props}
@@ -1972,7 +1583,7 @@ export function CustomTooltip({ fullText, link, snippet, title, ...rest }) {
   );
 }
 
-function LinkTooltip({ children, rest }) {
+export function LinkTooltip({ children, rest }) {
   const fullText = getTextFromChildren(children);
 
   return (

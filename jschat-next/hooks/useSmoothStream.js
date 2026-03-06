@@ -16,13 +16,14 @@ export function useSmoothStream(rawText, status, options = {}) {
       return;
     }
 
-    if (!rawText) return;
+    if (!rawText || typeof rawText !== "string") return rawText;
 
     setDisplayedText((prevDisplayed) => {
       // Reset if the stream restarted or was cleared
       if (rawText.length < prevDisplayed.length) {
         return rawText;
       }
+      //   console.log("rawText", rawText);
 
       // Calculate the safe chunk index based on logical markdown blocks
       let safeIndex = 0;

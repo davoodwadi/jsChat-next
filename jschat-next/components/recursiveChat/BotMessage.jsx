@@ -241,7 +241,7 @@ export default function BotMessage(props) {
   // console.log("interactionData", interactionData);
   return (
     <div className={botClass} ref={props.thisBotRef}>
-      <div className="flex flex-row justify-between text-xs mb-4">
+      <div className="flex flex-row justify-between items-center text-xs mb-4">
         <p className="text-sm antialiased italic font-bold ">
           {props.model?.name}
         </p>
