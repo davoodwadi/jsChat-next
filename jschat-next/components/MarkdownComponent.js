@@ -727,12 +727,14 @@ function GeminiMarkdown({ children, mode, props }) {
   ) {
     // Process regular Gemini grounding chunks
     // console.log("there is groundingChunks");
+    // console.log("before citations", finalText);
     const contentWithCitations = addCitationsToContentInlineSuper(
       finalText,
       props?.groundingChunks,
       props?.groundingSupports,
     );
     finalText = contentWithCitations;
+    // console.log("after citations", finalText);
   }
 
   // replace $ math with inline
@@ -1570,7 +1572,7 @@ export function CustomTooltip({ fullText, link, snippet, title, ...rest }) {
           href={link}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-inherit no-underline"
+          className="text-muted-foreground/50 "
           onClick={(e) => e.stopPropagation()}
         >
           {fullText}

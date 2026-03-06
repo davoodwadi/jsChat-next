@@ -32,6 +32,7 @@ import {
   QueryBlock,
   OutputBlock,
   SearchBlock,
+  LinkTooltip,
 } from "./MarkdownComponent";
 import { useSmoothStream } from "@/hooks/useSmoothStream";
 
@@ -144,6 +145,15 @@ const geminiComponentsMap = {
   sup: (props) => {
     const AnimatedSup = baseAnimatedComponents.sup;
     return <AnimatedSup {...props} style={{ marginLeft: "0.3em" }} />;
+  },
+  a: (props) => {
+    const { children, className, node, ...rest } = props;
+    return (
+      // <a href={rest.href} className="text-muted-foreground">
+      //   {children}
+      // </a>
+      <LinkTooltip rest={rest}>{children}</LinkTooltip>
+    );
   },
   table: AnimatedTableWrapper,
   code: GeminiCodeRenderer,

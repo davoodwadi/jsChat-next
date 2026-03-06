@@ -16,7 +16,7 @@ export function useSmoothStream(rawText, status, options = {}) {
       return;
     }
 
-    if (!rawText || typeof rawText !== "string") return rawText;
+    if (!rawText || typeof rawText !== "string") return;
 
     setDisplayedText((prevDisplayed) => {
       // Reset if the stream restarted or was cleared
