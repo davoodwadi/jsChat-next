@@ -657,7 +657,7 @@ function OpenAIMarkdown({ children, mode, props }) {
         // const after = text;
         // console.log("AFTER", after);
         elementsToShow.push(
-          <SimpleMarkdown key={0} status={status} mappingName="OpenAI">
+          <SimpleMarkdown key={index} status={status} mappingName="OpenAI">
             {after}
           </SimpleMarkdown>,
         );
@@ -672,7 +672,9 @@ function OpenAIMarkdown({ children, mode, props }) {
     if (sources.length > 0) {
       // console.log("sources", sources);
       elementsToShow.push(
-        <OpenAISourcesComponent>{sources}</OpenAISourcesComponent>,
+        <OpenAISourcesComponent key="sources">
+          {sources}
+        </OpenAISourcesComponent>,
       );
     }
     // console.log("elementsToShow", elementsToShow);
