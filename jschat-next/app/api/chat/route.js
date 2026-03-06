@@ -2220,7 +2220,7 @@ sampleEvents.push({
   item_id: "msg_123",
   output_index: 0,
   content_index: 0,
-  delta: "I am done thinking",
+  delta: "I am done thinking.",
   sequence_number: 1,
 });
 
@@ -2229,7 +2229,7 @@ sampleEvents.push({
   item_id: "msg_123",
   output_index: 0,
   content_index: 0,
-  delta: "1\n\n",
+  delta: "1. ",
   sequence_number: 1,
 });
 
@@ -2238,7 +2238,7 @@ sampleEvents.push({
   item_id: "msg_123",
   output_index: 0,
   content_index: 0,
-  delta: "2\n\n",
+  delta: "is doing ",
   sequence_number: 1,
 });
 
@@ -2247,7 +2247,61 @@ sampleEvents.push({
   item_id: "msg_123",
   output_index: 0,
   content_index: 0,
-  delta: "3\n\n",
+  delta: "here.\n\n",
+  sequence_number: 1,
+});
+
+sampleEvents.push({
+  type: "response.output_text.delta",
+  item_id: "msg_123",
+  output_index: 0,
+  content_index: 0,
+  delta: "2. ",
+  sequence_number: 1,
+});
+
+sampleEvents.push({
+  type: "response.output_text.delta",
+  item_id: "msg_123",
+  output_index: 0,
+  content_index: 0,
+  delta: "is doing ",
+  sequence_number: 1,
+});
+
+sampleEvents.push({
+  type: "response.output_text.delta",
+  item_id: "msg_123",
+  output_index: 0,
+  content_index: 0,
+  delta: "there.\n\n",
+  sequence_number: 1,
+});
+
+sampleEvents.push({
+  type: "response.output_text.delta",
+  item_id: "msg_123",
+  output_index: 0,
+  content_index: 0,
+  delta: "3. ",
+  sequence_number: 1,
+});
+
+sampleEvents.push({
+  type: "response.output_text.delta",
+  item_id: "msg_123",
+  output_index: 0,
+  content_index: 0,
+  delta: "is doing ",
+  sequence_number: 1,
+});
+
+sampleEvents.push({
+  type: "response.output_text.delta",
+  item_id: "msg_123",
+  output_index: 0,
+  content_index: 0,
+  delta: "sometimes.\n\n",
   sequence_number: 1,
 });
 

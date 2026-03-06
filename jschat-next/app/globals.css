@@ -160,3 +160,50 @@ sup a.citation-link {
 .citation-highlight {
   animation: highlightPulse 2s ease-in-out;
 }
+
+/* Streaming Animations */
+
+/* Elegant growing cursor for streaming text */
+.streaming-cursor {
+  display: inline-block;
+  width: 6px;
+  height: 18px;
+  margin-left: 4px;
+  margin-bottom: -2px;
+  background: currentColor;
+  border-radius: 3px;
+  animation: streaming-blink 1s cubic-bezier(0.4, 0, 0.6, 1) infinite, streaming-pulse 2s ease-in-out infinite;
+  vertical-align: baseline;
+  opacity: 0.8;
+}
+
+/* Blinking effect for the cursor */
+@keyframes streaming-blink {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 0.2; }
+}
+
+/* Subtle glow / shift effect for the cursor */
+@keyframes streaming-pulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(100, 150, 255, 0.5)); }
+  50% { transform: scale(1.1); filter: drop-shadow(0 0 8px rgba(100, 150, 255, 0.8)); }
+}
+
+/* Animation for new markdown blocks (paragraphs, lists, code) appearing during stream */
+@keyframes reveal-chunk {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+/* Target direct children of the prose container to animate them individually as they enter the document */
+.markdown-stream-wrapper .prose > * {
+  animation: reveal-chunk 0.4s ease-out forwards;
+}

@@ -12,7 +12,6 @@ import { InlineMath, BlockMath } from "react-katex";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import rehypeKatex from "rehype-katex";
-import rehypeMathjax from "rehype-mathjax";
 // import rehypeStringify from "rehype-stringify";
 import remarkMath from "remark-math";
 import rehypeFormat from "rehype-format";
@@ -68,9 +67,21 @@ import {
   perplexityModels,
   testModels,
 } from "@/app/models";
+// import { useSmoothStream } from "@/hooks/useSmoothStream";
+import AnimatedMarkdown from "@/components/AnimatedMarkdown";
 
 const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
   let finalContent = props.children;
+  // console.log("finalContent", finalContent);
+
+  if (props?.search_results?.length > 0) {
+    // console.log("getting search results in markdown", props.search_results);
+    const contentWithCitations = addCitationsToContentInlineSuperPerplexity(
+      finalContent,
+      props.search_results,
+    );
+    finalContent = contentWithCitations;
+  }
 
   const isOpenAI = Boolean(openaiModels.includes(props.botMessage.model.model));
   if (isOpenAI) {
@@ -95,15 +106,6 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
         <GeminiMarkdown props={props}>{finalContent}</GeminiMarkdown>
       </div>
     );
-  }
-
-  if (props?.search_results?.length > 0) {
-    // console.log("getting search results in markdown", props.search_results);
-    const contentWithCitations = addCitationsToContentInlineSuperPerplexity(
-      finalContent,
-      props.search_results,
-    );
-    finalContent = contentWithCitations;
   }
 
   return (
@@ -941,108 +943,96 @@ function SimpleMarkdownOpenAI({ children }) {
     </Markdown>
   );
 }
-function SimpleMarkdownGemini({ children }) {
-  const style = a11yDark;
-
+const CustomPreTagGemini = ({ children, ...rest }) => {
+  // We can access properties passed by SyntaxHighlighter or just render it.
+  // Actually, passing extra props to PreTag from SyntaxHighlighter is tricky,
+  // but we can just use a normal div. The problem is we need the language and text for CopyText.
+  // Let's create a wrapper for SyntaxHighlighter instead!
   return (
-    <Markdown
-      remarkPlugins={[[remarkMath, { singleDollarTextMath: false }], remarkGfm]}
-      rehypePlugins={[rehypeKatex, rehypeRaw]}
-      // prose prose-zinc dark:prose-invert !max-w-none
-      className={` pb-4 break-words prose prose-zinc dark:prose-invert !max-w-none`}
-      components={{
-        sup(props) {
-          const { children } = props;
-          return (
-            <sup className="" style={{ marginLeft: "0.3em" }}>
-              {children}
-            </sup>
-          );
-        },
-        a(props) {
-          const { children, className, node, ...rest } = props;
-          if (!rest.href.includes("http")) {
-            return <a href={rest.href}>{children}</a>;
-          } else {
-            return <LinkTooltip rest={rest}>{children}</LinkTooltip>;
-          }
-        },
-        table: TableWrapper,
-        pre({ node, children, ...props }) {
-          // Default: keep pre
-          return <pre {...props}>{children}</pre>;
-        },
-        code(props) {
-          const { children, className, node, ...rest } = props;
-          const text = children;
-          if (text && text.startsWith("math-inline:")) {
-            const math = text.slice("math-inline:".length);
-            // console.log("math", math);
-            return <InlineMath>{math}</InlineMath>;
-          }
-          const match = /language-(\w+)/.exec(className || "");
-          if (match) {
-            // set language
-            const language = match[1];
-            // known code block
-            function CustomPreTag({ children, ...rest }) {
-              return (
-                <div
-                  {...rest}
-                  className="flex flex-col overflow-x-auto w-full  min-w-0"
-                >
-                  <div className="flex flex-row justify-between text-xs mb-4">
-                    <div>{language}</div>
-                    <CopyText text={text} />
-                  </div>
-                  {children}
-                </div>
-              );
-            }
-
-            return (
-              <>
-                <SyntaxHighlighter
-                  {...rest}
-                  PreTag={CustomPreTag} //"div"
-                  children={String(children).replace(/\n$/, "")}
-                  language={match[1]}
-                  style={style}
-                  // showLineNumbers
-                />
-              </>
-            );
-          } else {
-            return (
-              <code
-                {...rest}
-                className={cn(className, "overflow-x-auto w-full  min-w-0")}
-              >
-                {children}
-              </code>
-            );
-          }
-        },
-        p({ node, children, ...props }) {
-          const paragraphClasses = "mb-4 leading-relaxed ";
-
-          return (
-            <p {...props} className={paragraphClasses}>
-              {children}
-            </p>
-          );
-        },
-      }}
-    >
+    <div {...rest} className="flex flex-col overflow-x-auto w-full min-w-0">
       {children}
-    </Markdown>
+    </div>
   );
+};
+
+const geminiComponentsMap = {
+  sup(props) {
+    const { children } = props;
+    return (
+      <sup className="" style={{ marginLeft: "0.3em" }}>
+        {children}
+      </sup>
+    );
+  },
+  a(props) {
+    const { children, className, node, ...rest } = props;
+    if (!rest.href.includes("http")) {
+      return <a href={rest.href}>{children}</a>;
+    } else {
+      return <LinkTooltip rest={rest}>{children}</LinkTooltip>;
+    }
+  },
+  table: TableWrapper,
+  pre({ node, children, ...props }) {
+    return <pre {...props}>{children}</pre>;
+  },
+  code(props) {
+    const { children, className, node, ...rest } = props;
+    const text = children;
+    if (text && typeof text === "string" && text.startsWith("math-inline:")) {
+      const math = text.slice("math-inline:".length);
+      return <InlineMath>{math}</InlineMath>;
+    }
+    const match = /language-(\w+)/.exec(className || "");
+    if (match) {
+      const language = match[1];
+      return (
+        <div className="flex flex-col overflow-x-auto w-full min-w-0">
+          <div className="flex flex-row justify-between text-xs mb-4">
+            <div>{language}</div>
+            <CopyText text={text} />
+          </div>
+          <SyntaxHighlighter
+            {...rest}
+            PreTag={CustomPreTagGemini}
+            children={String(children).replace(/\n$/, "")}
+            language={language}
+            style={a11yDark}
+          />
+        </div>
+      );
+    } else {
+      return (
+        <code
+          {...rest}
+          className={cn(className, "overflow-x-auto w-full min-w-0")}
+        >
+          {children}
+        </code>
+      );
+    }
+  },
+  p({ node, children, ...props }) {
+    const paragraphClasses = "mb-4 leading-relaxed ";
+    return (
+      <p {...props} className={paragraphClasses}>
+        {children}
+      </p>
+    );
+  },
+};
+
+function SimpleMarkdown({ children, status }) {
+  // console.log(children, status);
+
+  return <AnimatedMarkdown content={children} status={status} />;
 }
 
 function OpenAIMarkdown({ children, mode, props }) {
   const elementsToShow = [];
   const sources = [];
-  // console.log(props);
+  const status = props.status;
+  // console.log(status);
   if (props.botMessage.openaiResponseOutput) {
     const responseOutput = JSON.parse(props.botMessage.openaiResponseOutput);
     // console.log("OpenAIMarkdown", responseOutput);
@@ -1056,7 +1046,9 @@ function OpenAIMarkdown({ children, mode, props }) {
         // const after = text;
         // console.log("AFTER", after);
         elementsToShow.push(
-          <SimpleMarkdownOpenAI key={index}>{after}</SimpleMarkdownOpenAI>,
+          <SimpleMarkdown key={index} status={status}>
+            {after}
+          </SimpleMarkdown>,
         );
       } else if (chunk.type === "web_search_call") {
         // console.log("web_search_call", chunk.action);
@@ -1074,10 +1066,12 @@ function OpenAIMarkdown({ children, mode, props }) {
     }
     // console.log("elementsToShow", elementsToShow);
   } else {
-    const text = props.botMessage.content;
+    const text = children || props.botMessage.content;
     const after = replaceLatexDelimsOutsideCode(text);
     elementsToShow.push(
-      <SimpleMarkdownOpenAI key={0}>{after}</SimpleMarkdownOpenAI>,
+      <SimpleMarkdown key={0} status={status}>
+        {after}
+      </SimpleMarkdown>,
     );
   }
   return elementsToShow;
@@ -1093,8 +1087,8 @@ function GeminiMarkdown({ children, mode, props }) {
       </ThinkingBlock>,
     );
   }
-  let finalText = props.botMessage.content;
-
+  // let finalText = children || props.botMessage.content;
+  let finalText = children;
   // Check if this is Deep Research output (annotations is the reliable signal)
   const hasDeepResearchAnnotations = props?.annotations?.length > 0;
 
@@ -1134,7 +1128,9 @@ function GeminiMarkdown({ children, mode, props }) {
   finalText = processMarkdownWithMathSingleDollar(finalText);
   // console.log("finalText", finalText);
   elementsToShow.push(
-    <SimpleMarkdownGemini key={0}>{finalText}</SimpleMarkdownGemini>,
+    <SimpleMarkdown key={0} status={props?.botMessage?.status}>
+      {finalText}
+    </SimpleMarkdown>,
   );
 
   // Add sources component based on the type of grounding
@@ -1399,20 +1395,27 @@ function ToolBlock({ children, ...props }) {
 
 function ThinkingBlock({ children, ...rest }) {
   const [isExpanded, setIsExpanded] = useState(true);
-  // console.log("ThinkingBlock props:", rest.props.botMessage.status);
+  // console.log("ThinkingBlock props:", rest.props.content);
   // console.log("ThinkingBlock children type:", typeof children);
   // console.log("ThinkingBlock children length:", React.Children.count(children));
+  let status = rest.props.botMessage.status;
+  if (rest.props?.content) {
+    status = "done";
+  }
+  // console.log("status:", status);
+
   useEffect(() => {
     // console.log(rest.props.botMessage.status, "changed");
-    if (rest.props.botMessage.status === "done") {
+    if (status === "done") {
       setIsExpanded(false);
     }
-  }, [rest.props.botMessage.status]);
+  }, [status]);
+
   return (
-    <div className="  overflow-x-auto rounded-lg bg-muted/30 mb-8">
+    <div className="overflow-hidden overflow-x-auto rounded-lg bg-muted/30 mb-8">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center gap-3 p-4 text-left hover:bg-muted/50 transition-colors"
+        className="w-full flex items-center rounded-lg gap-3 p-4 text-left hover:bg-muted/50 transition-colors"
       >
         {/* <Brain className="h-4 w-4 text-muted-foreground shrink-0" /> */}
         <span className="text-xs font-medium text-muted-foreground">
@@ -1427,8 +1430,9 @@ function ThinkingBlock({ children, ...rest }) {
       </button>
 
       {isExpanded && (
-        <div className=" px-4 pb-4 text-sm text-muted-foreground">
-          <Markdown>{children}</Markdown>
+        <div className=" px-4  pt-4 text-sm text-muted-foreground">
+          {/* <Markdown>{children}</Markdown> */}
+          <AnimatedMarkdown status={status} content={children} />
         </div>
       )}
     </div>

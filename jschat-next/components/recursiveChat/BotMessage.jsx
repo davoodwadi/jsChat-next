@@ -75,6 +75,7 @@ export default function BotMessage(props) {
     content: props?.botMessage?.content,
     annotations: props.botMessage?.annotations,
   }));
+
   const isDeepResearchOrXHigh = isDeepResearchMessage
     ? "Deep Research"
     : isReasoningMessage
@@ -83,11 +84,6 @@ export default function BotMessage(props) {
   // console.log("isDeepResearchOrXHigh", isDeepResearchOrXHigh);
   useEffect(() => {
     if (refRenderedText.current) {
-      // console.log("refRenderedText.current", refRenderedText.current);
-      // console.log(
-      //   "refRenderedText.current.textContent",
-      //   refRenderedText.current.textContent
-      // );
       setTextToSpeak(refRenderedText.current.textContent);
     }
   }, [refRenderedText.current]);

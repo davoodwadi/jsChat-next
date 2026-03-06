@@ -222,11 +222,11 @@ export async function handleSubmit({
             // console.log("chunk to parse:", jsonStr);
             const parsedData = JSON.parse(jsonStr);
             // console.log("parsedData", parsedData);
-            if (parsedData?.signal) {
-              console.log(
-                `[${new Date().toLocaleTimeString()}] ${parsedData.signal}`,
-              );
-            }
+            // if (parsedData?.signal) {
+            //   console.log(
+            //     `[${new Date().toLocaleTimeString()}] ${parsedData.signal}`,
+            //   );
+            // }
             if (parsedData?.interactionID) {
               extraContent.interaction = {
                 interactionID: parsedData.interactionID,
@@ -526,11 +526,11 @@ export async function handleSubmit({
           try {
             const parsedData = JSON.parse(jsonStr);
             // console.log("parsedData", parsedData);
-            if (parsedData?.signal) {
-              console.log(
-                `[${new Date().toLocaleTimeString()}] ${parsedData.signal}`,
-              );
-            }
+            // if (parsedData?.signal) {
+            //   console.log(
+            //     `[${new Date().toLocaleTimeString()}] ${parsedData.signal}`,
+            //   );
+            // }
             if (parsedData?.interactionID) {
               extraContent.interaction = {
                 interactionID: parsedData.interactionID,
