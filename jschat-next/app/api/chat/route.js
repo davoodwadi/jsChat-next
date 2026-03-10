@@ -678,11 +678,20 @@ export async function POST(req) {
       const stream = new ReadableStream({
         async start(controller) {
           const encoder = new TextEncoder();
+          // let fullHistory;
           const lastUserMessage = data.messages[data.messages.length - 1];
           const userInput =
             lastUserMessage.content.text || lastUserMessage.content;
-          console.log("userInput for Deep Research", userInput);
-
+          // console.log("userInput for Deep Research", userInput);
+          // const { history, newUserMessage, system } = convertToGoogleFormat(
+          //   data.messages,
+          // );
+          // console.log("system", system);
+          // fullHistory = [...history, newUserMessage];
+          // if (system) {
+          //   fullHistory = [system, ...fullHistory];
+          // }
+          // console.log("fullHistory", fullHistory);
           try {
             const interaction = await googleAI.interactions.create({
               input: userInput,
@@ -2069,6 +2078,8 @@ function convertToGoogleFormat(messages) {
         } catch (error) {
           addRegularAssistant(msg, convertedMessages);
         }
+      } else if (msg?.parts) {
+        convertedMessages.push({ role: "model", parts: msg?.parts });
       } else {
         addRegularAssistant(msg, convertedMessages);
       }

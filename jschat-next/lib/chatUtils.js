@@ -774,6 +774,9 @@ function getChain({
     if (parentBot?.modelParts) {
       assistant.modelParts = parentBot.modelParts;
     }
+    if (parentBot?.parts) {
+      assistant.parts = parentBot.parts;
+    }
     if (parentBot?.openaiResponseOutput) {
       assistant.openaiResponseOutput = parentBot?.openaiResponseOutput;
     }
