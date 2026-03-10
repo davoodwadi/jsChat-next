@@ -678,20 +678,20 @@ export async function POST(req) {
       const stream = new ReadableStream({
         async start(controller) {
           const encoder = new TextEncoder();
-          // let fullHistory;
+          let fullHistory;
           const lastUserMessage = data.messages[data.messages.length - 1];
           const userInput =
             lastUserMessage.content.text || lastUserMessage.content;
           // console.log("userInput for Deep Research", userInput);
-          // const { history, newUserMessage, system } = convertToGoogleFormat(
-          //   data.messages,
-          // );
-          // console.log("system", system);
-          // fullHistory = [...history, newUserMessage];
-          // if (system) {
-          //   fullHistory = [system, ...fullHistory];
-          // }
+          const { history, newUserMessage, system } =
+            convertToGoogleInteractionsFormat(data.messages);
+          console.log("system", system);
+          fullHistory = [...history, newUserMessage];
+          if (system) {
+            fullHistory = [system, ...fullHistory];
+          }
           // console.log("fullHistory", fullHistory);
+          // return;
           try {
             const interaction = await googleAI.interactions.create({
               input: userInput,
@@ -899,6 +899,7 @@ export async function POST(req) {
             (item) => item.role === "user",
           );
           const modelParts = newHistory.slice(lastUserIndex + 1);
+          console.dir(newHistory, { depth: null, colors: true });
           // console.dir(modelParts, { depth: null, colors: true });
           controller.enqueue(
             encoder.encode(
@@ -2052,6 +2053,7 @@ function addRegularAssistant(msg, convertedMessages) {
     convertedMessages.push(thoughtSignaturePart);
   }
 }
+
 function convertToGoogleFormat(messages) {
   // console.log("messages", messages);
   const convertedMessages = [];
@@ -2082,6 +2084,43 @@ function convertToGoogleFormat(messages) {
         convertedMessages.push({ role: "model", parts: msg?.parts });
       } else {
         addRegularAssistant(msg, convertedMessages);
+      }
+    }
+  }
+
+  const history = convertedMessages.slice(0, -1); // all elements except the last
+  const newUserMessage = convertedMessages[convertedMessages.length - 1]; // the last element
+
+  const system = messages.find((m) => m.role === "system");
+  // console.log("messages", messages);
+  // console.log("history", history);
+  // console.log("newUserMessage", newUserMessage);
+  // console.log("system", system);
+  return { history, newUserMessage, system };
+}
+
+function convertToGoogleInteractionsFormat(messages) {
+  // console.log("messages", messages);
+  const convertedMessages = [];
+  // const convertedMessages = messages
+  // .filter((m) => m.role !== "system")
+  for (const msg of messages) {
+    // console.log(msg);
+    if (msg.role === "user") {
+      const userM = {
+        role: "user",
+        content: [],
+      };
+      if (msg.content.image) {
+        userM.content.push(formatBase64ImageGoogle(msg.content.image));
+      }
+      userM.content.push({ text: msg.content.text ? msg.content.text : "" });
+      convertedMessages.push(userM);
+    } else if (msg.role === "assistant") {
+      if (msg?.parts) {
+        convertedMessages.push({ role: "model", content: msg?.parts });
+      } else {
+        convertedMessages.push({ role: "model", content: msg?.content });
       }
     }
   }

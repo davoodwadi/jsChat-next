@@ -45,7 +45,7 @@ let baseBotClass = ` p-4 m-1 relative md:space-y-8
 
 export default function BotMessage(props) {
   // console.log("props?.botMessage.model.model", props?.botMessage.model.model);
-  console.log("Bot props", props);
+  // console.log("Bot props", props);
   // console.log("props?.botMessage?.status", props?.botMessage?.status);
   const isLatestBot = props.id === props.branchKeyToMaximize;
   const refRenderedText = useRef(null);

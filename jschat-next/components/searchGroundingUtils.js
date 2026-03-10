@@ -529,8 +529,14 @@ export function extractDeepResearchSourcesAndContent(markdown) {
       blockEnd++;
     }
 
-    const keptLines = [...lines.slice(0, headerIndex), ...lines.slice(blockEnd)];
-    const contentWithoutSources = keptLines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+    const keptLines = [
+      ...lines.slice(0, headerIndex),
+      ...lines.slice(blockEnd),
+    ];
+    const contentWithoutSources = keptLines
+      .join("\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
 
     return { contentWithoutSources, sources };
   } catch (error) {
@@ -546,10 +552,20 @@ export function extractDeepResearchSourcesAndContent(markdown) {
  * @param {number} maxCitationNumber - Maximum citation number to validate against
  * @returns {string} - Processed content with citation links
  */
-export function addCitationsForDeepResearch(content, maxCitationNumber = 100) {
+export function addCitationsForDeepResearch(
+  content,
+  maxCitationNumber = 100,
+  sources = [],
+) {
   if (!content) {
     return content;
   }
+
+  // Create a map for quick source lookup by citation number
+  const sourceMap = new Map();
+  sources.forEach((source) => {
+    sourceMap.set(source.citationNumber, source);
+  });
 
   // Regex to match [cite: 1, 2, 3] or [cite: 1] patterns
   const citationRegex = /\[cite:\s*([\d,\s]+)\]/gi;
@@ -569,13 +585,20 @@ export function addCitationsForDeepResearch(content, maxCitationNumber = 100) {
     // Generate clickable superscript links for each citation number
     const citationLinks = numbers
       .map((num) => {
+        const sourceInfo = sourceMap.get(num);
+        const url = sourceInfo ? sourceInfo.source : `#citation-${num}`;
+        const title = sourceInfo ? sourceInfo.domain : `Citation ${num}`;
+
         const escapedNum = escapeHtmlAttr(String(num));
-        return `<a href="#citation-${escapedNum}" class="citation-link deep-research-citation" data-citation="${escapedNum}">${escapedNum}</a>`;
+        const escapedUrl = escapeHtmlAttr(url);
+        const escapedTitle = escapeHtmlAttr(title);
+
+        return `<a href="${escapedUrl}" title="${escapedTitle}" class="citation-link deep-research-citation" data-citation="${escapedNum}">${escapedNum}</a>`;
       })
       .join(", ");
 
     // Wrap in <sup> tag
-    return `<span>${citationLinks}. </span>`;
+    return `<sup>${citationLinks}</sup>`;
   });
 
   return result;

@@ -144,7 +144,7 @@ const geminiComponentsMap = {
   ...baseAnimatedComponents,
   sup: (props) => {
     const AnimatedSup = baseAnimatedComponents.sup;
-    return <AnimatedSup {...props} style={{ marginLeft: "0.3em" }} />;
+    return <AnimatedSup {...props} />;
   },
   a: (props) => {
     const { children, className, node, ...rest } = props;

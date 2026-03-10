@@ -689,6 +689,19 @@ function GeminiMarkdown({ children, mode, props }) {
 
   const parsedSources = deepResearchExtraction.sources;
 
+  // Let's create sourcesToDisplay earlier so we can pass it
+  let sourcesToDisplay = [];
+  if (hasDeepResearchAnnotations) {
+    sourcesToDisplay =
+      parsedSources.length > 0
+        ? parsedSources
+        : props.annotations.map((annotation, idx) => ({
+            citationNumber: idx + 1,
+            domain: extractUrlMetadata(annotation.source).domain,
+            source: annotation.source,
+          }));
+  }
+
   if (hasDeepResearchAnnotations) {
     finalText = deepResearchExtraction.contentWithoutSources;
 
@@ -699,7 +712,15 @@ function GeminiMarkdown({ children, mode, props }) {
         : props.annotations.length;
 
     // Process Deep Research citations [cite: 1, 2, 3]
-    finalText = addCitationsForDeepResearch(finalText, maxCitationNumber);
+    // console.log(finalText);
+    // console.log(parsedSources);
+
+    finalText = addCitationsForDeepResearch(
+      finalText,
+      maxCitationNumber,
+      sourcesToDisplay,
+    );
+    // console.log(finalText);
   } else if (
     props?.groundingChunks?.length > 0 &&
     props?.groundingSupports?.length > 0
@@ -732,15 +753,6 @@ function GeminiMarkdown({ children, mode, props }) {
   // Add sources component based on the type of grounding
   if (hasDeepResearchAnnotations) {
     // Reuse GeminiSourcesComponent by adapting parsed sources to groundingChunks shape.
-    const sourcesToDisplay =
-      parsedSources.length > 0
-        ? parsedSources
-        : props.annotations.map((annotation, idx) => ({
-            citationNumber: idx + 1,
-            domain: extractUrlMetadata(annotation.source).domain,
-            source: annotation.source,
-          }));
-
     const adaptedGeminiSources = sourcesToDisplay.map((source) => ({
       citationNumber: source.citationNumber,
       web: {
