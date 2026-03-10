@@ -381,6 +381,8 @@ export async function POST(req) {
               messages: data.messages,
               agentic: false,
             });
+            // console.dir(convertedMessages, { depth: null });
+
             // "effort" : "xhigh"
             const reasoning = { reasoning: { effort: "xhigh" } };
             let extraConfigs = {
@@ -1185,7 +1187,7 @@ export async function POST(req) {
       messages: data.messages,
       agentic: false,
     });
-
+    const waitAmount = 100;
     const stream = new ReadableStream({
       async start(controller) {
         const encoder = new TextEncoder();
@@ -1256,7 +1258,7 @@ export async function POST(req) {
                 }) + "\n",
               ),
             );
-            await wait(1000);
+            await wait(waitAmount);
 
             // console.log("chunk", chunk);
             // try {
@@ -1403,41 +1405,23 @@ export async function POST(req) {
   }
 }
 
-// Helper function to simulate task progress
-function getTaskProgress(createdAtMs) {
-  const elapsedMs = Date.now() - createdAtMs;
-  const elapsedSecs = elapsedMs / 1000;
-
-  if (elapsedSecs < 3) {
-    return { status: "pending", progress: 0 };
-  } else if (elapsedSecs < 10) {
-    // Simulate processing: 0% -> 100% over 7 seconds
-    const progressSecs = elapsedSecs - 3;
-    const progress = Math.min(Math.floor((progressSecs / 7) * 100), 99);
-    return { status: "processing", progress };
-  } else {
-    return {
-      status: "completed",
-      progress: 100,
-      content:
-        "This is a completed background task response. The task finished successfully!",
-    };
-  }
-}
 async function getTaskProgressGemini(taskId, email, baseUrl) {
   try {
     const interaction = await googleAI.interactions.get(taskId);
     // console.log("interaction", interaction);
     let content;
+    let parts;
     let annotations;
     let status = "in_progress";
 
     if (interaction.status === "completed") {
+      // console.log(JSON.stringify(interaction.outputs[0].annotations));
       status = "completed";
       // Extract text from outputs
       // console.log("interaction", interaction);
       if (interaction.outputs && interaction.outputs.length > 0) {
         content = interaction.outputs[interaction.outputs.length - 1].text;
+        parts = interaction.outputs;
       }
 
       annotations =
@@ -1463,6 +1447,7 @@ async function getTaskProgressGemini(taskId, email, baseUrl) {
     return {
       status,
       content,
+      parts,
       annotations,
     };
   } catch (error) {
@@ -1470,6 +1455,7 @@ async function getTaskProgressGemini(taskId, email, baseUrl) {
     return {
       status: "failed",
       content: error.message,
+      parts,
       annotations: null,
     };
   }
@@ -1480,19 +1466,22 @@ async function getTaskProgressOpenAI(taskId, email, baseUrl) {
     // console.log("response", response);
 
     let content;
+    let openAIContent;
     let annotations;
     let status = "in_progress";
 
     if (response.status === "completed") {
       status = "completed";
       // Extract text from output
+      // console.log(response);
       if (response.output) {
-        // Assuming output structure matches response.output from stream
         // response.output is an array of message objects
+        openAIContent = response.output;
         const lastMessage = response.output.find(
           (item) => item.role === "assistant",
         );
         // console.log("lastMessage", lastMessage);
+        // lastMessage.content
         if (lastMessage && lastMessage.content) {
           const textContent = lastMessage.content.find(
             (c) => c.type === "output_text",
@@ -1533,6 +1522,7 @@ async function getTaskProgressOpenAI(taskId, email, baseUrl) {
       status,
       content,
       annotations,
+      openAIContent,
     };
   } catch (error) {
     console.error("Error polling OpenAI response:", error);
@@ -1540,6 +1530,7 @@ async function getTaskProgressOpenAI(taskId, email, baseUrl) {
       status: "failed",
       content: error.message,
       annotations: null,
+      openAIContent,
     };
   }
 }
@@ -1573,31 +1564,14 @@ export async function GET(req) {
   }
 
   if (geminiModels.includes(model) || model === "test-llm") {
-    const { status, content, annotations } = await getTaskProgressGemini(
-      taskId,
-      email,
-      baseUrl,
-    );
-    return Response.json({
-      taskId,
-      status,
-      content,
-      annotations,
-    });
+    const output = await getTaskProgressGemini(taskId, email, baseUrl);
+    // console.log("output", output);
+    return Response.json(output);
   }
 
   if (openaiModels.includes(model)) {
-    const { status, content, annotations } = await getTaskProgressOpenAI(
-      taskId,
-      email,
-      baseUrl,
-    );
-    return Response.json({
-      taskId,
-      status,
-      content,
-      annotations,
-    });
+    const output = await getTaskProgressOpenAI(taskId, email, baseUrl);
+    return Response.json(output);
   }
 }
 async function wait(duration) {
@@ -1911,6 +1885,8 @@ function convertToOpenAIResponsesFormat({ agentic, messages }) {
       const openaiResponseOutput = JSON.parse(m.openaiResponseOutput);
       // console.log("openaiResponseOutput", openaiResponseOutput);
       converted.push(...openaiResponseOutput);
+    } else if (m.role === "assistant" && m?.openAIContent) {
+      converted.push(...m?.openAIContent);
     } else {
       const assistantM = {
         role: "assistant",

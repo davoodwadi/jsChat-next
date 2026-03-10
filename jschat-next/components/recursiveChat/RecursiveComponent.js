@@ -81,12 +81,27 @@ export function RecursiveChatContainer(props) {
           props.setGlobalModelInfo(thisSession.content.globalModelInfo);
         }
       }
+
       setLoadingHistory(false);
     };
 
     if (!isNew | (isNew === "false")) {
       console.log("loadHistory");
-      loadHistory();
+      loadHistory().then(() => {
+        setTimeout(() => {
+          // console.log(
+          //   "scrolling into the latest botmessage",
+          //   props?.refElementBot?.current,
+          // );
+          if (props?.refElementBot?.current) {
+            props?.refElementBot?.current?.scrollIntoView({
+              block: "start", // Vertically aligns the top of the element to the top of the screen
+              inline: "center", // Horizontally aligns the center of the element to the center of the screen
+              behavior: "smooth", // Optional: makes the transition smooth instead of a jump
+            });
+          }
+        }, 300); // Wait 300ms for components to be mounted to DOM
+      });
     } else {
       setLoadingHistory(false);
     }

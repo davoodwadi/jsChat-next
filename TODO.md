@@ -1,0 +1,5 @@
+- Check to see if search results are passed back to the model (Gemini)
+- For the Gemini model, we're not passing back the grounding chunks or other candidates.
+
+
+"[{\"parts\":[{\"text\":\"Hi there! How can I help you today?\"}],\"role\":\"model\"},{\"parts\":[{\"text\":\"\",\"thoughtSignature\":\"EpUDCpIDAb4+9vvkvf3PIfSCK6iA2PVxHOfclX4Xv2zwuVl4a2dgs/X5anJopsqsUA1rbMGlPoGAXQOYX+iXluQitumIML/QztGr3tNCsX+WhwYQvxOVUkJvBBcR14mXylFq0MPRWjbXcVYZoCGvVCKznYYfMwuBG29SClr8yxOe3ul9Go5V65jSkvuuce3qTAr5PVtl7nHW7wAHrfbuuJA/HR1YqcXNzo4K5qrdvxXFWcXwplEaKV+qdDKHI7OUmtrpg6vBIEc/eeQqT/2n639ly1Qz0ZliMue037tVt+tOwrUwHAKa2+agIsjw35SFkZrHP8ZnmRKZ34VxutYRV5a0uySIjF5vIM+i8WW9dO8vs2eiMKrnt7O0xIDQltvrwdyYIK7PxmDvQIjs7ioowXRoJLElzXbGh9z94ZG1I6Yhz6AltjgH3f0jwUfG/Jm1tp4ndarT+kK76cRTzC/L30NgWyJPutVyloTWs5aAb7DjgVpBrgEZIyaZbS6HOmk3CVbYDcEe4tmSbZ1NsnELyvEZlp9HeVr+\"}],\"role\":\"model\"}]"

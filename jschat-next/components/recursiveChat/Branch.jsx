@@ -15,7 +15,6 @@ export default function Branch({ tm, ...props }) {
   const { open } = useSidebar();
   // console.log("props", props);
   // const [isHorizontallyMaxed, setIsHorizontallyMaxed] = useState(false);
-  const thisBotRef = useRef(null);
   const branchRef = useRef(null);
   //   console.log("isHorizontallyMaxed", isHorizontallyMaxed);
   const getBotMessageForKey = (key) => {
@@ -124,6 +123,7 @@ export default function Branch({ tm, ...props }) {
           maxGlobalIdUser={props.globalIdUser}
           toMaximize={toMaximize}
           handleSubmit={(
+            refUser,
             botRef,
             targetId,
             multimediaMessage,
@@ -131,6 +131,7 @@ export default function Branch({ tm, ...props }) {
           ) => {
             handleSubmit({
               ...props,
+              refUser,
               botRef,
               targetId,
               multimediaMessage,
@@ -159,7 +160,6 @@ export default function Branch({ tm, ...props }) {
               botMessage={getBotMessageForKey(tm.key)}
               // isHorizontallyMaxed={isHorizontallyMaxed}
               // setIsHorizontallyMaxed={setIsHorizontallyMaxed}
-              thisBotRef={thisBotRef}
               branchKeyToMaximize={props.branchKeyToMaximize}
               setBranchKeyToMaximize={props.setBranchKeyToMaximize}
               userMessages={props.userMessages}

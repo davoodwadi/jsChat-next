@@ -66,10 +66,10 @@ min-h-[2.5rem] overflow-y-auto
 `;
 
   const [finalValue, setFinalValue] = useState(
-    props.children?.text === "" ? "" : undefined
+    props.children?.text === "" ? "" : undefined,
   );
   const [base64Image, setBase64Image] = useState(
-    props.children?.image === "" ? "" : undefined
+    props.children?.image === "" ? "" : undefined,
   );
   // console.log("props.globalModelInfo", props.globalModelInfo);
   const [userMessageModelInfo, setUserMessageModelInfo] = useState(() => {
@@ -136,6 +136,20 @@ min-h-[2.5rem] overflow-y-auto
   }, [refUser.current]);
   // focus to Textarea on mount END
 
+  if (
+    props?.isNewBranch &&
+    refUser.current &&
+    props?.botMessage?.status === "pending"
+  ) {
+    // console.log(props?.isNewBranch, refUser.current);
+    // console.log(props?.botMessage?.status);
+    refUser.current.scrollIntoView({
+      block: "start", // Vertically aligns the top of the element to the top of the screen
+      inline: "center", // Horizontally aligns the center of the element to the center of the screen
+      behavior: "smooth", // Optional: makes the transition smooth instead of a jump
+    });
+  }
+
   // Create a reusable resize function
   const resizeTextarea = useCallback(
     (textarea) => {
@@ -145,7 +159,7 @@ min-h-[2.5rem] overflow-y-auto
           Math.min(textarea.scrollHeight, maxTextareHeight) + "px";
       }
     },
-    [maxTextareHeight]
+    [maxTextareHeight],
   );
   // useLayoutEffect runs synchronously after all DOM mutations
   useLayoutEffect(() => {
@@ -184,13 +198,14 @@ min-h-[2.5rem] overflow-y-auto
               props.setGlobalModelInfo(userMessageModelInfo);
               //
               props.handleSubmit(
+                refUser,
                 props.refElementBot,
                 props.id,
                 {
                   image: base64Image,
                   text: finalValue,
                 },
-                userMessageModelInfo
+                userMessageModelInfo,
               );
               if (props.children && props.botMessage) {
                 setUserMessageModelInfo((prev) => {
@@ -426,13 +441,14 @@ min-h-[2.5rem] overflow-y-auto
               props.setGlobalModelInfo(userMessageModelInfo);
               //
               props.handleSubmit(
+                refUser,
                 props.refElementBot,
                 props.id,
                 {
                   image: base64Image,
                   text: finalValue,
                 },
-                userMessageModelInfo
+                userMessageModelInfo,
               );
               if (props.children && props.botMessage) {
                 setUserMessageModelInfo((prev) => {

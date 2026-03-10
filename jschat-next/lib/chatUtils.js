@@ -12,6 +12,7 @@ import { logError } from "@/lib/errorLogger";
 // import { useTransition } from "react";
 
 export async function handleSubmit({
+  refUser,
   botRef,
   targetId,
   multimediaMessage,
@@ -47,6 +48,7 @@ export async function handleSubmit({
   }
   // check if isStreaming -> stop stream END
 
+  // console.log("chatUtils refUser", refUser.current);
   // console.log("chatUtils userMessageModelInfo", userMessageModelInfo);
   const { model, modelConfig } = userMessageModelInfo;
 
@@ -114,6 +116,12 @@ export async function handleSubmit({
   if (idInBotMessages(targetId, botMessages)) {
     // old user /////////////////////
     console.log("old message");
+    // botRef.current.scrollIntoView({
+    //   block: "start", // Vertically aligns the top of the element to the top of the screen
+    //   inline: "center", // Horizontally aligns the center of the element to the center of the screen
+    //   behavior: "smooth", // Optional: makes the transition smooth instead of a jump
+    // });
+
     isNew = false;
     // find the latest branch on the same key length
     const sameParents = userMessages.filter(
@@ -141,6 +149,7 @@ export async function handleSubmit({
       globalIdUser: newGlobalIdUser,
       content: multimediaMessage,
       role: "user",
+      isNewBranch: true,
     };
 
     setUserMessages((m) => [...m, newUserMessage]);
@@ -560,6 +569,7 @@ export async function handleSubmit({
               extraContent.thoughtSignature = parsedData.thoughtSignature;
             }
             if (parsedData?.modelParts) {
+              // console.log("parsedData?.modelParts", parsedData?.modelParts);
               extraContent.modelParts = parsedData.modelParts;
             }
 
@@ -766,6 +776,9 @@ function getChain({
     }
     if (parentBot?.openaiResponseOutput) {
       assistant.openaiResponseOutput = parentBot?.openaiResponseOutput;
+    }
+    if (parentBot?.openAIContent) {
+      assistant.openAIContent = parentBot?.openAIContent;
     }
     chain.push(assistant); // key: parentKey,
   }

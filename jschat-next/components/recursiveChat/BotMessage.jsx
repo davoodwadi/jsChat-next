@@ -45,7 +45,7 @@ let baseBotClass = ` p-4 m-1 relative md:space-y-8
 
 export default function BotMessage(props) {
   // console.log("props?.botMessage.model.model", props?.botMessage.model.model);
-  // console.log("Bot props", props);
+  console.log("Bot props", props);
   // console.log("props?.botMessage?.status", props?.botMessage?.status);
   const isLatestBot = props.id === props.branchKeyToMaximize;
   const refRenderedText = useRef(null);
@@ -61,13 +61,20 @@ export default function BotMessage(props) {
   const botMessageModelId = props?.botMessage?.model?.model;
   const botMessageModelConfig = props?.botMessage?.modelConfig;
 
-  const isOpenAIGpt52Family =
-    botMessageModelId === "gpt-5.2" || botMessageModelId === "gpt-5.2-pro";
+  const gptInteractionModels = [
+    "gpt-5.2",
+    "gpt-5.2-pro",
+    "gpt-5.4",
+    "gpt-5.4-pro",
+  ];
+  const isOpenAIGptInteractionFamily =
+    gptInteractionModels.includes(botMessageModelId);
   const isReasoningMessage = Boolean(botMessageModelConfig?.reasoning);
   const isDeepResearchMessage = Boolean(botMessageModelConfig?.deepResearch);
-  // console.log("isDeepResearchMessage", isDeepResearchMessage);
+  // console.log("isOpenAIGptInteractionFamily", isOpenAIGptInteractionFamily);
   const canShowInteractionPending =
-    (isOpenAIGpt52Family && isReasoningMessage) || isDeepResearchMessage;
+    (isOpenAIGptInteractionFamily && isReasoningMessage) ||
+    isDeepResearchMessage;
 
   const [interactionData, setInteractionData] = useState(() => ({
     status: botInteractionStatus ? botInteractionStatus : null,
@@ -87,23 +94,13 @@ export default function BotMessage(props) {
       setTextToSpeak(refRenderedText.current.textContent);
     }
   }, [refRenderedText.current]);
-  useEffect(() => {
-    if (isLatestBot && props?.refElementBot.current) {
-      // console.log("props.refElementBot.current", props.refElementBot.current);
-      props.refElementBot.current.scrollIntoView({
-        block: "start", // Vertically aligns the top of the element to the top of the screen
-        inline: "center", // Horizontally aligns the center of the element to the center of the screen
-        behavior: "smooth", // Optional: makes the transition smooth instead of a jump
-      });
-    }
-  }, [isLatestBot, props.refElementBot, props.branchKeyToMaximize]);
 
   const handleCheckMessage = useCallback(
     async (trigger = "auto") => {
       const taskId = props?.botMessage?.interaction?.interactionID;
       const modelName = props?.botMessage?.model?.model;
       const startedAt = Date.now();
-      let polledStatus = "unknown";
+      let polledStatus = "pending";
       const previousStatus =
         interactionData?.status || botInteractionStatus || null;
       const isManualTrigger = trigger === "manual";
@@ -131,12 +128,13 @@ export default function BotMessage(props) {
           `/api/chat?taskId=${taskId}&model=${modelName}&email=${props?.email}`,
         );
         const data = await response.json();
-        polledStatus = data?.status || "unknown";
+        polledStatus = data?.status || "pending";
 
         // console.log("Poll response:", data);
         if (data.status === "completed") {
           // set botMessages content for this key to data.content
           // props.setBotMessages
+          console.log(data);
           const thisMessageKey = props.botMessage.key;
           // console.log("settings bot message for ", thisMessageKey);
           // Calculate updated messages
@@ -144,8 +142,7 @@ export default function BotMessage(props) {
             bm.key === thisMessageKey
               ? {
                   ...bm,
-                  content: data.content,
-                  annotations: data.annotations,
+                  ...data,
                   interaction: { ...bm.interaction, status: "completed" },
                 }
               : bm,
@@ -240,7 +237,7 @@ export default function BotMessage(props) {
   // console.log("interactionPending", interactionPending);
   // console.log("interactionData", interactionData);
   return (
-    <div className={botClass} ref={props.thisBotRef}>
+    <div className={botClass} ref={isLatestBot ? props.refElementBot : null}>
       <div className="flex flex-row justify-between items-center text-xs mb-4">
         <p className="text-sm antialiased italic font-bold ">
           {props.model?.name}
@@ -276,7 +273,6 @@ export default function BotMessage(props) {
         maxglobalidbot={props.maxGlobalIdBot}
         data-latest={isLatestBot ? "true" : "false"}
         latest={isLatestBot ? "true" : "false"}
-        ref={isLatestBot ? props.refElementBot : null}
       >
         {interactionPending ? (
           <div className="min-h-[50vh] flex flex-col items-center justify-center gap-4 text-center p-8">

@@ -1,20 +1,5 @@
 "use client";
 
-import Markdown from "react-markdown";
-import { InlineMath, BlockMath } from "react-katex";
-// import {
-//   remarkCustomMath,
-//   remarkCustomLatexMath,
-// } from "./remark-latex-style-math";
-// import { remarkLLMLatexMath, debugAfterRemarkMath } from "./remark-math-latex";
-// import remarkParse from "remark-parse";
-// import remarkRehype from "remark-rehype";
-import remarkGfm from "remark-gfm";
-import rehypeRaw from "rehype-raw";
-import rehypeKatex from "rehype-katex";
-// import rehypeStringify from "rehype-stringify";
-import remarkMath from "remark-math";
-import rehypeFormat from "rehype-format";
 import {
   addCitationsToContentInlineSuper,
   addCitationsToContentInlineSuperPerplexity,
@@ -24,15 +9,7 @@ import {
   extractDeepResearchSourcesAndContent,
 } from "@/components/searchGroundingUtils";
 import SearchResult from "@/components/SearchResult";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import {
-  dark,
-  light,
-  twilight,
-  a11yDark,
-} from "react-syntax-highlighter/dist/esm/styles/prism";
 import "katex/dist/katex.min.css"; // `rehype-katex` does not import the CSS
-import { visit } from "unist-util-visit";
 
 import CopyText from "@/components/CopyTextComponent";
 import "@/styles/markdown.css";
@@ -46,7 +23,6 @@ import React, {
 import {
   ChevronDown,
   ChevronRight,
-  Brain,
   ExternalLink,
   Search,
   TerminalSquare,
@@ -644,6 +620,7 @@ function OpenAIMarkdown({ children, mode, props }) {
   const sources = [];
   const status = props.status;
   // console.log(status);
+  // console.log(children, props);
   if (props.botMessage.openaiResponseOutput) {
     const responseOutput = JSON.parse(props.botMessage.openaiResponseOutput);
     // console.log("OpenAIMarkdown", responseOutput);
