@@ -83,10 +83,10 @@ export default function BotMessage(props) {
     annotations: props.botMessage?.annotations,
   }));
 
-  const isDeepResearchOrXHigh = isDeepResearchMessage
-    ? "Deep Research"
-    : isReasoningMessage
-      ? "xHigh Reasoning"
+  const isDeepResearchOrXHigh = isReasoningMessage
+    ? "xHigh Reasoning"
+    : isDeepResearchMessage
+      ? "Deep Research"
       : "Background Task";
   // console.log("isDeepResearchOrXHigh", isDeepResearchOrXHigh);
   useEffect(() => {

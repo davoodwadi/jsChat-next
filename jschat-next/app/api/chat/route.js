@@ -1418,7 +1418,7 @@ export async function POST(req) {
 async function getTaskProgressGemini(taskId, email, baseUrl) {
   try {
     const interaction = await googleAI.interactions.get(taskId);
-    // console.log("interaction", interaction);
+    console.log("interaction", interaction);
     let content;
     let parts;
     let annotations;
