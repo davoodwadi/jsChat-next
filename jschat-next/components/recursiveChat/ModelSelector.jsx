@@ -94,7 +94,7 @@ export function CompactModelSelector({
           aria-expanded={open}
           className={cn(
             "max-w-32 sm:max-w-48 justify-between text-xs glass-button rounded-full px-3 py-1.5 h-auto",
-            className
+            className,
           )}
         >
           <span className="truncate text-foreground/80 text-left">
@@ -111,7 +111,22 @@ export function CompactModelSelector({
       >
         <div className="glass-overlay" />
         <div className="relative z-10">
-          <Command className="glass-command">
+          <Command
+            className="glass-command"
+            filter={(value, search) => {
+              console.log("search", search);
+              console.log("value", value);
+              if (!search) return 1;
+              const searchTerms = search
+                .toLowerCase()
+                .split(" ")
+                .filter(Boolean);
+              const valueLower = value.toLowerCase();
+              return searchTerms.every((term) => valueLower.includes(term))
+                ? 1
+                : 0;
+            }}
+          >
             <div className="px-3 py-2 border-b border-white/10 dark:border-white/5">
               <CommandInput
                 placeholder="Search models..."
@@ -153,7 +168,7 @@ export function CompactModelSelector({
                             "h-3 w-3 shrink-0",
                             defaultModel?.model === model.model
                               ? "opacity-100 text-foreground/80"
-                              : "opacity-0"
+                              : "opacity-0",
                           )}
                         />
                         <span className="truncate text-foreground/90 text-xs">
@@ -220,7 +235,7 @@ export function CompactModelSelector2({
         // "ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
         // "w-32 sm:w-48",
 
-        className
+        className,
       )}
     >
       {/* <option value="">Select model...</option> */}

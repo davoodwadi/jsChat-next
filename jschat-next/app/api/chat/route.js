@@ -683,13 +683,13 @@ export async function POST(req) {
           const userInput =
             lastUserMessage.content.text || lastUserMessage.content;
           // console.log("userInput for Deep Research", userInput);
-          const { history, newUserMessage, system } =
-            convertToGoogleInteractionsFormat(data.messages);
-          console.log("system", system);
-          fullHistory = [...history, newUserMessage];
-          if (system) {
-            fullHistory = [system, ...fullHistory];
-          }
+          // const { history, newUserMessage, system } =
+          //   convertToGoogleInteractionsFormat(data.messages);
+          // console.log("system", system);
+          // fullHistory = [...history, newUserMessage];
+          // if (system) {
+          //   fullHistory = [system, ...fullHistory];
+          // }
           // console.log("fullHistory", fullHistory);
           // return;
           try {
@@ -700,7 +700,7 @@ export async function POST(req) {
             });
 
             const taskId = interaction.id;
-            console.log("Created Gemini Deep Research task:", taskId);
+            console.log("Created Gemini Deep Research task:", interaction);
             controller.enqueue(
               encoder.encode(
                 JSON.stringify({
