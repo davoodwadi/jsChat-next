@@ -723,7 +723,7 @@ export async function POST(req) {
     }
 
     console.log("Gemini model", data.model.model);
-    console.log("data.modelConfig", data.modelConfig);
+    // console.log("data.modelConfig", data.modelConfig);
     // const modelList = await googleAI.models.list();
     // console.log("Gemini modelList", modelList);
 
@@ -748,7 +748,8 @@ export async function POST(req) {
         };
       } else if (!data.modelConfig.reasoning) {
         // console.log("no reasoning");
-        if (data.model.model.includes("gemini-3-flash-preview")) {
+        
+        if (data.model.model.includes("gemini-3-flash") | data.model.model.includes("gemini-3.1-flash")) {
           streamConfig.config["thinkingConfig"] = {
             thinkingLevel: "minimal",
             includeThoughts: true,
@@ -899,7 +900,7 @@ export async function POST(req) {
             (item) => item.role === "user",
           );
           const modelParts = newHistory.slice(lastUserIndex + 1);
-          console.dir(newHistory, { depth: null, colors: true });
+          // console.dir(newHistory, { depth: null, colors: true });
           // console.dir(modelParts, { depth: null, colors: true });
           controller.enqueue(
             encoder.encode(
