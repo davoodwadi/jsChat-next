@@ -358,14 +358,23 @@ export const openaiModelsWithMeta = [
 
 export const anthropicModelsWithMeta = [
   {
-    name: "Claude Opus 4.6",
-    model: "claude-opus-4-6",
+    name: "Claude Opus 4.7",
+    model: "claude-opus-4-7",
     meta: "Anthropic's Most Intelligent Model for Complext Agents and Coding, Capable of Reasoning",
     new: true,
     vision: true,
     hasReasoning: true,
     icon: BrainIcon,
   },
+  // {
+  //   name: "Claude Opus 4.6",
+  //   model: "claude-opus-4-6",
+  //   meta: "Anthropic's Most Intelligent Model for Complext Agents and Coding, Capable of Reasoning",
+  //   new: true,
+  //   vision: true,
+  //   hasReasoning: true,
+  //   icon: BrainIcon,
+  // },
   {
     name: "Claude Sonnet 4.6",
     model: "claude-sonnet-4-6",
