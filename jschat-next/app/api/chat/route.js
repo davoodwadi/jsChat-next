@@ -95,7 +95,7 @@ export async function POST(req) {
         try {
           const encoder = new TextEncoder();
           const maxTokens = data.model.model.includes("4-6") ? 127999 : 64000;
-          if (data.model.model.includes("4-6")) {
+          if (data.model.model.includes("4-6") | data.model.model.includes("4-7")) {
             if (data.model.hasReasoning && data.modelConfig.reasoning) {
               thinking = {
                 thinking: { type: "adaptive" },
