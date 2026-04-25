@@ -95,7 +95,9 @@ export async function POST(req) {
         try {
           const encoder = new TextEncoder();
           const maxTokens = data.model.model.includes("4-6") ? 127999 : 64000;
-          if (data.model.model.includes("4-6") | data.model.model.includes("4-7")) {
+          if (
+            data.model.model.includes("4-6") | data.model.model.includes("4-7")
+          ) {
             if (data.model.hasReasoning && data.modelConfig.reasoning) {
               thinking = {
                 thinking: { type: "adaptive" },
@@ -368,11 +370,13 @@ export async function POST(req) {
     });
   } else if (openaiModels.includes(data.model.model)) {
     if (
-      (data.model.name.includes("5.2") || data.model.name.includes("5.4")) &&
+      (data.model.name.includes("5.2") ||
+        data.model.name.includes("5.4") ||
+        data.model.name.includes("5.5")) &&
       data.modelConfig.reasoning &&
       data.model.hasReasoning
     ) {
-      console.log("OpenAI Background Mode for 5.2/5.4 Reasoning");
+      console.log("OpenAI Background Mode for 5.4/5.5 Reasoning");
       const stream = new ReadableStream({
         async start(controller) {
           const encoder = new TextEncoder();
@@ -459,7 +463,7 @@ export async function POST(req) {
           let reasoning = {};
           let extraConfigs = {
             tools: [],
-            max_output_tokens: 16384,
+            max_output_tokens: 127000,
             include: [],
           };
           const { convertedMessages, hasImage } =
@@ -470,16 +474,18 @@ export async function POST(req) {
           // console.dir(convertedMessages, { depth: null });
           // return;
           if (
-            data.model.name.includes("5.2") ||
-            data.model.name.includes("5.4")
+            data.model.name.includes("5.4") ||
+            data.model.name.includes("5.5")
           ) {
             extraConfigs.max_output_tokens = 127000;
+            extraConfigs.text = { verbosity: "low" };
           }
           if (data.modelConfig.reasoning && data.model.hasReasoning) {
             reasoning = { reasoning: { effort: "high" } };
             extraConfigs.include.push("reasoning.encrypted_content");
           }
-
+          console.log(extraConfigs);
+          // return;
           if (search) {
             extraConfigs["tools"].push({
               type: "web_search",
@@ -748,8 +754,11 @@ export async function POST(req) {
         };
       } else if (!data.modelConfig.reasoning) {
         // console.log("no reasoning");
-        
-        if (data.model.model.includes("gemini-3-flash") | data.model.model.includes("gemini-3.1-flash")) {
+
+        if (
+          data.model.model.includes("gemini-3-flash") |
+          data.model.model.includes("gemini-3.1-flash")
+        ) {
           streamConfig.config["thinkingConfig"] = {
             thinkingLevel: "minimal",
             includeThoughts: true,
