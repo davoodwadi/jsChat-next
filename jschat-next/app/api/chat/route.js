@@ -796,7 +796,7 @@ export async function POST(req) {
       mutables.total_tokens += searchCost;
       console.log("adding searchCost", mutables.total_tokens);
     }
-
+    // console.log("streamConfig", streamConfig);
     const stream = new ReadableStream({
       async start(controller) {
         try {

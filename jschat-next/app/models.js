@@ -524,10 +524,10 @@ export const geminiModelsWithMeta = [
     icon: BrainIcon,
     default: false,
   },
-  
+
   {
-    name: "Gemini 3 Flash",
-    model: "gemini-3-flash-preview",
+    name: "Gemini 3.5 Flash",
+    model: "gemini-3.5-flash",
     meta: "Google's Latest and Fastest LLM With Web Search and Thinking Capabilities",
     new: false,
     vision: true,
