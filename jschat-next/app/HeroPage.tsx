@@ -46,11 +46,11 @@ export default function HeroPage() {
 
           <div className="flex flex-col">
             {/* Line 1: Standard Foreground Color */}
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-foreground leading-none">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-foreground leading-none">
               One Interface.
             </h1>
             {/* Line 2: Contrasting Gradient & Glass Effect */}
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-none relative mt-2">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-none relative mt-2">
               <span className="glass-morphic-text">All Models.</span>
             </h1>
           </div>
