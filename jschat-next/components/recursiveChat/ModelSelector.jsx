@@ -114,8 +114,6 @@ export function CompactModelSelector({
           <Command
             className="glass-command"
             filter={(value, search) => {
-              console.log("search", search);
-              console.log("value", value);
               if (!search) return 1;
               const searchTerms = search
                 .toLowerCase()
