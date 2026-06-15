@@ -102,9 +102,16 @@ export async function POST(req) {
           ) {
             if (data.model.hasReasoning && data.modelConfig.reasoning) {
               thinking = {
-                thinking: { type: "adaptive" },
+                thinking: { type: "adaptive", display: "summarized" },
                 output_config: {
                   effort: "max",
+                },
+              };
+            } else {
+              thinking = {
+                thinking: { type: "adaptive", display: "summarized" },
+                output_config: {
+                  effort: "low",
                 },
               };
             }
@@ -115,9 +122,10 @@ export async function POST(req) {
               };
             }
           }
-console.log('thinking', thinking)
+          console.log("thinking", thinking);
           const streamResponse = await anthropic.messages.create({
             max_tokens: maxTokens,
+            cache_control: { type: "ephemeral" },
             system: system && system?.content,
             messages: convertedMessages,
             model: data.model.model,
@@ -2172,7 +2180,7 @@ function convertToAnthropicFormat(messages) {
         if (m?.signature) {
           assistantM.content.push({
             type: "thinking",
-            thinking: m.thought,
+            thinking: m.thought || "",
             signature: m.signature,
           });
         }
