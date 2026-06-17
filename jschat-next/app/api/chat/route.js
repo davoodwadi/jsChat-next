@@ -22,7 +22,13 @@ import Anthropic from "@anthropic-ai/sdk";
 const anthropic = new Anthropic();
 
 import { GoogleGenAI } from "@google/genai";
-const googleAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY_AGENTS;
+const googleAI = new GoogleGenAI({
+  apiKey: GEMINI_API_KEY,
+  vertexai: true,
+  // project: GOOGLE_CLOUD_PROJECT,
+  // location: GOOGLE_CLOUD_LOCATION,
+});
 
 const perplexityClient = new OpenAI({
   apiKey: process.env.PERPLEXITY_API_KEY,

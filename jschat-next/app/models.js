@@ -505,7 +505,7 @@ export const xAIModelsWithMeta = [
 export const geminiModelsWithMeta = [
   {
     name: "Gemini 3.1 Pro",
-    model: "models/gemini-3.1-pro-preview",
+    model: "gemini-3.1-pro-preview",
     meta: "Google's Latest LLM With Web Search and Thinking Capabilities",
     new: true,
     vision: false,
@@ -530,7 +530,7 @@ export const geminiModelsWithMeta = [
   },
   {
     name: "Gemini 3.1 Flash-Lite",
-    model: "models/gemini-3.1-flash-lite-preview",
+    model: "gemini-3.1-flash-lite",
     meta: "Google's Latest Fast and Efficient Model",
     new: true,
     vision: true,
