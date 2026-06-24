@@ -66,6 +66,8 @@ export default function BotMessage(props) {
     "gpt-5.2-pro",
     "gpt-5.4",
     "gpt-5.4-pro",
+    "gpt-5.5",
+    "gpt-5.5-pro",
   ];
   const isOpenAIGptInteractionFamily =
     gptInteractionModels.includes(botMessageModelId);
