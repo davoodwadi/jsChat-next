@@ -28,7 +28,7 @@ export function NewChatButton() {
   return (
     <SidebarMenuItem key="1">
       <SidebarMenuButton asChild className="">
-        <Link href="/" onClick={(e) => handleClick()}>
+        <Link href="/chat" onClick={(e) => handleClick()}>
           <MessageCircle />
           <span className="text-xs">New Chat</span>
         </Link>

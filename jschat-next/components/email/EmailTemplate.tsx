@@ -57,10 +57,10 @@ export const SpreedVerifyIdentityEmail = ({
     <Body style={main}>
       <Container style={container}>
         <Img
-          src={`https://next.spreed.chat/output.png`}
+          src={`https://next.spreed.dev/output.png`}
           width="88"
           height="88"
-          alt="Spreed.chat"
+          alt="Spreed.dev"
           style={logo}
         />
         <Text style={tertiary}>Payment Details</Text>
@@ -190,8 +190,8 @@ export const SpreedVerifyIdentityEmail = ({
           <Text style={code}>{tokensRemaining && tokensRemaining / 1000}</Text>
         </Section>
         {/* </Container> */}
-        <Link style={{ ...button }} href="https://spreed.chat/profile">
-          Go to Spreed.chat
+        <Link style={{ ...button }} href="https://spreed.dev/profile">
+          Go to Spreed.dev
         </Link>
 
         {/* <Hr /> */}
@@ -199,14 +199,14 @@ export const SpreedVerifyIdentityEmail = ({
           <Text style={paragraph}>Have issues with your account?</Text>
           <Text style={paragraph}>
             Contact&nbsp;
-            <Link href="mailto:support@account.spreed.chat" style={{ ...link }}>
+            <Link href="mailto:support@account.spreed.dev" style={{ ...link }}>
               support
             </Link>
             &nbsp;if you have questions.
           </Text>
         </Container>
       </Container>
-      <Text style={footer}>Powered by Spreed.chat</Text>
+      <Text style={footer}>Powered by Spreed.dev</Text>
     </Body>
   </Html>
 );

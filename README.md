@@ -1,2 +1,2 @@
 # jsChat-next
-Next.js implementation of Spreed.chat
+Next.js implementation of Spreed.dev

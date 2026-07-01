@@ -33,16 +33,16 @@ export async function sendPaymentEmail({
     />,
     {
       plainText: true,
-    }
+    },
   );
 
   // console.log(text);
   // return;
 
   const { data, error } = await resend.emails.send({
-    from: "Spreed.chat Payment <payment@account.spreed.chat>",
+    from: "Spreed.dev Payment <payment@account.spreed.dev>",
     to: emailFinal,
-    subject: "Transaction Details - Spreed.chat",
+    subject: "Transaction Details - Spreed.dev",
     react: (
       <SpreedVerifyIdentityEmail
         status={status}

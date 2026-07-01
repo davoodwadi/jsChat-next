@@ -113,11 +113,11 @@ export default function Page() {
           <p>
             <strong>Website</strong> refers to Spreed, accessible from
             <a
-              href="spreed.chat"
+              href="spreed.dev"
               rel="external nofollow noopener"
               target="_blank"
             >
-              spreed.chat
+              spreed.dev
             </a>
           </p>
         </li>
@@ -552,11 +552,11 @@ export default function Page() {
         <li>
           By visiting this page on our website:
           <a
-            href="spreed.chat/contact"
+            href="spreed.dev/contact"
             rel="external nofollow noopener"
             target="_blank"
           >
-            spreed.chat/contact
+            spreed.dev/contact
           </a>
         </li>
       </ul>

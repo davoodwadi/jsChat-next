@@ -45,7 +45,7 @@ export async function SidebarProviderServer({ params, children }) {
           {children}
           <footer className="flex text-muted-foreground gap-2 p-6 pt-24 flex-wrap items-center justify-center mt-auto text-xs md:text-sm">
             <p className="flex items-center gap-2">
-              © {today.getFullYear()} Spreed.chat. All rights reserved.
+              © {today.getFullYear()} Spreed.dev. All rights reserved.
             </p>
             <a
               className="flex items-center gap-2 hover:underline hover:underline-offset-4"
