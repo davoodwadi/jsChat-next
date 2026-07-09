@@ -101,32 +101,20 @@ export async function POST(req) {
         try {
           const encoder = new TextEncoder();
           const maxTokens = 127999;
-          if (
-            data.model.model.includes("4-6") |
-            data.model.model.includes("4-7") |
-            data.model.model.includes("4-8")
-          ) {
-            if (data.model.hasReasoning && data.modelConfig.reasoning) {
-              thinking = {
-                thinking: { type: "adaptive", display: "summarized" },
-                output_config: {
-                  effort: "max",
-                },
-              };
-            } else {
-              thinking = {
-                thinking: { type: "adaptive", display: "summarized" },
-                output_config: {
-                  effort: "low",
-                },
-              };
-            }
+          if (data.model.hasReasoning && data.modelConfig.reasoning) {
+            thinking = {
+              thinking: { type: "adaptive", display: "summarized" },
+              output_config: {
+                effort: "max",
+              },
+            };
           } else {
-            if (data.model.hasReasoning && data.modelConfig.reasoning) {
-              thinking = {
-                thinking: { type: "enabled", budget_tokens: 63999 },
-              };
-            }
+            thinking = {
+              thinking: { type: "adaptive", display: "summarized" },
+              output_config: {
+                effort: "low",
+              },
+            };
           }
           console.log("thinking", thinking);
           const streamResponse = await anthropic.messages.create({
