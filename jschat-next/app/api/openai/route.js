@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 
-export const runtime = "edge";
+// export const runtime = "edge";
 
 const openai = new OpenAI({
   apiKey: process.env["OPENAI_KEY"], // This is the default and can be omitted
@@ -59,16 +59,16 @@ export async function POST(req) {
           if (chunk.choices[0]?.delta?.content) {
             console.log(
               "chunk.choices[0]?.delta?.content",
-              chunk.choices[0]?.delta?.content
+              chunk.choices[0]?.delta?.content,
             );
 
             controller.enqueue(
-              encoder.encode(chunk.choices[0]?.delta?.content)
+              encoder.encode(chunk.choices[0]?.delta?.content),
             );
           } else if (chunk?.usage?.total_tokens) {
             console.log(
               "chunk?.usage?.total_tokens",
-              chunk?.usage?.total_tokens
+              chunk?.usage?.total_tokens,
             );
           }
         }

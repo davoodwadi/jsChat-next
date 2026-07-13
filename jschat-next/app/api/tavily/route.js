@@ -7,7 +7,7 @@ const token = process.env.TAVILY_API_KEY;
 const baseUrl = "https://api.tavily.com";
 const search_endpoint = "/search";
 
-export const runtime = "edge";
+// export const runtime = "edge";
 
 export async function POST(req) {
   const { query } = await req.json();
@@ -51,7 +51,7 @@ export async function POST(req) {
     console.error("Error:", error);
     return NextResponse.json(
       { error: `Something went wrong ${error}` },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

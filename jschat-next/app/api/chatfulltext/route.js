@@ -24,7 +24,7 @@ import {
   search_for_academic_papers_tool_grok,
   search_for_academic_papers_tool_openai,
 } from "./utils";
-export const runtime = "edge";
+// export const runtime = "edge";
 const searchEndpoint = "papersearch";
 
 import {
@@ -68,7 +68,7 @@ export async function POST(req) {
       ? { thinking: { type: "enabled", budget_tokens: 8000 } }
       : {};
     const { convertedMessages, system } = convertToAnthropicFormat(
-      data.messages
+      data.messages,
     );
     const systemCitation =
       system && data.webSearchOn
@@ -144,7 +144,7 @@ export async function POST(req) {
       const filteredText = apiResponse2?.content.find((m) => m.type === "text");
       if (!filteredText) {
         const response2 = apiResponse2?.content.find(
-          (m) => m.type === "tool_use"
+          (m) => m.type === "tool_use",
         );
         console.log("response2", response2);
       }
@@ -160,7 +160,7 @@ export async function POST(req) {
     console.log("groq");
 
     const { convertedMessages, hasImage } = convertToOpenAIFormat(
-      data.messages
+      data.messages,
     );
     const apiResponse = await groq.chat.completions.create({
       messages: convertedMessages,
@@ -181,7 +181,7 @@ export async function POST(req) {
     }
   } else if (deepinfraModels.includes(data.model)) {
     const { convertedMessages, hasImage } = convertToDeepInfraFormat(
-      data.messages
+      data.messages,
     );
     const apiResponse = await deepinfra.chat.completions.create({
       messages: convertedMessages,
@@ -196,7 +196,7 @@ export async function POST(req) {
     // console.log("apiResponse", apiResponse);
   } else if (openaiModels.includes(data.model)) {
     const { convertedMessages, hasImage } = convertToOpenAIResponsesFormat(
-      data.messages
+      data.messages,
     );
 
     const legacyMessages = convertToOpenAIFormat(data.messages);
@@ -230,7 +230,7 @@ export async function POST(req) {
 
         //   console.log("apiResponse", apiResponse);
         const toolCall = apiResponse.output.find(
-          (o) => o.type === "function_call"
+          (o) => o.type === "function_call",
         );
         const args = JSON.parse(toolCall.arguments);
         const search_results = await getSearchResults(args.query);
@@ -312,7 +312,7 @@ export async function POST(req) {
       : {};
     const isReasoning = data.model.includes("grok-3-mini-latest");
     const { convertedMessages, hasImage } = convertToOpenAIFormat(
-      data.messages
+      data.messages,
     );
     // console.log("convertedMessages", convertedMessages);
     const requestPayload = {
@@ -381,7 +381,7 @@ export async function POST(req) {
   } else if (geminiModels.includes(data.model)) {
     console.log("Gemini model", data.model);
     const { history, newUserMessage, system } = convertToGoogleFormat(
-      data.messages
+      data.messages,
     );
     const streamConfig = {
       config: {
@@ -411,12 +411,12 @@ export async function POST(req) {
     if (groundingMetadata?.groundingSupports) {
       const groundingChunksRedirected =
         await updateGroundingChunksWithActualLinksAndTitles(
-          groundingMetadata?.groundingChunks
+          groundingMetadata?.groundingChunks,
         );
       const contentWithCitations = addCitationsToContent(
         responseText,
         groundingChunksRedirected,
-        groundingMetadata?.groundingSupports
+        groundingMetadata?.groundingSupports,
       );
       // console.log("contentWithCitations", contentWithCitations);
       responseText = contentWithCitations;
@@ -444,6 +444,6 @@ export async function POST(req) {
       model: data.model,
       text: responseText,
       ...(citationsArray ? { citationsArray: citationsArray } : {}),
-    })
+    }),
   );
 }

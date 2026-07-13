@@ -14,7 +14,7 @@ import {
 
 // // Allow streaming responses up to 30 seconds
 // export const maxDuration = 30
-export const runtime = "edge";
+// export const runtime = "edge";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
@@ -65,7 +65,7 @@ export async function POST(req) {
             } else if (messageStreamEvent.type === "content_block_delta") {
               // messageStreamEvent.delta.text
               controller.enqueue(
-                encoder.encode(messageStreamEvent?.delta?.text)
+                encoder.encode(messageStreamEvent?.delta?.text),
               );
             }
           }
@@ -96,7 +96,7 @@ export async function POST(req) {
           for await (const chunk of stream) {
             if (chunk.choices[0]?.delta?.content) {
               controller.enqueue(
-                encoder.encode(chunk.choices[0]?.delta?.content)
+                encoder.encode(chunk.choices[0]?.delta?.content),
               );
             } else if (typeof chunk?.choices[0]?.finish_reason === "string") {
               // console.log("chunk", chunk);
@@ -158,7 +158,7 @@ export async function POST(req) {
             // console.log("chunk", chunk);
             if (chunk.choices[0]?.delta?.content) {
               controller.enqueue(
-                encoder.encode(chunk.choices[0]?.delta?.content)
+                encoder.encode(chunk.choices[0]?.delta?.content),
               );
             } else if (chunk?.usage?.total_tokens) {
               fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens`, {
