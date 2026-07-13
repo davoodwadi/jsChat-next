@@ -61,7 +61,7 @@ import { headers } from "next/headers";
 // import { host } from "@/auth";
 
 // // Allow streaming responses up to X seconds
-export const maxDuration = 90000;
+export const maxDuration = 300;
 export const runtime = "nodejs";
 
 // Task store (in-memory, at the top of route.js with other imports)
