@@ -190,6 +190,42 @@ into a unified model.`,
 
 export const openaiModelsWithMeta = [
   {
+    name: "GPT 5.6 Sol",
+    model: "gpt-5.6-sol",
+    meta: "Flagship Model Used in ChatGPT Pro",
+    new: true,
+    vision: true,
+    hasReasoning: true,
+    hasDeepResearch: false,
+    hasSearch: true,
+    hasAgentic: false,
+    icon: DetailedIcon,
+  },
+  {
+    name: "GPT 5.6 Terra",
+    model: "gpt-5.6-terra",
+    meta: "Flagship Model Used in ChatGPT Pro",
+    new: true,
+    vision: true,
+    hasReasoning: true,
+    hasDeepResearch: false,
+    hasSearch: true,
+    hasAgentic: false,
+    icon: DetailedIcon,
+  },
+  {
+    name: "GPT 5.6 Luna",
+    model: "gpt-5.6-luna",
+    meta: "Flagship Model Used in ChatGPT Pro",
+    new: true,
+    vision: true,
+    hasReasoning: true,
+    hasDeepResearch: false,
+    hasSearch: true,
+    hasAgentic: false,
+    icon: DetailedIcon,
+  },
+  {
     name: "GPT 5.5",
     model: "gpt-5.5",
     meta: "Flagship Model Used in ChatGPT Pro",
@@ -388,6 +424,7 @@ export const anthropicModelsWithMeta = [
     new: true,
     vision: true,
     hasReasoning: true,
+    hasSearch: true,
     icon: BrainIcon,
   },
   {
@@ -397,6 +434,7 @@ export const anthropicModelsWithMeta = [
     new: true,
     vision: true,
     hasReasoning: true,
+    hasSearch: true,
     icon: BrainIcon,
   },
   {
@@ -406,6 +444,7 @@ export const anthropicModelsWithMeta = [
     new: true,
     vision: true,
     hasReasoning: true,
+    hasSearch: true,
     icon: BrainIcon,
   },
   {
@@ -417,24 +456,6 @@ export const anthropicModelsWithMeta = [
     hasReasoning: true,
     icon: FastIcon,
   },
-  // {
-  //   name: "Claude 3.5 Haiku",
-  //   model: "claude-3-5-haiku-latest",
-  //   meta: "Legacy Anthropic Model For Daily Tasks",
-  //   new: false,
-  //   vision: true,
-  //   hasReasoning: false,
-  //   icon: FastIcon,
-  // },
-  // {
-  //   name: "Claude Sonnet 4",
-  //   model: "claude-sonnet-4-20250514",
-  //   meta: "Anthropic's Model Capable of Reasoning",
-  //   new: false,
-  //   vision: true,
-  //   hasReasoning: true,
-  //   icon: BrainIcon,
-  // },
 ];
 
 export const xAIModelsWithMeta = [

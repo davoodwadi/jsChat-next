@@ -272,6 +272,10 @@ export async function handleSubmit({
               extraContent.openaiResponseOutput =
                 parsedData.openaiResponseOutput;
             }
+            if (parsedData?.anthropicResponseOutput) {
+              extraContent.anthropicResponseOutput =
+                parsedData.anthropicResponseOutput;
+            }
             if (parsedData?.groundingChunks) {
               extraContent.groundingChunks = [
                 ...extraContent.groundingChunks,
@@ -465,7 +469,7 @@ export async function handleSubmit({
       content: multimediaMessage,
       role: "user",
     }); // key: JSON.stringify(array),
-
+    // console.log(chain);
     let data;
     // try catch finally START
     try {
@@ -576,6 +580,10 @@ export async function handleSubmit({
             if (parsedData?.openaiResponseOutput) {
               extraContent.openaiResponseOutput =
                 parsedData.openaiResponseOutput;
+            }
+            if (parsedData?.anthropicResponseOutput) {
+              extraContent.anthropicResponseOutput =
+                parsedData.anthropicResponseOutput;
             }
             if (parsedData?.groundingChunks) {
               extraContent.groundingChunks = [
@@ -779,6 +787,9 @@ function getChain({
     }
     if (parentBot?.openaiResponseOutput) {
       assistant.openaiResponseOutput = parentBot?.openaiResponseOutput;
+    }
+    if (parentBot?.anthropicResponseOutput) {
+      assistant.anthropicResponseOutput = parentBot?.anthropicResponseOutput;
     }
     if (parentBot?.openAIContent) {
       assistant.openAIContent = parentBot?.openAIContent;

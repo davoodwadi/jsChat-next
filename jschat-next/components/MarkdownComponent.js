@@ -68,6 +68,17 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
       </div>
     );
   }
+  const isAnthropic = Boolean(
+    anthropicModels.includes(props.botMessage.model.model),
+  );
+  if (isAnthropic) {
+    // console.log("isAnthropic");
+    return (
+      <div ref={ref}>
+        <AnthropicMarkdown props={props}>{finalContent}</AnthropicMarkdown>
+      </div>
+    );
+  }
   // console.log("NOT OpenAI");
 
   const isGemini = Boolean(
@@ -524,7 +535,6 @@ function OpenAISourcesComponent({ children, ...props }) {
                 ? getDomain(source.url)
                 : source.name || "Unknown Source";
               const iconLetter = displayName[0]?.toUpperCase();
-
               return (
                 <li key={idx}>
                   <div
@@ -545,17 +555,23 @@ function OpenAISourcesComponent({ children, ...props }) {
                           </p>
                         )}
                         {source.url ? (
-                          <a
-                            href={itemUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={cn(
-                              "truncate hover:underline",
-                              sourceMutedTextClass,
+                          <>
+                            <a
+                              href={itemUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="truncate text-sm font-semibold text-slate-800 dark:text-slate-100 hover:underline"
+                            >
+                              {displayName}
+                            </a>
+                            {source.title && (
+                              <span
+                                className={cn("truncate", sourceMutedTextClass)}
+                              >
+                                {source.title}
+                              </span>
                             )}
-                          >
-                            {displayName}
-                          </a>
+                          </>
                         ) : (
                           <span
                             className={cn("truncate", sourceMutedTextClass)}
@@ -572,6 +588,7 @@ function OpenAISourcesComponent({ children, ...props }) {
                         href={itemUrl}
                         target="_blank"
                         rel="noopener noreferrer"
+                        className="ml-3 flex-shrink-0"
                       >
                         <ExternalLink className="h-4 w-4 flex-shrink-0 opacity-60 group-hover:opacity-100 text-slate-600 dark:text-slate-300" />
                       </a>
@@ -664,6 +681,151 @@ function OpenAIMarkdown({ children, mode, props }) {
       </SimpleMarkdown>,
     );
   }
+  return elementsToShow;
+}
+
+function AnthropicMarkdown({ children, mode, props }) {
+  const elementsToShow = [];
+  const sources = [];
+  const extractedCitations = [];
+  let citationCounter = 0;
+  const status = props.status;
+
+  if (props.botMessage.anthropicResponseOutput) {
+    let responseOutputContent;
+    try {
+      const responseOutput =
+        typeof props.botMessage.anthropicResponseOutput === "string"
+          ? JSON.parse(props.botMessage.anthropicResponseOutput)
+          : props.botMessage.anthropicResponseOutput;
+
+      // We directly assume .content exists on the responseOutput object if it is not an array
+      responseOutputContent = Array.isArray(responseOutput)
+        ? responseOutput
+        : responseOutput.content || [];
+    } catch (e) {
+      console.error("Failed to parse anthropicResponseOutput", e);
+      responseOutputContent = [];
+    }
+    // console.log("responseOutputContent", responseOutputContent);
+
+    let textBuffer = "";
+
+    const flushText = (index) => {
+      if (textBuffer.trim()) {
+        let after = textBuffer;
+
+        // Process citations if any were found
+        if (extractedCitations.length > 0) {
+          const maxCitationNumber = Math.max(
+            ...extractedCitations.map((c) => c.citationNumber),
+            0,
+          );
+          const sourcesToDisplay = extractedCitations.map((cit) => ({
+            citationNumber: cit.citationNumber,
+            domain:
+              cit.domain || extractUrlMetadata(cit.source).domain || "Source",
+            source: cit.source,
+          }));
+
+          after = addCitationsForDeepResearch(
+            after,
+            maxCitationNumber,
+            sourcesToDisplay,
+          );
+        }
+
+        after = replaceLatexDelimsOutsideCode(after);
+        elementsToShow.push(
+          <SimpleMarkdown
+            key={`text-${index}`}
+            status={status}
+            mappingName="Anthropic"
+          >
+            {after}
+          </SimpleMarkdown>,
+        );
+        textBuffer = "";
+        extractedCitations.length = 0; // Clear citations for next text block
+        citationCounter = 0;
+      }
+    };
+
+    if (Array.isArray(responseOutputContent)) {
+      responseOutputContent.forEach((chunk, index) => {
+        if (chunk.type === "thinking") {
+          flushText(index); // Flush any text before displaying the thinking block
+          elementsToShow.push(
+            <ThinkingBlock props={props} key={`think-${index}`}>
+              {chunk.thinking}
+            </ThinkingBlock>,
+          );
+        } else if (chunk.type === "text") {
+          textBuffer += chunk.text;
+
+          if (Array.isArray(chunk.citations) && chunk.citations.length > 0) {
+            chunk.citations.forEach((citation) => {
+              citationCounter++;
+              extractedCitations.push({
+                citationNumber: citationCounter,
+                domain: citation.document_title || "Anthropic Source",
+                source: citation.document_title || "Source",
+                cited_text: citation.cited_text,
+              });
+              textBuffer += ` [cite: ${citationCounter}]`;
+            });
+          }
+        } else {
+          flushText(index);
+
+          if (chunk.type === "server_tool_use") {
+            if (chunk.name === "web_search") {
+              elementsToShow.push(
+                <QueryBlock key={`query-${index}`}>
+                  {[chunk.input.query]}
+                </QueryBlock>,
+              );
+            }
+            // else if (chunk.name === "code_execution") {
+            //   elementsToShow.push(
+            //     <ToolBlock key={`tool-${index}`}>{chunk.input.code}</ToolBlock>,
+            //   );
+            // }
+          } else if (chunk.type === "web_search_tool_result") {
+            if (Array.isArray(chunk.content)) {
+              const parsedSources = chunk.content
+                .filter((res) => res.type === "web_search_result")
+                .map((res) => ({
+                  title: res.title,
+                  url: res.url,
+                  snippet: res.content || "",
+                }));
+              sources.push(...parsedSources);
+            }
+          }
+        }
+      });
+    }
+
+    flushText("end");
+    // console.log("sources", sources);
+    if (sources.length > 0) {
+      elementsToShow.push(
+        <OpenAISourcesComponent key="sources">
+          {sources}
+        </OpenAISourcesComponent>,
+      );
+    }
+  } else {
+    const text = children || props.botMessage.content;
+    const after = replaceLatexDelimsOutsideCode(text);
+    elementsToShow.push(
+      <SimpleMarkdown key={0} status={status} mappingName="Anthropic">
+        {after}
+      </SimpleMarkdown>,
+    );
+  }
+  // console.log("elementsToShow", elementsToShow);
   return elementsToShow;
 }
 

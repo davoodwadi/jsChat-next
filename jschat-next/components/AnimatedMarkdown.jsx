@@ -426,6 +426,7 @@ const openaiComponentsMap = {
 };
 const customMapping = {
   Gemini: geminiComponentsMap,
+  Anthropic: geminiComponentsMap,
   OpenAI: openaiComponentsMap,
   Custom: customComponentMap,
 };

@@ -94,7 +94,8 @@ export async function POST(req) {
     const { convertedMessages, system } = convertToAnthropicFormat(
       data.messages,
     );
-    // console.log("convertedMessages", convertedMessages);
+    console.log("convertedMessages", convertedMessages);
+    // return;
     let thinking = {};
     const stream = new ReadableStream({
       async start(controller) {
@@ -117,19 +118,29 @@ export async function POST(req) {
             };
           }
           console.log("thinking", thinking);
-          const streamResponse = await anthropic.messages.create({
+          let tools = [];
+          const search = data?.modelConfig?.search && data.model?.hasSearch;
+          if (search) {
+            tools.push({
+              type: "web_search_20260318",
+              name: "web_search",
+            });
+            mutables.total_tokens += searchCost * 2;
+          }
+          const streamResponse = anthropic.messages.stream({
             max_tokens: maxTokens,
             cache_control: { type: "ephemeral" },
             system: system && system?.content,
             messages: convertedMessages,
             model: data.model.model,
-            stream: true,
+            ...(tools.length > 0 && { tools }),
             ...thinking,
           });
           // const all_models = await anthropic.models.list({
           //   limit: 20,
           // });
           // console.log("latest anthropic models:", all_models);
+          let currentToolCall = null;
           for await (const messageStreamEvent of streamResponse) {
             // console.log("messageStreamEvent", messageStreamEvent);
             if (messageStreamEvent.type === "message_start") {
@@ -145,9 +156,41 @@ export async function POST(req) {
             } else if (messageStreamEvent.type === "message_delta") {
               // console.log("message_delta", messageStreamEvent);
               mutables.total_tokens += messageStreamEvent.usage.output_tokens;
+            } else if (messageStreamEvent.type === "content_block_start") {
+              if (
+                messageStreamEvent.content_block.type === "tool_use" &&
+                messageStreamEvent.content_block.name === "web_search"
+              ) {
+                currentToolCall = { type: "web_search", input: "" };
+              } else if (
+                messageStreamEvent.content_block.type ===
+                "web_search_tool_result"
+              ) {
+                if (
+                  messageStreamEvent.content_block.content &&
+                  !messageStreamEvent.content_block.is_error
+                ) {
+                  const results = messageStreamEvent.content_block.content.map(
+                    (r) => ({
+                      url: r.url,
+                      title: r.title,
+                      content: r.content || r.snippet,
+                    }),
+                  );
+                  controller.enqueue(
+                    encoder.encode(
+                      JSON.stringify({ openai_search_results: results }) + "\n",
+                    ),
+                  );
+                }
+              }
             } else if (messageStreamEvent.type === "content_block_delta") {
-              // messageStreamEvent.delta.text
-              if (messageStreamEvent?.delta?.type === "thinking_delta") {
+              if (
+                messageStreamEvent?.delta?.type === "input_json_delta" &&
+                currentToolCall
+              ) {
+                currentToolCall.input += messageStreamEvent.delta.partial_json;
+              } else if (messageStreamEvent?.delta?.type === "thinking_delta") {
                 // controller.enqueue(
                 //   encoder.encode(messageStreamEvent?.delta?.thinking)
                 // );
@@ -177,8 +220,30 @@ export async function POST(req) {
                   ),
                 );
               }
+            } else if (messageStreamEvent.type === "content_block_stop") {
+              if (currentToolCall) {
+                try {
+                  const inputObj = JSON.parse(currentToolCall.input);
+                  if (inputObj.query) {
+                    controller.enqueue(
+                      encoder.encode(
+                        JSON.stringify({ query: inputObj.query }) + "\n",
+                      ),
+                    );
+                  }
+                } catch (e) {}
+                currentToolCall = null;
+              }
             }
           }
+          const finalMessage = await streamResponse.finalMessage();
+          controller.enqueue(
+            encoder.encode(
+              JSON.stringify({
+                anthropicResponseOutput: JSON.stringify(finalMessage),
+              }) + "\n",
+            ),
+          );
           controller.close(); // Close the stream
         } catch (err) {
           if (err.code === "ECONNRESET" || err.name === "AbortError") {
@@ -2167,6 +2232,18 @@ function convertToAnthropicFormat(messages) {
         }
         return userM;
       } else if (m.role === "assistant") {
+        if (m.anthropicResponseOutput) {
+          try {
+            const rawMsg =
+              typeof m.anthropicResponseOutput === "string"
+                ? JSON.parse(m.anthropicResponseOutput)
+                : m.anthropicResponseOutput;
+            // console.log("rawMsg", rawMsg);
+            return { role: "assistant", content: rawMsg.content };
+          } catch (e) {
+            console.error("Failed to parse anthropicResponseOutput", e);
+          }
+        }
         const assistantM = {
           role: "assistant",
           content: [],
