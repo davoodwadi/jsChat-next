@@ -4,6 +4,7 @@ import { Resend } from "resend";
 import { connectToDatabase } from "@/lib/db";
 import { wait } from "@/lib/actions";
 
+// console.log("process.env.RESEND_API_KEY", process.env.RESEND_API_KEY);
 const resend = new Resend(process.env.RESEND_API_KEY);
 const audienceID = "508d40bf-007d-4511-a740-492392ff8ee7";
 
@@ -53,7 +54,7 @@ const findDifference = (users, contacts) => {
   // console.log("users", users);
   try {
     const difference = users.filter(
-      (user) => !contacts.some((contact) => contact.email === user.email)
+      (user) => !contacts.some((contact) => contact.email === user.email),
     );
     // console.log("difference", difference);
     return difference;

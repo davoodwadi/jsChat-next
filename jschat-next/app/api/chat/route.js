@@ -22,10 +22,11 @@ import Anthropic from "@anthropic-ai/sdk";
 const anthropic = new Anthropic();
 
 import { GoogleGenAI } from "@google/genai";
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY_AGENTS;
+// const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+console.log("GEMINI_API_KEY", GEMINI_API_KEY);
 const googleAI = new GoogleGenAI({
   apiKey: GEMINI_API_KEY,
-  vertexai: true,
+  // vertexai: true,
   // project: GOOGLE_CLOUD_PROJECT,
   // location: GOOGLE_CLOUD_LOCATION,
 });
