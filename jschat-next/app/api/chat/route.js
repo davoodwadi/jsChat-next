@@ -99,7 +99,19 @@ export async function POST(req) {
   if (openrouterModels.includes(data.model.model)) {
     const stream = new ReadableStream({
       async start(controller) {
+        let heartbeatTimer;
+
         try {
+          heartbeatTimer = setInterval(() => {
+            try {
+              controller.enqueue(
+                encoder.encode(JSON.stringify({ signal: "heartbeat" }) + "\n"),
+              );
+            } catch (err) {
+              // Controller might be closed, stop the heartbeat
+              clearInterval(heartbeatTimer);
+            }
+          }, 20000); // Run every 20 seconds
           console.log("openrouter", data.model.model);
           const encoder = new TextEncoder();
 
@@ -128,6 +140,14 @@ export async function POST(req) {
               ...extraConfigs,
             },
           });
+
+          controller.enqueue(
+            encoder.encode(
+              JSON.stringify({
+                signal: JSON.stringify(extraConfigs),
+              }) + "\n",
+            ),
+          );
           let reasoningDetails = [];
           let accumulated_content = "";
           for await (const chunk of completionStream) {
@@ -192,6 +212,8 @@ export async function POST(req) {
             controller.close();
           } catch {}
         } finally {
+          clearInterval(heartbeatTimer);
+
           console.log("UPDATING TOKEN USAGE");
           console.log("mutables.total_tokens", mutables.total_tokens);
           // UPDATE TOKENS HERE START
