@@ -131,8 +131,8 @@ export async function POST(req) {
           let reasoningDetails = [];
           let accumulated_content = "";
           for await (const chunk of completionStream) {
-            console.log("chunk");
-            console.dir(chunk, { depth: null, colors: true });
+            // console.log("chunk");
+            // console.dir(chunk, { depth: null, colors: true });
             const delta = chunk.choices?.[0]?.delta;
 
             // 1. Accumulate reasoning details as they arrive
