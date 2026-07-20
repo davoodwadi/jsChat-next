@@ -276,6 +276,9 @@ export async function handleSubmit({
               extraContent.anthropicResponseOutput =
                 parsedData.anthropicResponseOutput;
             }
+            if (parsedData?.reasoningDetails) {
+              extraContent.reasoningDetails = parsedData.reasoningDetails;
+            }
             if (parsedData?.groundingChunks) {
               extraContent.groundingChunks = [
                 ...extraContent.groundingChunks,
@@ -585,6 +588,9 @@ export async function handleSubmit({
               extraContent.anthropicResponseOutput =
                 parsedData.anthropicResponseOutput;
             }
+            if (parsedData?.reasoningDetails) {
+              extraContent.reasoningDetails = parsedData.reasoningDetails;
+            }
             if (parsedData?.groundingChunks) {
               extraContent.groundingChunks = [
                 ...extraContent.groundingChunks,
@@ -794,6 +800,10 @@ function getChain({
     if (parentBot?.openAIContent) {
       assistant.openAIContent = parentBot?.openAIContent;
     }
+    if (parentBot?.reasoningDetails) {
+      assistant.reasoningDetails = parentBot?.reasoningDetails;
+    }
+
     chain.push(assistant); // key: parentKey,
   }
   // console.log("chain messages", chain);

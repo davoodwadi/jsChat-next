@@ -59,6 +59,12 @@ importers:
       '@next/env':
         specifier: 16.1.6
         version: 16.1.6
+      '@openrouter/agent':
+        specifier: ^0.7.2
+        version: 0.7.2
+      '@openrouter/sdk':
+        specifier: ^0.13.66
+        version: 0.13.66
       '@radix-ui/react-accordion':
         specifier: ^1.2.3
         version: 1.2.10(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -1168,6 +1174,12 @@ packages:
 
   '@open-draft/until@2.1.0':
     resolution: {integrity: sha512-U69T3ItWHvLwGg5eJ0n3I62nWuE6ilHlmz7zM0npLBRvPRd7e6NYmg54vvRtP5mZG7kZqZCFVdsTWo7BPtBujg==}
+
+  '@openrouter/agent@0.7.2':
+    resolution: {integrity: sha512-G3Rp4iPKP7RQSJ+k7ea2+fDOJXUhsZNmiKoz8Ddlo7fY9KDdNiP4xKA0IA/9Y27FJjb2kagHvP9Dw2ycEwlzmA==}
+
+  '@openrouter/sdk@0.13.66':
+    resolution: {integrity: sha512-RgZ0Zw/zMHepd1yKhYniXqBlgV6YFV68YAL0Jnf2Q4NZ8/+PKh6631IQtEZHMNcVpnKi/MxpImFXhFY5K7Vnwg==}
 
   '@opentelemetry/api@1.9.0':
     resolution: {integrity: sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg==}
@@ -5462,6 +5474,9 @@ packages:
   zod@3.25.4:
     resolution: {integrity: sha512-7zz8qNtVv37yCd8OeUW37PMXrR0K/zg+6vw+Z2FJ2+oozVdRbFKldkCoqxd9nJflDrx2ZkjUJrPF2DMj+L4pBQ==}
 
+  zod@4.4.3:
+    resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
+
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
 
@@ -6395,6 +6410,15 @@ snapshots:
       outvariant: 1.4.3
 
   '@open-draft/until@2.1.0': {}
+
+  '@openrouter/agent@0.7.2':
+    dependencies:
+      '@openrouter/sdk': 0.13.66
+      zod: 4.4.3
+
+  '@openrouter/sdk@0.13.66':
+    dependencies:
+      zod: 3.25.4
 
   '@opentelemetry/api@1.9.0': {}
 
@@ -11351,5 +11375,7 @@ snapshots:
       zod: 3.25.4
 
   zod@3.25.4: {}
+
+  zod@4.4.3: {}
 
   zwitch@2.0.4: {}

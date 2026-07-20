@@ -35,6 +35,7 @@ import {
   anthropicModelsWithMeta,
   xAIModelsWithMeta,
   geminiModelsWithMeta,
+  openrouterModelsWithMeta,
   testModels,
 } from "@/app/models";
 
@@ -47,6 +48,7 @@ const providerGroups = {
   Anthropic: anthropicModelsWithMeta,
   Groq: groqModelsWithMeta,
   DeepInfra: deepinfraModelsWithMeta,
+  openrouter: openrouterModelsWithMeta,
 };
 
 if (test) {
@@ -64,7 +66,7 @@ export function CompactModelSelector({
   const defaultModel = useMemo(() => {
     return (
       selectedModel ||
-      geminiModelsWithMeta.find((m) => m.model === "gemini-2.5-pro")
+      geminiModelsWithMeta.find((m) => m.model === "gemini-3.1-pro")
     );
   }, [selectedModel]);
 
@@ -189,18 +191,6 @@ export function CompactModelSelector2({
   onModelChange,
   className,
 }) {
-  // Build provider groups
-  // const providerGroups = {
-  //   AlibabaCloud: alibabaModelsWithMeta,
-  //   Perplexity: perplexityModelsWithMeta,
-  //   OpenAI: openaiModelsWithMeta,
-  //   Gemini: geminiModelsWithMeta,
-  //   xAI: xAIModelsWithMeta,
-  //   Anthropic: anthropicModelsWithMeta,
-  //   Groq: groqModelsWithMeta,
-  //   DeepInfra: deepinfraModelsWithMeta,
-  // };
-
   // Only include test models if the test flag is true
   if (test) {
     providerGroups["Test"] = testModels;

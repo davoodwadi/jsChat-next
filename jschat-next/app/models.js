@@ -416,6 +416,19 @@ export const openaiModelsWithMeta = [
   // },
 ];
 
+export const openrouterModelsWithMeta = [
+  {
+    name: "Kimi K3",
+    model: "moonshotai/kimi-k3",
+    meta: "Moonshot AI's Most Intelligent Model for Complex Agents and Coding, Capable of Reasoning",
+    new: true,
+    vision: true,
+    hasReasoning: true,
+    hasSearch: false,
+    icon: BrainIcon,
+  },
+];
+
 export const anthropicModelsWithMeta = [
   {
     name: "Claude Fable 5",
@@ -655,6 +668,7 @@ const allModels = [
   ...anthropicModelsWithMeta,
   ...xAIModelsWithMeta,
   ...geminiModelsWithMeta,
+  ...openrouterModelsWithMeta,
 ];
 if (test) {
   allModels.unshift(...testModels);
@@ -673,6 +687,7 @@ export const openaiModels = openaiModelsWithMeta.map((m) => m.model);
 export const anthropicModels = anthropicModelsWithMeta.map((m) => m.model);
 export const xAIModels = xAIModelsWithMeta.map((m) => m.model);
 export const geminiModels = geminiModelsWithMeta.map((m) => m.model);
+export const openrouterModels = openrouterModelsWithMeta.map((m) => m.model);
 
 // console.log(groqModels);
 // console.log(deepinfraModels);

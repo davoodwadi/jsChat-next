@@ -44,6 +44,10 @@ const alibabaClient = new OpenAI({
   timeout: 360000,
 });
 
+import { fromChatMessages } from "@openrouter/agent";
+import { OpenRouter } from "@openrouter/sdk";
+const openRouter = new OpenRouter({ apiKey: process.env.OPENROUTER_API_KEY });
+
 import {
   groqModels,
   openaiModels,
@@ -53,6 +57,7 @@ import {
   geminiModels,
   perplexityModels,
   alibabaModels,
+  openrouterModels,
 } from "@/app/models";
 
 import { updateGroundingChunksWithActualLinksAndTitles } from "@/components/searchGroundingUtils";
@@ -91,7 +96,127 @@ export async function POST(req) {
 
   const mutables = { total_tokens: 0 };
   const searchCost = 20000;
-  if (anthropicModels.includes(data.model.model)) {
+  if (openrouterModels.includes(data.model.model)) {
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          console.log("openrouter", data.model.model);
+          const encoder = new TextEncoder();
+
+          // console.log("data.messages", data.messages);
+          // return;
+          const { convertedMessages, hasImage } = convertToOpenrouterFormat(
+            data.messages,
+          );
+          // console.log("convertedMessages");
+          // console.dir(convertedMessages, { depth: null, colors: true });
+
+          let extraConfigs = {};
+
+          // Check if reasoning is enabled in the UI and if the model supports it
+          if (data.modelConfig.reasoning && data.model.hasReasoning) {
+            extraConfigs.include_reasoning = true; // Stream reasoning chunks
+            extraConfigs.reasoning = { effort: "high" }; // Set effort level
+          }
+
+          const completionStream = await openRouter.chat.send({
+            chatRequest: {
+              model: data.model.model,
+              // model: "google/gemini-3.5-flash",
+              messages: convertedMessages,
+              stream: true,
+              ...extraConfigs,
+            },
+          });
+          let reasoningDetails = [];
+          let accumulated_content = "";
+          for await (const chunk of completionStream) {
+            console.log("chunk");
+            console.dir(chunk, { depth: null, colors: true });
+            const delta = chunk.choices?.[0]?.delta;
+
+            // 1. Accumulate reasoning details as they arrive
+            if (
+              delta?.reasoningDetails &&
+              Array.isArray(delta.reasoningDetails)
+            ) {
+              reasoningDetails.push(...delta.reasoningDetails);
+            }
+
+            if (delta?.content) {
+              accumulated_content += delta.content;
+
+              controller.enqueue(
+                encoder.encode(
+                  JSON.stringify({
+                    text: delta.content,
+                  }) + "\n",
+                ),
+              );
+            }
+            if (delta?.reasoning) {
+              controller.enqueue(
+                encoder.encode(
+                  JSON.stringify({
+                    think: delta.reasoning,
+                  }) + "\n",
+                ),
+              );
+            }
+
+            // Total tokens are returned in the final chunk's usage object
+            if (chunk.usage?.totalTokens) {
+              mutables.total_tokens += chunk.usage.totalTokens;
+            }
+          }
+          controller.enqueue(
+            encoder.encode(
+              JSON.stringify({
+                reasoningDetails: reasoningDetails,
+              }) + "\n",
+            ),
+          );
+          // console.log("reasoningDetails");
+          // console.dir(reasoningDetails, { depth: null, colors: true });
+
+          controller.close();
+        } catch (err) {
+          if (err.code === "ECONNRESET" || err.name === "AbortError") {
+            console.log("🔌 Client disconnected / aborted");
+          } else if (err.code === "ERR_INVALID_STATE") {
+            console.log("⚠️ Tried writing to closed stream, ignoring");
+          } else {
+            console.error("❌ Unexpected streaming error:", err);
+          }
+          try {
+            controller.close();
+          } catch {}
+        } finally {
+          console.log("UPDATING TOKEN USAGE");
+          console.log("mutables.total_tokens", mutables.total_tokens);
+          // UPDATE TOKENS HERE START
+          // update usage
+          fetch(`${baseUrl}/api/tokens`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              amount: mutables.total_tokens,
+              email: data.email,
+            }),
+          });
+          //
+          // UPDATE TOKENS HERE END
+        }
+      },
+    });
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  } else if (anthropicModels.includes(data.model.model)) {
     const { convertedMessages, system } = convertToAnthropicFormat(
       data.messages,
     );
@@ -2052,6 +2177,40 @@ function convertToOpenAIResponsesFormatXAI({ agentic, messages }) {
   } else {
     return { convertedMessages: converted, hasImage: hasImage };
   }
+}
+function convertToOpenrouterFormat(messages) {
+  let hasImage = false;
+  const converted = messages.map((m) => {
+    if (m.role === "user") {
+      const userM = {
+        role: "user",
+        content: [{ type: "text", text: m.content.text ? m.content.text : "" }],
+      };
+      if (m.content.image) {
+        userM.content.push({
+          type: "image_url",
+          image_url: { url: m.content.image },
+        });
+        hasImage = true;
+      }
+      return userM;
+    } else if (m.role === "assistant") {
+      const assistantM = {
+        role: "assistant",
+        content: m.content ? m.content : "",
+      };
+
+      // Pass the accumulated reasoning_details back unmodified
+      if (m.reasoningDetails) {
+        assistantM.reasoningDetails = m.reasoningDetails;
+      }
+
+      return assistantM;
+    } else {
+      return m;
+    }
+  });
+  return { convertedMessages: converted, hasImage: hasImage };
 }
 function convertToOpenAIFormat(messages) {
   let hasImage = false;

@@ -32,6 +32,7 @@ import {
   anthropicModelsWithMeta,
   xAIModelsWithMeta,
   geminiModelsWithMeta,
+  openrouterModelsWithMeta,
   testModels,
   allModels,
 } from "@/app/models";
@@ -53,6 +54,7 @@ const modelMeta = [
   { desc: "Anthropic Models (Closed-source)", models: anthropicModelsWithMeta },
   { desc: "xAI Models (Closed-source)", models: xAIModelsWithMeta },
   { desc: "Google Models (Closed-source)", models: geminiModelsWithMeta },
+  { desc: "openrouter Models", models: openrouterModelsWithMeta },
 ];
 if (test) {
   modelMeta.unshift({ desc: "Test LLMs", models: testModels });
