@@ -160,7 +160,47 @@ export async function POST(req) {
               delta?.reasoningDetails &&
               Array.isArray(delta.reasoningDetails)
             ) {
-              reasoningDetails.push(...delta.reasoningDetails);
+              for (const detail of delta.reasoningDetails) {
+                if (reasoningDetails.length === 0) {
+                  reasoningDetails.push({ ...detail });
+                } else {
+                  const last = reasoningDetails[reasoningDetails.length - 1];
+                  if (
+                    last.type === detail.type &&
+                    last.id === detail.id &&
+                    last.index === detail.index
+                  ) {
+                    if (detail.type === "reasoning.text") {
+                      if (detail.text)
+                        last.text = (last.text || "") + detail.text;
+                      if (detail.signature) last.signature = detail.signature;
+                    } else if (detail.type === "reasoning.encrypted") {
+                      if (detail.data)
+                        last.data = (last.data || "") + detail.data;
+                    } else if (detail.type === "reasoning.summary") {
+                      if (detail.summary)
+                        last.summary = (last.summary || "") + detail.summary;
+                    }
+                  } else {
+                    reasoningDetails.push({ ...detail });
+                  }
+                }
+
+                // Fallback: stream text reasoning if not provided in delta.reasoning
+                if (
+                  detail.type === "reasoning.text" &&
+                  detail.text &&
+                  !delta.reasoning
+                ) {
+                  controller.enqueue(
+                    encoder.encode(
+                      JSON.stringify({
+                        think: detail.text,
+                      }) + "\n",
+                    ),
+                  );
+                }
+              }
             }
 
             if (delta?.content) {
@@ -196,8 +236,8 @@ export async function POST(req) {
               }) + "\n",
             ),
           );
-          // console.log("reasoningDetails");
-          // console.dir(reasoningDetails, { depth: null, colors: true });
+          console.log("reasoningDetails");
+          console.dir(reasoningDetails, { depth: null, colors: true });
 
           controller.close();
         } catch (err) {

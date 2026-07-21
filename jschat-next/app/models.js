@@ -423,7 +423,7 @@ export const openrouterModelsWithMeta = [
     meta: "Moonshot AI's Most Intelligent Model for Complex Agents and Coding, Capable of Reasoning",
     new: true,
     vision: true,
-    hasReasoning: true,
+    hasReasoning: false,
     hasSearch: false,
     icon: BrainIcon,
   },
