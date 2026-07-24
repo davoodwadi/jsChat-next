@@ -441,8 +441,8 @@ export const anthropicModelsWithMeta = [
     icon: BrainIcon,
   },
   {
-    name: "Claude Opus 4.8",
-    model: "claude-opus-4-8",
+    name: "Claude Opus 5",
+    model: "claude-opus-5",
     meta: "Anthropic's Most Intelligent Model for Complex Agents and Coding, Capable of Reasoning",
     new: true,
     vision: true,

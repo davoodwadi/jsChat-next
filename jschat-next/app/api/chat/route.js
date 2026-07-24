@@ -202,6 +202,15 @@ export async function POST(req) {
                 }
               }
             }
+            if (delta?.reasoning) {
+              controller.enqueue(
+                encoder.encode(
+                  JSON.stringify({
+                    think: delta.reasoning,
+                  }) + "\n",
+                ),
+              );
+            }
 
             if (delta?.content) {
               accumulated_content += delta.content;
@@ -210,15 +219,6 @@ export async function POST(req) {
                 encoder.encode(
                   JSON.stringify({
                     text: delta.content,
-                  }) + "\n",
-                ),
-              );
-            }
-            if (delta?.reasoning) {
-              controller.enqueue(
-                encoder.encode(
-                  JSON.stringify({
-                    think: delta.reasoning,
                   }) + "\n",
                 ),
               );
@@ -236,8 +236,8 @@ export async function POST(req) {
               }) + "\n",
             ),
           );
-          console.log("reasoningDetails");
-          console.dir(reasoningDetails, { depth: null, colors: true });
+          // console.log("reasoningDetails");
+          // console.dir(reasoningDetails, { depth: null, colors: true });
 
           controller.close();
         } catch (err) {
