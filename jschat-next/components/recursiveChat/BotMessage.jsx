@@ -218,6 +218,7 @@ export default function BotMessage(props) {
     ],
   );
 
+  // console.log("props?.botMessage", props?.botMessage);
   // console.log("props?.botMessage.interaction", props?.botMessage.interaction);
   const interactionStatus = interactionData?.status || botInteractionStatus;
   const interactionStatusLabel = !interactionStatus
@@ -369,28 +370,50 @@ export default function BotMessage(props) {
             {props.children}
           </MarkdownComponent>
         ) : null}
-        {props?.botMessage?.errors?.error ? (
-          <div className="flex flex-col justify-center my-4 p-3 rounded-lg border-l-4 border-red-500 bg-red-50 dark:bg-red-950/30 dark:border-red-600">
-            <div className="flex gap-3">
-              <div className="flex-shrink-0">
-                <AlertCircle
-                  size={18}
-                  className="text-red-600 dark:text-red-400 mt-0.5"
-                />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-red-800 dark:text-red-300">
-                  {props.botMessage.errors.error}
-                </p>
-                {props.botMessage.errors.details && (
-                  <p className="text-xs text-red-700 dark:text-red-400 mt-1">
-                    {props.botMessage.errors.details}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-        ) : null}
+        {props?.botMessage?.errors?.error
+          ? (() => {
+              let errorMessage = props.botMessage.errors.error;
+              let errorDetails = props.botMessage.errors.details || "";
+
+              // Surgically parse double-stringified JSON error if present
+              try {
+                const parsed = JSON.parse(errorMessage);
+                if (parsed && typeof parsed === "object") {
+                  errorMessage = parsed.message || errorMessage;
+                  if (parsed.name && !errorDetails) {
+                    errorDetails = parsed.name;
+                  }
+                }
+              } catch (e) {
+                // Keep original string if not valid JSON
+              }
+
+              return (
+                <div className="my-4 p-3.5 rounded-xl border border-red-500/30 bg-red-500/10 dark:bg-red-950/20 backdrop-blur-md transition-all shadow-sm">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 p-1.5 rounded-lg bg-red-500/15 dark:bg-red-500/20 text-red-600 dark:text-red-400 mt-0.5">
+                      <AlertCircle size={16} />
+                    </div>
+                    <div className="flex-1 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-red-500/20 text-red-700 dark:text-red-300">
+                          API Error
+                        </span>
+                      </div>
+                      <p className="text-xs font-medium text-red-900 dark:text-red-200 leading-relaxed">
+                        {errorMessage}
+                      </p>
+                      {errorDetails ? (
+                        <p className="text-[11px] font-mono text-red-700/80 dark:text-red-400/80 pt-0.5">
+                          {errorDetails}
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()
+          : null}
       </div>
     </div>
   );

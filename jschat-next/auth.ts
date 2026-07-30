@@ -13,19 +13,6 @@ import type { Provider } from "next-auth/providers";
 // type Provider = "google" | "github";
 export let host = "";
 
-type Doc = {
-  username: string | null | undefined;
-  email: string | null | undefined;
-  photo: string | null | undefined;
-  tokensConsumed: number;
-  tokensRemaining: number;
-  maxTokensPerMonth: number;
-  createdAt: Date;
-  quotaRefreshedAt: Date;
-  lastLogin: Date;
-  googleInfo?: Profile;
-  githubInfo?: Profile;
-} | null;
 function getDoc({ profile, provider }: { profile: Profile; provider: string }) {
   return {
     username: profile.email,

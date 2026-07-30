@@ -27,6 +27,13 @@ import { HatGlasses, GraduationCap, ChevronsLeftRight } from "lucide-react";
 import { ModelSelector, CompactModelSelector } from "./ModelSelector";
 import { test } from "@/lib/test";
 import { getStoredErrors, clearStoredErrors } from "@/lib/errorLogger";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Check } from "lucide-react";
 
 // Disable SSR for the ImageUploader component
 const ImageUploader = dynamic(() => import("./ImageUploader"), {
@@ -78,6 +85,9 @@ min-h-[2.5rem] overflow-y-auto
         reasoning:
           props?.botMessage?.modelConfig?.reasoning ||
           props.globalModelInfo.modelConfig.reasoning,
+        reasoningEffort:
+          props?.botMessage?.modelConfig?.reasoningEffort ||
+          props.globalModelInfo.modelConfig.reasoningEffort,
         search:
           props?.botMessage?.modelConfig?.search ||
           props.globalModelInfo.modelConfig.search,
@@ -166,7 +176,7 @@ min-h-[2.5rem] overflow-y-auto
     resizeTextarea(refUser.current);
   }, [finalValue, resizeTextarea]);
   // console.log("userMessageModelInfo", userMessageModelInfo);
-  // console.log("userMessage userMessageModelInfo", userMessageModelInfo);
+  // console.log("userMessageModelInfo.model", userMessageModelInfo.modelConfig);
 
   return (
     <>
@@ -252,30 +262,114 @@ min-h-[2.5rem] overflow-y-auto
 
         <div className="flex flex-wrap justify-center gap-2 pt-2">
           {/* reasoning START */}
-          {userMessageModelInfo?.model?.hasReasoning && (
-            <Button
-              size="sm"
-              aria-label="Reasoning"
-              className={
-                userMessageModelInfo.modelConfig.reasoning
-                  ? "glass-button-dark !rounded-full w-8 h-8 p-0 "
-                  : "glass-button !rounded-full w-8 h-8 p-0 "
-              }
-              onClick={() => {
-                setUserMessageModelInfo((prev) => {
-                  return {
+          {userMessageModelInfo?.model?.hasReasoning &&
+            (userMessageModelInfo.model.reasoningLevels?.length > 0 ? (
+              /* Dropdown for models supporting explicit reasoning effort levels */
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    size="sm"
+                    aria-label="Reasoning Effort"
+                    className={
+                      userMessageModelInfo.modelConfig?.reasoning
+                        ? "glass-button-dark !rounded-full h-8 px-2 py-0 text-xs flex items-center gap-1.5"
+                        : "glass-button !rounded-full w-8 h-8 p-0"
+                    }
+                  >
+                    <Brain className="w-4 h-4" />
+                    {userMessageModelInfo.modelConfig?.reasoning && (
+                      <span className="capitalize font-medium text-[11px]">
+                        {userMessageModelInfo.modelConfig?.reasoningEffort ||
+                          userMessageModelInfo.model?.defaultReasoningEffort ||
+                          userMessageModelInfo.model.reasoningLevels[0]}
+                      </span>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="start"
+                  className="glass-popover p-1 min-w-[120px]"
+                >
+                  <div className="glass-overlay" />
+                  <div className="relative z-10 text-xs">
+                    {/* Turn reasoning OFF */}
+                    <DropdownMenuItem
+                      className="flex items-center justify-between cursor-pointer text-xs"
+                      onClick={() => {
+                        setUserMessageModelInfo((prev) => ({
+                          ...prev,
+                          modelConfig: {
+                            ...prev.modelConfig,
+                            reasoning: false,
+                          },
+                        }));
+                      }}
+                    >
+                      <span>Off</span>
+                      {!userMessageModelInfo.modelConfig?.reasoning && (
+                        <Check className="w-3.5 h-3.5 opacity-70" />
+                      )}
+                    </DropdownMenuItem>
+
+                    {/* Model-specific effort levels only */}
+                    {userMessageModelInfo.model.reasoningLevels.map((level) => {
+                      const activeEffort =
+                        userMessageModelInfo.modelConfig?.reasoningEffort ||
+                        userMessageModelInfo.model?.defaultReasoningEffort ||
+                        userMessageModelInfo.model.reasoningLevels[0];
+                      const isSelected =
+                        userMessageModelInfo.modelConfig?.reasoning &&
+                        activeEffort === level;
+
+                      return (
+                        <DropdownMenuItem
+                          key={level}
+                          className="flex items-center justify-between cursor-pointer capitalize text-xs"
+                          onClick={() => {
+                            setUserMessageModelInfo((prev) => ({
+                              ...prev,
+                              modelConfig: {
+                                ...prev.modelConfig,
+                                reasoning: true,
+                                reasoningEffort: level,
+                              },
+                            }));
+                          }}
+                        >
+                          <span>{level}</span>
+                          {isSelected && (
+                            <Check className="w-3.5 h-3.5 opacity-70" />
+                          )}
+                        </DropdownMenuItem>
+                      );
+                    })}
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              /* Binary ON/OFF toggle button for models without explicit effort levels */
+              <Button
+                size="sm"
+                aria-label="Reasoning"
+                className={
+                  userMessageModelInfo.modelConfig?.reasoning
+                    ? "glass-button-dark !rounded-full w-8 h-8 p-0"
+                    : "glass-button !rounded-full w-8 h-8 p-0"
+                }
+                onClick={() => {
+                  setUserMessageModelInfo((prev) => ({
                     ...prev,
                     modelConfig: {
                       ...prev.modelConfig,
-                      reasoning: !prev.modelConfig.reasoning,
+                      reasoning: !prev.modelConfig?.reasoning,
                     },
-                  };
-                });
-              }}
-            >
-              <Brain />
-            </Button>
-          )}
+                  }));
+                }}
+              >
+                <Brain className="w-4 h-4" />
+              </Button>
+            ))}
+
           {/* reasoning END */}
 
           {/* search START */}

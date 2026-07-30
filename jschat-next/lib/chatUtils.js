@@ -51,7 +51,8 @@ export async function handleSubmit({
   // console.log("chatUtils refUser", refUser.current);
   // console.log("chatUtils userMessageModelInfo", userMessageModelInfo);
   const { model, modelConfig } = userMessageModelInfo;
-
+  // console.log(model);
+  // console.log(modelConfig);
   rest.setBotMessageFinished(false);
 
   // const dummy =

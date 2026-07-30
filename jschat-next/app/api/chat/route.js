@@ -282,28 +282,32 @@ export async function POST(req) {
     const { convertedMessages, system } = convertToAnthropicFormat(
       data.messages,
     );
-    console.log("convertedMessages", convertedMessages);
-    // return;
+    // console.log("convertedMessages", convertedMessages);
+
+    // console.log("model", data.model);
+    // console.log("model", data.modelConfig);
     let thinking = {};
     const stream = new ReadableStream({
       async start(controller) {
+        const encoder = new TextEncoder();
         try {
-          const encoder = new TextEncoder();
           const maxTokens = 127999;
+          const userEffort =
+            data.modelConfig?.reasoningEffort ||
+            data.model?.defaultReasoningEffort;
           if (data.model.hasReasoning && data.modelConfig.reasoning) {
-            thinking = {
-              thinking: { type: "adaptive", display: "summarized" },
-              output_config: {
-                effort: "max",
-              },
-            };
-          } else {
-            thinking = {
-              thinking: { type: "adaptive", display: "summarized" },
-              output_config: {
-                effort: "low",
-              },
-            };
+            if (data.model?.reasoningLevels) {
+              thinking = {
+                thinking: { type: "adaptive", display: "summarized" },
+                output_config: {
+                  effort: userEffort,
+                },
+              };
+            } else {
+              thinking = {
+                thinking: { type: "adaptive", display: "summarized" },
+              };
+            }
           }
           console.log("thinking", thinking);
           let tools = [];
@@ -315,12 +319,13 @@ export async function POST(req) {
             });
             mutables.total_tokens += searchCost * 2;
           }
-          const streamResponse = anthropic.messages.stream({
+          const streamResponse = anthropic.messages.create({
             max_tokens: maxTokens,
             cache_control: { type: "ephemeral" },
             system: system && system?.content,
             messages: convertedMessages,
             model: data.model.model,
+            stream: true,
             ...(tools.length > 0 && { tools }),
             ...thinking,
           });
@@ -434,6 +439,21 @@ export async function POST(req) {
           );
           controller.close(); // Close the stream
         } catch (err) {
+          const errorPayload = {
+            message: err.message || "An unexpected error occurred",
+            name: err.name,
+          };
+          try {
+            controller.enqueue(
+              encoder.encode(
+                JSON.stringify({
+                  error: JSON.stringify(errorPayload),
+                }) + "\n",
+              ),
+            );
+          } catch (internalErr) {
+            console.log("error in sending errorPayload", internalErr);
+          }
           if (err.code === "ECONNRESET" || err.name === "AbortError") {
             console.log("🔌 Client disconnected / aborted");
           } else if (err.code === "ERR_INVALID_STATE") {
@@ -1449,6 +1469,8 @@ export async function POST(req) {
     });
   } else if (data.model.model === "test-llm") {
     console.log("test LLM");
+    // console.log("model", data.model);
+    // console.log("model", data.modelConfig);
     const search = data.modelConfig?.search;
     const academic = data.modelConfig?.academic;
     const deepResearch = data.modelConfig?.deepResearch;
@@ -1520,6 +1542,7 @@ export async function POST(req) {
               controller.close();
             }
           }
+          // throw new Error("SIMULATED TEST-LLM ERROR.");
           // for regular API calls
           for (let chunk of sampleEvents) {
             // if (counter === 1) {
@@ -1630,7 +1653,7 @@ export async function POST(req) {
             controller.enqueue(
               encoder.encode(
                 JSON.stringify({
-                  signal: JSON.stringify(errorPayload),
+                  error: JSON.stringify(errorPayload),
                 }) + "\n",
               ),
             );
