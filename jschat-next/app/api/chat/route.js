@@ -319,13 +319,12 @@ export async function POST(req) {
             });
             mutables.total_tokens += searchCost * 2;
           }
-          const streamResponse = anthropic.messages.create({
+          const streamResponse = anthropic.messages.stream({
             max_tokens: maxTokens,
             cache_control: { type: "ephemeral" },
             system: system && system?.content,
             messages: convertedMessages,
             model: data.model.model,
-            stream: true,
             ...(tools.length > 0 && { tools }),
             ...thinking,
           });
