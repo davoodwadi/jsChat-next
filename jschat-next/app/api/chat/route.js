@@ -126,10 +126,21 @@ export async function POST(req) {
           let extraConfigs = {};
 
           // Check if reasoning is enabled in the UI and if the model supports it
-          if (data.modelConfig.reasoning && data.model.hasReasoning) {
-            extraConfigs.include_reasoning = true; // Stream reasoning chunks
-            extraConfigs.reasoning = { effort: "high" }; // Set effort level
+          // START: reasoning effort
+          const userEffort =
+            data.modelConfig?.reasoningEffort ||
+            data.model?.defaultReasoningEffort;
+
+          if (data.model.hasReasoning && data.modelConfig.reasoning) {
+            if (data.model?.reasoningLevels) {
+              extraConfigs.include_reasoning = true; // Stream reasoning chunks
+              extraConfigs.reasoning = { effort: userEffort }; // Set effort level
+            } else {
+              extraConfigs.include_reasoning = true; // Stream reasoning chunks
+            }
           }
+          console.log("extraConfigs", extraConfigs);
+          // END: reasoning effort
 
           const completionStream = await openRouter.chat.send({
             chatRequest: {
