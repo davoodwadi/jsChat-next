@@ -580,8 +580,8 @@ export const geminiModelsWithMeta = [
 
 export const alibabaModelsWithMeta = [
   {
-    name: "Qwen 3.5 Plus",
-    model: "qwen3.5-plus",
+    name: "Qwen3.8-Max",
+    model: "qwen3.8-max",
     meta: "The Qwen 3 series Max model has undergone specialized upgrades in agent programming and tool invocation compared to the preview version. The officially released model this time has achieved state-of-the-art (SOTA) performance in its field and is better suited to meet the demands of agents operating in more complex scenarios.",
     new: true,
     vision: true,
@@ -600,28 +600,6 @@ export const alibabaModelsWithMeta = [
     hasDeepResearch: false,
     hasSearch: false,
     icon: DetailedIcon,
-  },
-  {
-    name: "Qwen3 Flash",
-    model: "qwen-flash",
-    meta: "The Qwen3 Flash model offers a powerful fusion of thinking and non-thinking modes with dynamic in-conversation switching, excelling in complex reasoning while showing significant gains in instruction following and text comprehension. It supports a 1M context length and is billed on a tiered model corresponding to context usage.",
-    new: true,
-    vision: false,
-    hasReasoning: true,
-    hasDeepResearch: false,
-    hasSearch: false,
-    icon: DetailedIcon,
-  },
-  {
-    name: "Qwen3 Coder Plus",
-    model: "qwen3-coder-plus",
-    meta: "Powered by Qwen3, this is a powerful Coding Agent that excels in tool calling and environment interaction to achieve autonomous programming. It combines outstanding coding proficiency with versatile general-purpose abilities.",
-    new: true,
-    vision: false,
-    hasReasoning: false,
-    hasDeepResearch: false,
-    hasSearch: false,
-    icon: CodeIcon,
   },
 ];
 

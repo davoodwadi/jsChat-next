@@ -44,7 +44,6 @@ const alibabaClient = new OpenAI({
   timeout: 360000,
 });
 
-import { fromChatMessages } from "@openrouter/agent";
 import { OpenRouter } from "@openrouter/sdk";
 const openRouter = new OpenRouter({ apiKey: process.env.OPENROUTER_API_KEY });
 
@@ -657,9 +656,7 @@ export async function POST(req) {
     });
   } else if (openaiModels.includes(data.model.model)) {
     if (
-      (data.model.name.includes("5.2") ||
-        data.model.name.includes("5.4") ||
-        data.model.name.includes("5.5")) &&
+      data.model.name.includes("5") &&
       data.modelConfig.reasoning &&
       data.model.hasReasoning
     ) {
@@ -830,6 +827,21 @@ export async function POST(req) {
             mutables: mutables,
           });
         } catch (err) {
+          const errorPayload = {
+            message: err.message || "An unexpected error occurred",
+            name: err.name,
+          };
+          try {
+            controller.enqueue(
+              encoder.encode(
+                JSON.stringify({
+                  error: JSON.stringify(errorPayload),
+                }) + "\n",
+              ),
+            );
+          } catch (internalErr) {
+            console.log("error in sending errorPayload", internalErr);
+          }
           if (err.code === "ECONNRESET" || err.name === "AbortError") {
             console.log("🔌 Client disconnected / aborted");
           } else if (err.code === "ERR_INVALID_STATE") {
@@ -975,16 +987,7 @@ export async function POST(req) {
           const lastUserMessage = data.messages[data.messages.length - 1];
           const userInput =
             lastUserMessage.content.text || lastUserMessage.content;
-          // console.log("userInput for Deep Research", userInput);
-          // const { history, newUserMessage, system } =
-          //   convertToGoogleInteractionsFormat(data.messages);
-          // console.log("system", system);
-          // fullHistory = [...history, newUserMessage];
-          // if (system) {
-          //   fullHistory = [system, ...fullHistory];
-          // }
-          // console.log("fullHistory", fullHistory);
-          // return;
+
           try {
             const interaction = await googleAI.interactions.create({
               input: userInput,
@@ -1086,9 +1089,8 @@ export async function POST(req) {
     // console.log("streamConfig", streamConfig);
     const stream = new ReadableStream({
       async start(controller) {
+        const encoder = new TextEncoder();
         try {
-          const encoder = new TextEncoder();
-
           const chat = googleAI.chats.create({
             model: data.model.model,
             history: history,
@@ -1208,6 +1210,21 @@ export async function POST(req) {
 
           controller.close(); // Close the stream
         } catch (err) {
+          const errorPayload = {
+            message: err.message || "An unexpected error occurred",
+            name: err.name,
+          };
+          try {
+            controller.enqueue(
+              encoder.encode(
+                JSON.stringify({
+                  error: JSON.stringify(errorPayload),
+                }) + "\n",
+              ),
+            );
+          } catch (internalErr) {
+            console.log("error in sending errorPayload", internalErr);
+          }
           if (err.code === "ECONNRESET" || err.name === "AbortError") {
             console.log("🔌 Client disconnected / aborted");
           } else if (err.code === "ERR_INVALID_STATE") {
@@ -1397,8 +1414,8 @@ export async function POST(req) {
     let usage;
     const stream = new ReadableStream({
       async start(controller) {
+        const encoder = new TextEncoder();
         try {
-          const encoder = new TextEncoder();
           const stream = await alibabaClient.chat.completions.create({
             model: data.model.model,
             messages: convertedMessages,
@@ -1438,6 +1455,21 @@ export async function POST(req) {
           }
           controller.close(); // Close the stream
         } catch (err) {
+          const errorPayload = {
+            message: err.message || "An unexpected error occurred",
+            name: err.name,
+          };
+          try {
+            controller.enqueue(
+              encoder.encode(
+                JSON.stringify({
+                  error: JSON.stringify(errorPayload),
+                }) + "\n",
+              ),
+            );
+          } catch (internalErr) {
+            console.log("error in sending errorPayload", internalErr);
+          }
           if (err.code === "ECONNRESET" || err.name === "AbortError") {
             console.log("🔌 Client disconnected / aborted");
           } else if (err.code === "ERR_INVALID_STATE") {
