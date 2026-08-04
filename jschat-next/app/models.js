@@ -527,8 +527,8 @@ export const geminiModelsWithMeta = [
   },
 
   {
-    name: "Gemini 3.5 Flash",
-    model: "gemini-3.5-flash",
+    name: "Gemini 3.6 Flash",
+    model: "gemini-3.6-flash",
     meta: "Google's Latest and Fastest LLM With Web Search and Thinking Capabilities",
     new: false,
     vision: true,
@@ -541,8 +541,8 @@ export const geminiModelsWithMeta = [
     icon: FastIcon,
   },
   {
-    name: "Gemini 3.1 Flash-Lite",
-    model: "gemini-3.1-flash-lite",
+    name: "Gemini 3.5 Flash Lite",
+    model: "gemini-3.5-flash-lite",
     meta: "Google's Latest Fast and Efficient Model",
     new: true,
     vision: true,

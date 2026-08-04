@@ -78,7 +78,8 @@ export default function ChatClient({ chatId, bookmarked, email }) {
       deepResearch: false,
       agentic: false,
       academic: false,
-      reasoning: false,
+      reasoning: Boolean(startingModel?.defaultReasoningEffort),
+      reasoningEffort: startingModel?.defaultReasoningEffort,
     },
   });
 

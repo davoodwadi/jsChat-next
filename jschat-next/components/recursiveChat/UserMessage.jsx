@@ -40,13 +40,7 @@ const ImageUploader = dynamic(() => import("./ImageUploader"), {
   ssr: false,
   loading: () => <Skeleton />,
 });
-import {
-  openaiModelsWithMeta,
-  groqModelsWithMeta,
-  deepinfraModelsWithMeta,
-  anthropicModelsWithMeta,
-  xAIModelsWithMeta,
-} from "@/app/models";
+
 import { allModelsWithoutIcon } from "@/app/models";
 import { Skeleton } from "../ui/skeleton";
 
@@ -57,7 +51,6 @@ export default function UserMessage({
   ...props
 }) {
   // console.log("UserMessage props", props);
-  //   console.log("User props.id", props.id);
   // console.log("User props.children", props.children);
   let baseUserClass = "  flex flex-col items-center p-4 m-1 rounded-xl "; //border-2 border-blue-500 min-w-fit
   baseUserClass += `bg-gray-100 dark:bg-zinc-900 `; // bg-sky-50 dark:bg-sky-600
@@ -80,14 +73,27 @@ min-h-[2.5rem] overflow-y-auto
   );
   // console.log("props.globalModelInfo", props.globalModelInfo);
   const [userMessageModelInfo, setUserMessageModelInfo] = useState(() => {
+    const initialModel =
+      props?.botMessage?.model || props.globalModelInfo.model;
+    const botReasoning = props?.botMessage?.modelConfig?.reasoning;
+    const globalReasoning = props.globalModelInfo.modelConfig.reasoning;
+
+    const reasoning =
+      botReasoning !== undefined
+        ? botReasoning
+        : globalReasoning !== undefined
+          ? globalReasoning
+          : Boolean(initialModel?.defaultReasoningEffort);
+
+    const reasoningEffort =
+      props?.botMessage?.modelConfig?.reasoningEffort ||
+      props.globalModelInfo.modelConfig.reasoningEffort ||
+      initialModel?.defaultReasoningEffort;
+
     return {
       modelConfig: {
-        reasoning:
-          props?.botMessage?.modelConfig?.reasoning ||
-          props.globalModelInfo.modelConfig.reasoning,
-        reasoningEffort:
-          props?.botMessage?.modelConfig?.reasoningEffort ||
-          props.globalModelInfo.modelConfig.reasoningEffort,
+        reasoning,
+        reasoningEffort,
         search:
           props?.botMessage?.modelConfig?.search ||
           props.globalModelInfo.modelConfig.search,
@@ -101,7 +107,7 @@ min-h-[2.5rem] overflow-y-auto
           props?.botMessage?.modelConfig?.academic ||
           props.globalModelInfo.modelConfig.academic,
       },
-      model: props?.botMessage?.model || props.globalModelInfo.model,
+      model: initialModel,
     };
   });
   // console.log("userMessageModelInfo", userMessageModelInfo);
@@ -175,7 +181,7 @@ min-h-[2.5rem] overflow-y-auto
   useLayoutEffect(() => {
     resizeTextarea(refUser.current);
   }, [finalValue, resizeTextarea]);
-  // console.log("userMessageModelInfo", userMessageModelInfo);
+  console.log("userMessageModelInfo", userMessageModelInfo);
   // console.log("userMessageModelInfo.model", userMessageModelInfo.modelConfig);
 
   return (
@@ -486,10 +492,28 @@ min-h-[2.5rem] overflow-y-auto
           <CompactModelSelector
             selectedModel={userMessageModelInfo?.model}
             onModelChange={(selectedModel) => {
-              setUserMessageModelInfo((v) => ({
-                ...v,
-                model: selectedModel,
-              }));
+              setUserMessageModelInfo((v) => {
+                const hasDefaultEffort = Boolean(
+                  selectedModel?.defaultReasoningEffort,
+                );
+                const hasReasoning = Boolean(selectedModel?.hasReasoning);
+
+                return {
+                  ...v,
+                  model: selectedModel,
+                  modelConfig: {
+                    ...v.modelConfig,
+                    reasoning: hasDefaultEffort
+                      ? true
+                      : hasReasoning
+                        ? v.modelConfig?.reasoning
+                        : false,
+                    reasoningEffort:
+                      selectedModel?.defaultReasoningEffort ||
+                      v.modelConfig?.reasoningEffort,
+                  },
+                };
+              });
               // props.setModel(selectedModel);
             }}
           />
