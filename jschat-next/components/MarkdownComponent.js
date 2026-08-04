@@ -68,6 +68,17 @@ const MarkdownComponent = forwardRef(function MarkdownComponent(props, ref) {
       </div>
     );
   }
+  const isAlibaba = Boolean(
+    alibabaModels.includes(props.botMessage.model.model),
+  );
+  if (isAlibaba) {
+    return (
+      <div ref={ref}>
+        <OpenAIMarkdown props={props}>{finalContent}</OpenAIMarkdown>
+      </div>
+    );
+  }
+
   const isAnthropic = Boolean(
     anthropicModels.includes(props.botMessage.model.model),
   );
@@ -636,6 +647,7 @@ function OpenAIMarkdown({ children, mode, props }) {
   const elementsToShow = [];
   const sources = [];
   const status = props.status;
+  // console.log(props.botMessage);
   // console.log(status);
   // console.log(children, props);
   if (props.botMessage.openaiResponseOutput) {
@@ -654,6 +666,13 @@ function OpenAIMarkdown({ children, mode, props }) {
           <SimpleMarkdown key={index} status={status} mappingName="OpenAI">
             {after}
           </SimpleMarkdown>,
+        );
+      } else if (chunk.type === "reasoning") {
+        const reasoning = chunk.summary[0].text;
+        elementsToShow.push(
+          <ThinkingBlock key={index} status={status} mappingName="OpenAI">
+            {reasoning}
+          </ThinkingBlock>,
         );
       } else if (chunk.type === "web_search_call") {
         // console.log("web_search_call", chunk.action);
@@ -674,6 +693,14 @@ function OpenAIMarkdown({ children, mode, props }) {
     // console.log("elementsToShow", elementsToShow);
   } else {
     const text = children || props.botMessage.content;
+    const reasoning = props.botMessage?.think;
+    if (reasoning) {
+      elementsToShow.push(
+        <ThinkingBlock key={"think"} status={status}>
+          {reasoning}
+        </ThinkingBlock>,
+      );
+    }
     const after = replaceLatexDelimsOutsideCode(text);
     elementsToShow.push(
       <SimpleMarkdown key={0} status={status} mappingName="OpenAI">
@@ -817,6 +844,14 @@ function AnthropicMarkdown({ children, mode, props }) {
       );
     }
   } else {
+    const reasoning = props.botMessage?.think;
+    if (reasoning) {
+      elementsToShow.push(
+        <ThinkingBlock key={0} status={status}>
+          {reasoning}
+        </ThinkingBlock>,
+      );
+    }
     const text = children || props.botMessage.content;
     const after = replaceLatexDelimsOutsideCode(text);
     elementsToShow.push(

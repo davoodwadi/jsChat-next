@@ -181,7 +181,7 @@ min-h-[2.5rem] overflow-y-auto
   useLayoutEffect(() => {
     resizeTextarea(refUser.current);
   }, [finalValue, resizeTextarea]);
-  console.log("userMessageModelInfo", userMessageModelInfo);
+  // console.log("userMessageModelInfo", userMessageModelInfo);
   // console.log("userMessageModelInfo.model", userMessageModelInfo.modelConfig);
 
   return (

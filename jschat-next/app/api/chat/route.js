@@ -655,10 +655,18 @@ export async function POST(req) {
       },
     });
   } else if (openaiModels.includes(data.model.model)) {
+    const userEffort =
+      data.modelConfig?.reasoningEffort ||
+      data.model?.defaultReasoningEffort ||
+      "high";
+    const isProduction =
+      process.env.NODE_ENV === "production" && !host.includes("local");
+
     if (
-      data.model.name.includes("5") &&
       data.modelConfig.reasoning &&
-      data.model.hasReasoning
+      data.model.hasReasoning &&
+      userEffort === "xhigh" &&
+      isProduction
     ) {
       console.log("OpenAI Background Mode for 5.4/5.5 Reasoning");
       const stream = new ReadableStream({
@@ -671,8 +679,7 @@ export async function POST(req) {
             });
             // console.dir(convertedMessages, { depth: null });
 
-            // "effort" : "xhigh"
-            const reasoning = { reasoning: { effort: "xhigh" } };
+            const reasoning = { reasoning: { effort: userEffort } };
             let extraConfigs = {
               tools: [],
               max_output_tokens: 127000,
@@ -757,15 +764,12 @@ export async function POST(req) {
             });
           // console.dir(convertedMessages, { depth: null });
           // return;
-          if (
-            data.model.name.includes("5.4") ||
-            data.model.name.includes("5.5")
-          ) {
+          if (data.model.name.includes("5")) {
             extraConfigs.max_output_tokens = 127000;
             extraConfigs.text = { verbosity: "low" };
           }
           if (data.modelConfig.reasoning && data.model.hasReasoning) {
-            reasoning = { reasoning: { effort: "high" } };
+            reasoning = { reasoning: { effort: userEffort } };
             extraConfigs.include.push("reasoning.encrypted_content");
           }
           console.log(extraConfigs);
@@ -814,6 +818,7 @@ export async function POST(req) {
           // console.log("response.input_tokens", response.input_tokens);
 
           await getOpenAIResponse({
+            client: openai,
             controller,
             encoder,
             convertedMessages,
@@ -1034,47 +1039,20 @@ export async function POST(req) {
       },
     };
 
-    const isGemini3 = data.model.model.includes("gemini-3");
-    if (isGemini3) {
-      if (data.modelConfig.reasoning && data.model.hasReasoning) {
-        streamConfig.config["thinkingConfig"] = {
-          thinkingLevel: "high",
-          includeThoughts: true,
-          // thinkingBudget: -1,
-        };
-      } else if (!data.modelConfig.reasoning) {
-        // console.log("no reasoning");
+    const userEffort =
+      data.modelConfig?.reasoningEffort ||
+      data.model?.defaultReasoningEffort ||
+      "high";
 
-        if (
-          data.model.model.includes("gemini-3-flash") |
-          data.model.model.includes("gemini-3.1-flash")
-        ) {
-          streamConfig.config["thinkingConfig"] = {
-            thinkingLevel: "minimal",
-            includeThoughts: true,
-            // thinkingBudget: 0,
-          };
-        } else {
-          streamConfig.config["thinkingConfig"] = {
-            thinkingLevel: "low",
-            includeThoughts: true,
-            // thinkingBudget: 0,
-          };
-        }
-      }
-      streamConfig.config["maxOutputTokens"] = 65536;
-    } else {
-      if (data.modelConfig.reasoning && data.model.hasReasoning) {
-        streamConfig.config["thinkingConfig"] = {
-          includeThoughts: true,
-        };
-      } else {
-        streamConfig.config["thinkingConfig"] = {
-          includeThoughts: true,
-          thinkingBudget: 0,
-        };
-      }
+    if (data.modelConfig.reasoning && data.model.hasReasoning) {
+      streamConfig.config["thinkingConfig"] = {
+        thinkingLevel: userEffort,
+        includeThoughts: true,
+      };
     }
+
+    streamConfig.config["maxOutputTokens"] = 65536;
+
     streamConfig = data?.modelConfig?.search
       ? {
           ...streamConfig,
@@ -1394,66 +1372,88 @@ export async function POST(req) {
     });
   } else if (alibabaModels.includes(data.model.model)) {
     console.log("alibaba cloud", data.model.model);
+    const userEffort =
+      data.modelConfig?.reasoningEffort ||
+      data.model?.defaultReasoningEffort ||
+      "high";
 
-    // let extraConfigs = {
-    //   web_search_options: { search_context_size: "low" },
-    // };
-    const extraConfigs = {};
-    if (data.model.hasReasoning && data.modelConfig.reasoning) {
-      extraConfigs.enable_thinking = true;
-    }
-    // console.log("extraConfigs", extraConfigs);
-    // console.log("data.model", data.model);
-    // return;
-    // console.log("data.model.model", data.model.model);
-    // return;
-
-    const { convertedMessages, hasImage } = convertToOpenAIFormat(
-      data.messages,
-    );
-    let usage;
     const stream = new ReadableStream({
       async start(controller) {
         const encoder = new TextEncoder();
+        let heartbeatTimer;
         try {
-          const stream = await alibabaClient.chat.completions.create({
-            model: data.model.model,
-            messages: convertedMessages,
-            stream: true,
-            stream_options: { include_usage: true },
-            ...extraConfigs,
-          });
+          heartbeatTimer = setInterval(() => {
+            try {
+              controller.enqueue(
+                encoder.encode(JSON.stringify({ signal: "heartbeat" }) + "\n"),
+              );
+            } catch (err) {
+              clearInterval(heartbeatTimer);
+            }
+          }, 20000);
 
-          for await (const chunk of stream) {
-            // console.log("chunk", chunk);
-            // await wait(2000);
-            const content = chunk.choices?.[0]?.delta?.content;
-            const reasoning_content =
-              chunk.choices?.[0]?.delta?.reasoning_content;
-            if (reasoning_content) {
-              controller.enqueue(
-                encoder.encode(
-                  JSON.stringify({
-                    think: reasoning_content,
-                  }) + "\n",
-                ),
-              );
-            }
-            if (content) {
-              controller.enqueue(
-                encoder.encode(
-                  JSON.stringify({
-                    text: content,
-                  }) + "\n",
-                ),
-              );
-            }
-            if (chunk?.usage) {
-              usage = chunk.usage;
-              // console.log("usage", usage);
-            }
+          console.log("alibaba", data.model.model);
+          const agentic = data?.modelConfig?.agentic && data.model.hasAgentic;
+          const search = data?.modelConfig?.search && data.model.hasSearch;
+          const isDeepResearchModel = data?.model.hasDeepResearch;
+
+          let reasoning = {};
+          let extraConfigs = {
+            tools: [],
+            include: [],
+          };
+          const { convertedMessages, hasImage } =
+            convertToOpenAIResponsesFormat({
+              messages: data.messages,
+              agentic,
+            });
+          // console.dir(convertedMessages, { depth: null });
+          if (data.modelConfig.reasoning && data.model.hasReasoning) {
+            reasoning = { reasoning: { effort: userEffort } };
+            extraConfigs.include.push("reasoning.encrypted_content");
           }
-          controller.close(); // Close the stream
+
+          if (search) {
+            extraConfigs["tools"].push({
+              type: "web_search",
+              search_context_size: "high",
+            });
+            extraConfigs["include"].push("web_search_call.action.sources");
+          }
+
+          if (agentic) {
+            extraConfigs["tools"].push(...openAI_tools);
+          }
+
+          controller.enqueue(
+            encoder.encode(
+              JSON.stringify({
+                signal: JSON.stringify(reasoning),
+              }) + "\n",
+            ),
+          );
+          controller.enqueue(
+            encoder.encode(
+              JSON.stringify({
+                signal: JSON.stringify(extraConfigs),
+              }) + "\n",
+            ),
+          );
+
+          await getOpenAIResponse({
+            client: alibabaClient,
+            controller,
+            encoder,
+            convertedMessages,
+            model: data.model.model,
+            reasoning,
+            extraConfigs,
+            search,
+            agentic,
+            isDeepResearchModel,
+            searchCost,
+            mutables: mutables,
+          });
         } catch (err) {
           const errorPayload = {
             message: err.message || "An unexpected error occurred",
@@ -1475,20 +1475,15 @@ export async function POST(req) {
           } else if (err.code === "ERR_INVALID_STATE") {
             console.log("⚠️ Tried writing to closed stream, ignoring");
           } else {
-            console.error("❌ Unexpected streaming error:", err);
+            console.log("❌ Unexpected streaming error:", err);
           }
           try {
             controller.close();
           } catch {}
         } finally {
+          clearInterval(heartbeatTimer);
           console.log("UPDATING TOKEN USAGE");
-          if (usage?.total_tokens) {
-            mutables.total_tokens += usage.total_tokens;
-          }
-
           console.log("mutables.total_tokens", mutables.total_tokens);
-          // UPDATE TOKENS HERE START
-          // update usage
           fetch(`${baseUrl}/api/tokens`, {
             method: "POST",
             headers: {
@@ -1499,8 +1494,6 @@ export async function POST(req) {
               email: data.email,
             }),
           });
-          //
-          // UPDATE TOKENS HERE END
         }
       },
     });
@@ -1931,6 +1924,7 @@ async function get_search_results_tavily(query) {
   return data;
 }
 async function getOpenAIResponse({
+  client = openai,
   controller,
   encoder,
   convertedMessages,
@@ -1946,21 +1940,11 @@ async function getOpenAIResponse({
   // console.log("convertedMessages", convertedMessages);
   // return;
   const toolCalls = [];
-  let llmResponseText = "";
-  // if (search) {
-  //   mutables.total_tokens += searchCost * 2;
-  // }
-  // if (isDeepResearchModel) {
-  //   mutables.total_tokens += searchCost * 2;
-  // }
-  // console.log(extraConfigs);
-  // return;
-  const streamResponse = await openai.responses.create({
+
+  const streamResponse = await client.responses.create({
     input: convertedMessages,
     model: model,
     stream: true,
-    // stream_options: { include_usage: true },
-    // max_output_tokens: isDeepResearchModel ? 100000 : 16384,
     ...reasoning,
     ...extraConfigs,
   });
@@ -1986,11 +1970,18 @@ async function getOpenAIResponse({
     }
     if (chunk.type === "response.output_text.delta") {
       // controller.enqueue(encoder.encode(chunk?.delta));
-      llmResponseText += chunk?.delta;
       controller.enqueue(
         encoder.encode(
           JSON.stringify({
             text: chunk?.delta,
+          }) + "\n",
+        ),
+      );
+    } else if (chunk.type === "response.reasoning_summary_text.delta") {
+      controller.enqueue(
+        encoder.encode(
+          JSON.stringify({
+            think: chunk?.delta,
           }) + "\n",
         ),
       );
