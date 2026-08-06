@@ -1511,11 +1511,15 @@ export async function POST(req) {
     const deepResearch = data.modelConfig?.deepResearch;
     const agentic = data.modelConfig?.agentic;
     const reasoning = data.modelConfig?.reasoning;
+    const userEffort =
+      data.modelConfig?.reasoningEffort || data.model?.defaultReasoningEffort;
+    const isLongResponse = reasoning && userEffort === "high";
 
     console.log(
       "data.modelConfig.reasoning && data.model.hasReasoning",
       data.modelConfig.reasoning && data.model.hasReasoning,
     );
+    console.log("test-llm isLongResponse", isLongResponse);
 
     const { convertedMessages, hasImage } = convertToOpenAIResponsesFormat({
       messages: data.messages,
@@ -1579,7 +1583,11 @@ export async function POST(req) {
           }
           // throw new Error("SIMULATED TEST-LLM ERROR.");
           // for regular API calls
-          for (let chunk of sampleEvents) {
+          const eventsToStream = buildSampleEvents({
+            long: isLongResponse,
+            repeat: 300,
+          });
+          for (let chunk of eventsToStream) {
             // if (counter === 1) {
             //   throw new Error("🚨 SIMULATED STREAM ERROR 🚨");
             // }
@@ -2615,7 +2623,7 @@ sampleEvents.push({
   item_id: "msg_123",
   output_index: 0,
   content_index: 0,
-  delta: "I am done thinking.",
+  delta: "I am done thinking.\n\n",
   sequence_number: 1,
 });
 
@@ -2785,6 +2793,34 @@ sampleEvents.push({
   },
   sequence_number: 1,
 });
+
+// Repeats reasoning/content deltas to simulate a long high-effort reasoning stream.
+function buildSampleEvents({ long, repeat } = {}) {
+  if (!long) return sampleEvents;
+
+  const REPEAT_COUNT = repeat;
+  const reasoningChunks = sampleEvents.filter(
+    (e) => e.type === "response.reasoning.delta",
+  );
+  const contentChunks = sampleEvents.filter(
+    (e) => e.type === "response.output_text.delta",
+  );
+  const tailChunks = sampleEvents.filter(
+    (e) =>
+      e.type !== "response.reasoning.delta" &&
+      e.type !== "response.output_text.delta",
+  );
+
+  const longEvents = [];
+  for (let i = 0; i < REPEAT_COUNT; i++) {
+    longEvents.push(...reasoningChunks);
+  }
+  for (let i = 0; i < REPEAT_COUNT; i++) {
+    longEvents.push(...contentChunks);
+  }
+  longEvents.push(...tailChunks);
+  return longEvents;
+}
 
 let sampleTextWithLink = [];
 sampleTextWithLink.push("<think> a ");

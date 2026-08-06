@@ -348,7 +348,7 @@ export const openrouterModelsWithMeta = [
     vision: true,
     hasReasoning: true,
     reasoningLevels: ["minimal", "low", "medium", "high", "xhigh", "max"],
-    defaultReasoningEffort: "high",
+    defaultReasoningEffort: "xhigh",
     hasSearch: false,
     icon: BrainIcon,
   },

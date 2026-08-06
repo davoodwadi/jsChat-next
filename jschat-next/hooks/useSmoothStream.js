@@ -1,5 +1,12 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 
+const EMPTY_SCAN_STATE = {
+  processedUpTo: 0,
+  safeIndex: 0,
+  inCodeBlock: false,
+  inMathBlock: false,
+};
+
 export function useSmoothStream(rawText, status, options = {}) {
   const {
     // You can define which boundaries trigger an update here.
@@ -8,10 +15,13 @@ export function useSmoothStream(rawText, status, options = {}) {
   } = options;
 
   const [displayedText, setDisplayedText] = useState(rawText || "");
+  // Carries scan progress across renders so only newly arrived text is rescanned.
+  const scanRef = useRef({ ...EMPTY_SCAN_STATE });
 
   useEffect(() => {
     // 1. No-op if not reading: instantly show all text
     if (status !== "reading") {
+      scanRef.current = { ...EMPTY_SCAN_STATE };
       setDisplayedText(rawText || "");
       return;
     }
@@ -21,51 +31,80 @@ export function useSmoothStream(rawText, status, options = {}) {
     setDisplayedText((prevDisplayed) => {
       // Reset if the stream restarted or was cleared
       if (rawText.length < prevDisplayed.length) {
+        scanRef.current = { ...EMPTY_SCAN_STATE };
         return rawText;
       }
-      //   console.log("rawText", rawText);
 
-      // Calculate the safe chunk index based on logical markdown blocks
-      let safeIndex = 0;
-      let inCodeBlock = false;
-      let inMathBlock = false;
+      const {
+        processedUpTo,
+        safeIndex: prevSafeIndex,
+        inCodeBlock: prevInCodeBlock,
+        inMathBlock: prevInMathBlock,
+      } = scanRef.current;
+      let safeIndex = prevSafeIndex;
+      let inCodeBlock = prevInCodeBlock;
+      let inMathBlock = prevInMathBlock;
 
-      const lines = rawText.split("\n");
+      // Only scan the tail that arrived since the last run, not the whole text,
+      // so total scan cost stays linear in rawText length over the whole stream.
+      const tail = rawText.slice(processedUpTo);
+      const tailLines = tail.split("\n");
+      const lastIndex = tailLines.length - 1;
 
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
+      let offset = processedUpTo;
 
-        let wasInCodeBlock = inCodeBlock;
-        let wasInMathBlock = inMathBlock;
+      // Lines before the last entry are terminated by a "\n" inside `tail`,
+      // so they're confirmed complete and safe to commit permanently.
+      for (let i = 0; i < lastIndex; i++) {
+        const line = tailLines[i];
 
-        // Toggle code block state
+        const wasInCodeBlock = inCodeBlock;
+        const wasInMathBlock = inMathBlock;
+
         if (line.trim().startsWith("```")) {
           inCodeBlock = !inCodeBlock;
         }
-
-        // Toggle math block state
         if (line.trim().startsWith("$$")) {
           inMathBlock = !inMathBlock;
         }
 
-        const currentLength =
-          lines.slice(0, i + 1).join("\n").length +
-          (i < lines.length - 1 ? 1 : 0);
+        offset += line.length + 1; // +1 for the newline that terminates this line
 
-        // A boundary is reached when:
-        // 1. A code block just closed
-        // 2. A math block just closed
-        // 3. We are not inside any block, and it's an empty line (paragraph separator)
         const codeBlockClosed = wasInCodeBlock && !inCodeBlock;
         const mathBlockClosed = wasInMathBlock && !inMathBlock;
         const emptyLine = !inCodeBlock && !inMathBlock && line.trim() === "";
-
-        // We no longer blindly mark the last streamed line as safe, otherwise it streams word-by-word
-        // within a block that is still accumulating.
         if (codeBlockClosed || mathBlockClosed || emptyLine) {
-          safeIndex = currentLength;
+          safeIndex = offset;
         }
       }
+
+      // The final entry is still in progress (may grow further next update),
+      // so re-check it each time without persisting its toggle state.
+      const lastLine = tailLines[lastIndex];
+      const lastWasInCodeBlock = inCodeBlock;
+      const lastWasInMathBlock = inMathBlock;
+      let tentativeCodeBlock = inCodeBlock;
+      let tentativeMathBlock = inMathBlock;
+      if (lastLine.trim().startsWith("```")) {
+        tentativeCodeBlock = !tentativeCodeBlock;
+      }
+      if (lastLine.trim().startsWith("$$")) {
+        tentativeMathBlock = !tentativeMathBlock;
+      }
+      const lastCodeBlockClosed = lastWasInCodeBlock && !tentativeCodeBlock;
+      const lastMathBlockClosed = lastWasInMathBlock && !tentativeMathBlock;
+      const lastEmptyLine =
+        !tentativeCodeBlock && !tentativeMathBlock && lastLine.trim() === "";
+      if (lastCodeBlockClosed || lastMathBlockClosed || lastEmptyLine) {
+        safeIndex = rawText.length;
+      }
+
+      scanRef.current = {
+        processedUpTo: offset,
+        safeIndex,
+        inCodeBlock,
+        inMathBlock,
+      };
 
       // We only update if the new safeIndex gives us more text to display than before
       if (safeIndex > prevDisplayed.length) {
