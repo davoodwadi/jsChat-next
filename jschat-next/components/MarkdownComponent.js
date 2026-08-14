@@ -703,7 +703,7 @@ function OpenAIMarkdown({ children, mode, props }) {
     }
     const after = replaceLatexDelimsOutsideCode(text);
     elementsToShow.push(
-      <SimpleMarkdown key={0} status={status} mappingName="OpenAI">
+      <SimpleMarkdown key={"text"} status={status} mappingName="OpenAI">
         {after}
       </SimpleMarkdown>,
     );
@@ -847,7 +847,7 @@ function AnthropicMarkdown({ children, mode, props }) {
     const reasoning = props.botMessage?.think;
     if (reasoning) {
       elementsToShow.push(
-        <ThinkingBlock key={0} status={status}>
+        <ThinkingBlock key={"think"} status={status}>
           {reasoning}
         </ThinkingBlock>,
       );
@@ -855,7 +855,7 @@ function AnthropicMarkdown({ children, mode, props }) {
     const text = children || props.botMessage.content;
     const after = replaceLatexDelimsOutsideCode(text);
     elementsToShow.push(
-      <SimpleMarkdown key={0} status={status} mappingName="Anthropic">
+      <SimpleMarkdown key={"text"} status={status} mappingName="Anthropic">
         {after}
       </SimpleMarkdown>,
     );

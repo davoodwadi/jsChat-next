@@ -19,7 +19,9 @@ import Groq from "groq-sdk";
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 import Anthropic from "@anthropic-ai/sdk";
-const anthropic = new Anthropic();
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
 
 import { GoogleGenAI } from "@google/genai";
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -73,6 +75,8 @@ const taskStore = new Map(); // taskId -> { createdAt, status, progress, content
 
 export async function POST(req) {
   const data = await req.json();
+  const anthropicKey = process.env.ANTHROPIC_API_KEY || "";
+  console.log("Anthropic API Key (last 8):", anthropicKey.slice(-8));
 
   // 1. Get the host from headers
   const head = await headers();
