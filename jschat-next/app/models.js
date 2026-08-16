@@ -484,10 +484,10 @@ export const geminiModelsWithMeta = [
   },
 
   {
-    name: "Gemini 3.6 Flash",
-    model: "gemini-3.6-flash",
+    name: "Gemini 3.7 Flash",
+    model: "gemini-3.7-flash",
     meta: "Google's Latest and Fastest LLM With Web Search and Thinking Capabilities",
-    new: false,
+    new: true,
     vision: true,
     hasReasoning: true,
     reasoningLevels: ["minimal", "low", "medium", "high"],
