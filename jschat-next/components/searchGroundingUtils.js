@@ -1,16 +1,16 @@
 export function addCitationsToContentInlineOpenAI(content, annotations) {
+  if (!content || !Array.isArray(annotations)) {
+    return content || "";
+  }
   // 1. Filter for only the 'url_citation' annotations, as other types might exist.
-  // console.log("content", content);
-  // console.log("addCitationsToContentInlineOpenAI", annotations);
   const citationAnnotations = annotations.filter(
-    (ann) => ann.annotation && ann.annotation.type === "url_citation",
+    (ann) => ann?.annotation && ann.annotation.type === "url_citation",
   );
-  // console.log("citationAnnotations", citationAnnotations);
 
-  // 2. Sort annotations by their start index. This is CRUCIAL to process the
-  //    string in the correct order from beginning to end.
+  // 2. Sort annotations by their start index.
   citationAnnotations.sort(
-    (a, b) => a.annotation.start_index - b.annotation.start_index,
+    (a, b) =>
+      (a.annotation?.start_index || 0) - (b.annotation?.start_index || 0),
   );
 
   let resultParts = [];
@@ -19,7 +19,9 @@ export function addCitationsToContentInlineOpenAI(content, annotations) {
 
   // 3. Loop through the sorted annotations to build the new string.
   citationAnnotations.forEach((ann) => {
-    const { start_index, end_index, url, title } = ann.annotation;
+    const { start_index, end_index, url, title } = ann.annotation || {};
+    if (typeof start_index !== "number" || typeof end_index !== "number")
+      return;
 
     // Add the chunk of text *before* this annotation's cited text
     resultParts.push(content.slice(lastIndex, start_index));
@@ -145,33 +147,55 @@ export const addCitationsToContentInline = (
   groundingChunks,
   groundingSupports,
 ) => {
+  if (
+    !content ||
+    !Array.isArray(groundingChunks) ||
+    !Array.isArray(groundingSupports)
+  ) {
+    return content || "";
+  }
   let result = content;
 
   // Sort supports by endIndex in descending order to avoid changing indices
   // when we insert content
   const sortedSupports = [...groundingSupports].sort(
-    (a, b) => b.segment.endIndex - a.segment.endIndex,
+    (a, b) => (b.segment?.endIndex || 0) - (a.segment?.endIndex || 0),
   );
   // Process each support
   sortedSupports.forEach((support) => {
-    const { segment, groundingChunkIndices } = support;
+    const { segment, groundingChunkIndices } = support || {};
+    if (!segment || !Array.isArray(groundingChunkIndices)) return;
 
     // Generate citation markers for this segment
     const citationText = groundingChunkIndices
       .map((chunkIndex) => {
         const chunk = groundingChunks[chunkIndex];
-        return `[${chunk.web.title}](${chunk.web.uri})`;
+        if (!chunk) return "";
+        const title = chunk?.web?.title || "Source";
+        const uri = chunk?.web?.uri || "#";
+        return `[${title}](${uri})`;
       })
+      .filter(Boolean)
       .join(", ");
 
+    if (!citationText) return;
     const citationTextBrackets = `[ ${citationText} ]`;
-    // console.log("citationTextBrackets", citationTextBrackets);
 
     // Insert citations at the end of the segment
-    const { text } = segment;
-    const { startIndex, endIndex } = findTextPositions(result, text);
+    const text = segment.text;
+    const pos = findTextPositions(result, text);
+    let targetEndIndex = pos ? pos.endIndex : segment?.endIndex;
+    if (
+      typeof targetEndIndex !== "number" ||
+      targetEndIndex < 0 ||
+      targetEndIndex > result.length
+    ) {
+      return;
+    }
     result =
-      result.slice(0, endIndex) + citationTextBrackets + result.slice(endIndex);
+      result.slice(0, targetEndIndex) +
+      citationTextBrackets +
+      result.slice(targetEndIndex);
   });
   return result;
 };
@@ -180,49 +204,59 @@ export const addCitationsToContentInlineSuper = (
   groundingChunks,
   groundingSupports,
 ) => {
+  if (
+    !content ||
+    !Array.isArray(groundingChunks) ||
+    !Array.isArray(groundingSupports)
+  ) {
+    return content || "";
+  }
   let result = content;
 
   // Sort supports by endIndex in descending order to avoid changing indices
   // when we insert content
   const sortedSupports = [...groundingSupports].sort(
-    (a, b) => b.segment.endIndex - a.segment.endIndex,
+    (a, b) => (b.segment?.endIndex || 0) - (a.segment?.endIndex || 0),
   );
-  // console.log("sortedSupports", sortedSupports);
+
   // Process each support
   sortedSupports.forEach((support) => {
-    const { segment, groundingChunkIndices } = support;
+    const { segment, groundingChunkIndices } = support || {};
+    if (!segment || !Array.isArray(groundingChunkIndices)) return;
 
     // Generate citation markers for this segment
     const citationLinks = groundingChunkIndices
       .map((chunkIndex) => {
-        const citationNumber = chunkIndex + 1;
         const chunk = groundingChunks[chunkIndex];
-        // Safely access data and provide fallbacks
+        if (!chunk) return "";
         const url = chunk?.web?.uri || "";
-        const title = chunk?.web?.title || "";
-        const snippet = chunk?.snippet || "";
-        // Escape attributes to ensure the HTML is valid
-        const escapedUrl = escapeHtmlAttr(url);
-        const escapedTitle = escapeHtmlAttr(title);
-        const escapedSnippet = escapeHtmlAttr(snippet);
-        // Build the final HTML <a> tag string using a template literal for readability
-        // const linkHtml = `<a href="${escapedUrl}" target="_blank" rel="noopener noreferrer" title="${escapedTitle}" class="citation-link" data-snippet="${escapedSnippet}">${citationNumber}</a>`;
-        const linkMarkdown = `[${title}](${url})`;
-        return linkMarkdown;
+        const title = chunk?.web?.title || "Source";
+        return `[${title}](${url})`;
       })
+      .filter(Boolean)
       .join(" ");
 
     if (!citationLinks) {
       return;
     }
 
-    // const citationHtml = `<sup> ${citationLinks} </sup>`;
     const citationHtml = ` ${citationLinks} `;
 
-    // // Insert citations at the end of the segment
-    const { text } = segment;
-    const { startIndex, endIndex } = findTextPositions(result, text);
-    result = result.slice(0, endIndex) + citationHtml + result.slice(endIndex);
+    // Insert citations at the end of the segment
+    const text = segment.text;
+    const pos = findTextPositions(result, text);
+    let targetEndIndex = pos ? pos.endIndex : segment?.endIndex;
+    if (
+      typeof targetEndIndex !== "number" ||
+      targetEndIndex < 0 ||
+      targetEndIndex > result.length
+    ) {
+      return;
+    }
+    result =
+      result.slice(0, targetEndIndex) +
+      citationHtml +
+      result.slice(targetEndIndex);
   });
   return result;
 };
@@ -231,35 +265,56 @@ export const _addCitationsToContentInlineSuper = (
   groundingChunks,
   groundingSupports,
 ) => {
+  if (
+    !content ||
+    !Array.isArray(groundingChunks) ||
+    !Array.isArray(groundingSupports)
+  ) {
+    return content || "";
+  }
   let result = content;
 
   // Sort supports by endIndex in descending order to avoid changing indices
   // when we insert content
   const sortedSupports = [...groundingSupports].sort(
-    (a, b) => b.segment.endIndex - a.segment.endIndex,
+    (a, b) => (b.segment?.endIndex || 0) - (a.segment?.endIndex || 0),
   );
-  // console.log("sortedSupports", sortedSupports);
+
   // Process each support
   sortedSupports.forEach((support) => {
-    const { segment, groundingChunkIndices } = support;
+    const { segment, groundingChunkIndices } = support || {};
+    if (!segment || !Array.isArray(groundingChunkIndices)) return;
 
     // Generate citation markers for this segment
     const citationText = groundingChunkIndices
-      .map((i, chunkIndex) => {
-        // console.log("i", i);
+      .map((chunkIndex) => {
         const chunk = groundingChunks[chunkIndex];
-        const escapedTitle = escapeHtmlAttr(chunk.web.title || "");
-        const escapedUrl = escapeHtmlAttr(chunk.web.uri || "");
+        if (!chunk) return "";
+        const escapedTitle = escapeHtmlAttr(chunk?.web?.title || "Source");
+        const escapedUrl = escapeHtmlAttr(chunk?.web?.uri || "#");
         return `[${escapedTitle}](${escapedUrl})`;
       })
+      .filter(Boolean)
       .join(", ");
+
+    if (!citationText) return;
     const citationTextBrackets = `<sup> ${citationText} </sup>`;
 
-    // // Insert citations at the end of the segment
-    const { text } = segment;
-    const { startIndex, endIndex } = findTextPositions(result, text);
+    // Insert citations at the end of the segment
+    const text = segment.text;
+    const pos = findTextPositions(result, text);
+    let targetEndIndex = pos ? pos.endIndex : segment?.endIndex;
+    if (
+      typeof targetEndIndex !== "number" ||
+      targetEndIndex < 0 ||
+      targetEndIndex > result.length
+    ) {
+      return;
+    }
     result =
-      result.slice(0, endIndex) + citationTextBrackets + result.slice(endIndex);
+      result.slice(0, targetEndIndex) +
+      citationTextBrackets +
+      result.slice(targetEndIndex);
   });
   return result;
 };
@@ -268,69 +323,79 @@ export const addCitationsToContent = (
   groundingChunks,
   groundingSupports,
 ) => {
+  if (
+    !content ||
+    !Array.isArray(groundingChunks) ||
+    !Array.isArray(groundingSupports)
+  ) {
+    return content || "";
+  }
   let result = content;
   const references = new Map(); // Maps chunk indices to their URLs and titles
 
   // Sort supports by endIndex in descending order to avoid changing indices
   // when we insert content
   const sortedSupports = [...groundingSupports].sort(
-    (a, b) => b.segment.endIndex - a.segment.endIndex,
+    (a, b) => (b.segment?.endIndex || 0) - (a.segment?.endIndex || 0),
   );
-  // console.log("sortedSupports", sortedSupports);
+
   // Process each support
   sortedSupports.forEach((support) => {
-    const { segment, groundingChunkIndices } = support;
+    const { segment, groundingChunkIndices } = support || {};
+    if (!segment || !Array.isArray(groundingChunkIndices)) return;
 
     // Generate citation markers for this segment
     const citationText = groundingChunkIndices
       .map((chunkIndex) => {
         const chunk = groundingChunks[chunkIndex];
+        if (!chunk) return "";
 
         // Add to references if not already added
         if (!references.has(chunkIndex)) {
           references.set(chunkIndex, {
-            url: chunk.web.uri,
-            title: chunk.web.title,
+            url: chunk?.web?.uri || "#",
+            title: chunk?.web?.title || "Source",
           });
         }
         return `[^${chunkIndex + 1}]`;
       })
+      .filter(Boolean)
       .join("");
 
-    // const citationTextBrackets = ` [${citationText}]`;
-    const citationTextBrackets = `${citationText}`;
-    // console.log("citationTextBrackets", citationTextBrackets);
+    if (!citationText) return;
 
     // Insert citations at the end of the segment
-    const { text } = segment;
-    const { startIndex, endIndex } = findTextPositions(result, text);
-    // console.log("result", result);
-    // console.log(startIndex, endIndex);
-    // console.log(segment?.startIndex, segment?.endIndex);
-    // console.log(result.slice(startIndex, endIndex));
+    const text = segment.text;
+    const pos = findTextPositions(result, text);
+    let targetEndIndex = pos ? pos.endIndex : segment?.endIndex;
+    if (
+      typeof targetEndIndex !== "number" ||
+      targetEndIndex < 0 ||
+      targetEndIndex > result.length
+    ) {
+      return;
+    }
     result =
-      result.slice(0, endIndex) + citationTextBrackets + result.slice(endIndex);
-    // console.log("result", result);
+      result.slice(0, targetEndIndex) +
+      citationText +
+      result.slice(targetEndIndex);
   });
 
   // Add references section at the end
   if (references.size > 0) {
-    // console.log("references", references);
     result += "\n\n## References\n\n";
     const sortedReferences = Array.from(references.entries()).sort(
       ([chunkIndexA], [chunkIndexB]) => chunkIndexA - chunkIndexB,
     );
     // Add each reference using Markdown reference-style links
     for (let [chunkIndex, ref] of sortedReferences) {
-      // console.log("chunkIndex, ref", chunkIndex, ref);
-      // console.log(`[^${chunkIndex + 1}]: ${ref.url} "${ref.title}"\n`);
-      // result += `[^${chunkIndex + 1}]: "${ref.title}" ${ref.url}\n`;
       result += `[^${chunkIndex + 1}]: [${ref.title}](${ref.url})\n\n`;
     }
   }
   return result;
 };
 function findTextPositions(bigText, searchText) {
+  if (!bigText || !searchText) return null;
   const startIndex = bigText.indexOf(searchText);
   if (startIndex === -1) {
     return null; // text not found
@@ -342,6 +407,10 @@ function findTextPositions(bigText, searchText) {
 export async function updateGroundingChunksWithActualLinksAndTitles(
   groundingChunks,
 ) {
+  if (!Array.isArray(groundingChunks)) {
+    return [];
+  }
+
   // Helper to extract <title> from HTML string
   function extractTitle(html) {
     const match = html.match(/<title>(.*?)<\/title>/i);
@@ -351,6 +420,7 @@ export async function updateGroundingChunksWithActualLinksAndTitles(
   // Process each chunk sequentially or in parallel — here parallel with Promise.all
   const updatedChunks = await Promise.all(
     groundingChunks.map(async (chunk) => {
+      if (!chunk?.web?.uri) return chunk;
       try {
         // Step 1: Follow redirect to get the final url
         const redirectResponse = await fetch(chunk.web.uri, {
@@ -368,12 +438,14 @@ export async function updateGroundingChunksWithActualLinksAndTitles(
         return {
           web: {
             uri: actualUrl,
-            // title: actualTitle,
-            title: chunk.web.title,
+            title: chunk?.web?.title || actualTitle,
           },
         };
       } catch (error) {
-        console.warn(`Failed fetching or parsing at ${chunk.web.uri}:`, error);
+        console.warn(
+          `Failed fetching or parsing at ${chunk?.web?.uri}:`,
+          error,
+        );
         // Return original if error happens
         return chunk;
       }

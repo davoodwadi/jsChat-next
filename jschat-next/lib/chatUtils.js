@@ -220,134 +220,128 @@ export async function handleSubmit({
       }
       const reader = data.body.getReader();
       const decoder = new TextDecoder();
+      let streamBuffer = "";
+
+      const processParsedItem = (parsedData) => {
+        if (parsedData?.interactionID) {
+          extraContent.interaction = {
+            interactionID: parsedData.interactionID,
+            status: "pending",
+          };
+        }
+        if (parsedData?.error) {
+          extraContent.errors = {
+            error: parsedData.error,
+            details: parsedData?.details,
+          };
+        }
+
+        if (parsedData?.text) {
+          tempChunks += parsedData?.text;
+        }
+        if (parsedData?.think) {
+          extraContent.think =
+            extraContent?.think === null
+              ? parsedData.think
+              : extraContent.think + parsedData.think;
+        }
+        if (parsedData?.signature) {
+          extraContent.signature = parsedData.signature;
+        }
+        if (parsedData?.thoughtSignature) {
+          extraContent.thoughtSignature = parsedData.thoughtSignature;
+        }
+        if (parsedData?.modelParts) {
+          extraContent.modelParts = parsedData.modelParts;
+        }
+        if (parsedData?.openaiResponseOutput) {
+          extraContent.openaiResponseOutput = parsedData.openaiResponseOutput;
+        }
+        if (parsedData?.anthropicResponseOutput) {
+          extraContent.anthropicResponseOutput =
+            parsedData.anthropicResponseOutput;
+        }
+        if (parsedData?.reasoningDetails) {
+          extraContent.reasoningDetails = parsedData.reasoningDetails;
+        }
+        if (parsedData?.groundingChunks) {
+          extraContent.groundingChunks = [
+            ...extraContent.groundingChunks,
+            ...parsedData.groundingChunks,
+          ];
+        }
+        if (parsedData?.groundingSupports) {
+          extraContent.groundingSupports = [
+            ...extraContent.groundingSupports,
+            ...parsedData.groundingSupports,
+          ];
+        }
+        if (parsedData?.search_results) {
+          extraContent.search_results = [
+            ...extraContent.search_results,
+            ...parsedData.search_results,
+          ];
+        }
+        if (parsedData?.openai_search_results) {
+          extraContent.openai_search_results = [
+            ...extraContent.openai_search_results,
+            ...parsedData.openai_search_results,
+          ];
+        }
+        if (parsedData?.annotation_item) {
+          extraContent.annotations = [
+            ...extraContent.annotations,
+            parsedData.annotation_item,
+          ];
+        }
+        if (parsedData?.query) {
+          extraContent.queries = [...extraContent.queries, parsedData.query];
+        }
+        if (parsedData?.search) {
+          extraContent.results = [...extraContent.results, parsedData.search];
+        }
+
+        newBotEntry = {
+          key: JSON.stringify(array),
+          globalIdBot: newGlobalIdBot,
+          content: tempChunks,
+          role: "bot",
+          status: "reading", // pending | reading | done
+          model: model,
+          modelConfig,
+          ...extraContent,
+        };
+        setBotMessages((v) =>
+          v.map((m) => (m.key === JSON.stringify(array) ? newBotEntry : m)),
+        );
+      };
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        let chunk = decoder.decode(value, { stream: true });
-        const jsonLines = chunk.split("\n").filter((line) => line.trim());
+        streamBuffer += decoder.decode(value, { stream: true });
+        const jsonLines = streamBuffer.split("\n");
+        streamBuffer = jsonLines.pop() || "";
 
         for (const jsonStr of jsonLines) {
+          if (!jsonStr.trim()) continue;
           try {
-            // console.log("chunk to parse:", jsonStr);
             const parsedData = JSON.parse(jsonStr);
-            // console.log("parsedData", parsedData);
-            // if (parsedData?.signal) {
-            //   console.log(
-            //     `[${new Date().toLocaleTimeString()}] ${parsedData.signal}`,
-            //   );
-            // }
-            if (parsedData?.interactionID) {
-              extraContent.interaction = {
-                interactionID: parsedData.interactionID,
-                status: "pending",
-              };
-            }
-            if (parsedData?.error) {
-              extraContent.errors = {
-                error: parsedData.error,
-                details: parsedData?.details,
-              };
-            }
-
-            if (parsedData?.text) {
-              tempChunks += parsedData?.text;
-            }
-            if (parsedData?.think) {
-              // console.log("parsedData?.think", parsedData?.think);
-              extraContent.think =
-                extraContent?.think === null
-                  ? parsedData.think
-                  : extraContent.think + parsedData.think;
-            }
-            if (parsedData?.signature) {
-              extraContent.signature = parsedData.signature;
-            }
-            if (parsedData?.thoughtSignature) {
-              extraContent.thoughtSignature = parsedData.thoughtSignature;
-            }
-            if (parsedData?.modelParts) {
-              extraContent.modelParts = parsedData.modelParts;
-            }
-            if (parsedData?.openaiResponseOutput) {
-              extraContent.openaiResponseOutput =
-                parsedData.openaiResponseOutput;
-            }
-            if (parsedData?.anthropicResponseOutput) {
-              extraContent.anthropicResponseOutput =
-                parsedData.anthropicResponseOutput;
-            }
-            if (parsedData?.reasoningDetails) {
-              extraContent.reasoningDetails = parsedData.reasoningDetails;
-            }
-            if (parsedData?.groundingChunks) {
-              extraContent.groundingChunks = [
-                ...extraContent.groundingChunks,
-                ...parsedData.groundingChunks,
-              ];
-            }
-            if (parsedData?.groundingSupports) {
-              extraContent.groundingSupports = [
-                ...extraContent.groundingSupports,
-                ...parsedData.groundingSupports,
-              ];
-            }
-            if (parsedData?.search_results) {
-              extraContent.search_results = [
-                ...extraContent.search_results,
-                ...parsedData.search_results,
-              ];
-            }
-            if (parsedData?.openai_search_results) {
-              extraContent.openai_search_results = [
-                ...extraContent.openai_search_results,
-                ...parsedData.openai_search_results,
-              ];
-            }
-            if (parsedData?.annotation_item) {
-              extraContent.annotations = [
-                ...extraContent.annotations,
-                parsedData.annotation_item,
-              ];
-              // extraContent.annotations.push(parsedData.annotation_item);
-            }
-            if (parsedData?.query) {
-              extraContent.queries = [
-                ...extraContent.queries,
-                parsedData.query,
-              ];
-              // extraContent.queries.push(parsedData.query);
-            }
-            if (parsedData?.search) {
-              extraContent.results = [
-                ...extraContent.results,
-                parsedData.search,
-              ];
-              // extraContent.results.push(parsedData.search);
-            }
-            // console.log(
-            //   "parsedData?.openai_search_results",
-            //   parsedData?.openai_search_results
-            // );
-            // console.log("extraContent", extraContent);
-            // console.log("botMessages", botMessages);
-
-            newBotEntry = {
-              key: JSON.stringify(array),
-              globalIdBot: newGlobalIdBot,
-              content: tempChunks,
-              role: "bot",
-              status: "reading", // pending | reading | done
-              model: model,
-              modelConfig,
-              ...extraContent,
-            };
-            setBotMessages((v) =>
-              v.map((m) => (m.key === JSON.stringify(array) ? newBotEntry : m)),
-            );
+            processParsedItem(parsedData);
           } catch (e) {
-            console.log("Failed to parse JSON:", e);
+            console.log("Failed to parse JSON line:", e, jsonStr);
           }
+        }
+      }
+
+      streamBuffer += decoder.decode();
+      if (streamBuffer.trim()) {
+        try {
+          const parsedData = JSON.parse(streamBuffer.trim());
+          processParsedItem(parsedData);
+        } catch (e) {
+          console.log("Failed to parse trailing JSON buffer:", e);
         }
       }
       // END: streaming the LLM
@@ -530,132 +524,131 @@ export async function handleSubmit({
           m.key === JSON.stringify(array) ? newBotEntry : m,
         );
       });
+
+      let streamBuffer = "";
+
+      const processParsedItem = (parsedData) => {
+        if (parsedData?.interactionID) {
+          extraContent.interaction = {
+            interactionID: parsedData.interactionID,
+            status: "pending",
+          };
+        }
+        if (parsedData?.error) {
+          extraContent.errors = {
+            error: parsedData.error,
+            details: parsedData?.details,
+          };
+        }
+        if (parsedData?.text) {
+          tempChunks += parsedData?.text;
+        }
+        if (parsedData?.think) {
+          extraContent.think =
+            extraContent?.think === null
+              ? parsedData.think
+              : extraContent.think + parsedData.think;
+        }
+        if (parsedData?.signature) {
+          extraContent.signature = parsedData.signature;
+        }
+        if (parsedData?.thoughtSignature) {
+          extraContent.thoughtSignature = parsedData.thoughtSignature;
+        }
+        if (parsedData?.modelParts) {
+          extraContent.modelParts = parsedData.modelParts;
+        }
+
+        if (parsedData?.openaiResponseOutput) {
+          extraContent.openaiResponseOutput = parsedData.openaiResponseOutput;
+        }
+        if (parsedData?.anthropicResponseOutput) {
+          extraContent.anthropicResponseOutput =
+            parsedData.anthropicResponseOutput;
+        }
+        if (parsedData?.reasoningDetails) {
+          extraContent.reasoningDetails = parsedData.reasoningDetails;
+        }
+        if (parsedData?.groundingChunks) {
+          extraContent.groundingChunks = [
+            ...extraContent.groundingChunks,
+            ...parsedData.groundingChunks,
+          ];
+        }
+        if (parsedData?.groundingSupports) {
+          extraContent.groundingSupports = [
+            ...extraContent.groundingSupports,
+            ...parsedData.groundingSupports,
+          ];
+        }
+        if (parsedData?.search_results) {
+          extraContent.search_results = [
+            ...extraContent.search_results,
+            ...parsedData.search_results,
+          ];
+        }
+        if (parsedData?.openai_search_results) {
+          extraContent.openai_search_results = [
+            ...extraContent.openai_search_results,
+            ...parsedData.openai_search_results,
+          ];
+        }
+        if (parsedData?.annotation_item) {
+          extraContent.annotations = [
+            ...extraContent.annotations,
+            parsedData.annotation_item,
+          ];
+        }
+        if (parsedData?.query) {
+          extraContent.queries = [...extraContent.queries, parsedData.query];
+        }
+        if (parsedData?.search) {
+          extraContent.results = [...extraContent.results, parsedData.search];
+        }
+
+        newBotEntry = {
+          key: JSON.stringify(array),
+          globalIdBot: newGlobalIdBot,
+          content: tempChunks,
+          role: "bot",
+          status: "reading",
+          model: model,
+          modelConfig,
+          ...extraContent,
+        };
+        setBotMessages((v) => {
+          return v.map((m) =>
+            m.key === JSON.stringify(array) ? newBotEntry : m,
+          );
+        });
+      };
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        let chunk = decoder.decode(value, { stream: true });
-        // console.log("Received chunk:", chunk);
-        const jsonLines = chunk.split("\n").filter((line) => line.trim());
-        // console.log("Received jsonLines:", jsonLines);
+        streamBuffer += decoder.decode(value, { stream: true });
+        const jsonLines = streamBuffer.split("\n");
+        streamBuffer = jsonLines.pop() || "";
 
         for (const jsonStr of jsonLines) {
+          if (!jsonStr.trim()) continue;
           try {
             const parsedData = JSON.parse(jsonStr);
-            // console.log("parsedData", parsedData);
-            // if (parsedData?.signal) {
-            //   console.log(
-            //     `[${new Date().toLocaleTimeString()}] ${parsedData.signal}`,
-            //   );
-            // }
-            if (parsedData?.interactionID) {
-              extraContent.interaction = {
-                interactionID: parsedData.interactionID,
-                status: "pending",
-              };
-            }
-            if (parsedData?.error) {
-              extraContent.errors = {
-                error: parsedData.error,
-                details: parsedData?.details,
-              };
-            }
-            if (parsedData?.text) {
-              tempChunks += parsedData?.text;
-            }
-            if (parsedData?.think) {
-              // console.log("parsedData?.think", parsedData?.think);
-              extraContent.think =
-                extraContent?.think === null
-                  ? parsedData.think
-                  : extraContent.think + parsedData.think;
-            }
-            if (parsedData?.signature) {
-              extraContent.signature = parsedData.signature;
-            }
-            if (parsedData?.thoughtSignature) {
-              extraContent.thoughtSignature = parsedData.thoughtSignature;
-            }
-            if (parsedData?.modelParts) {
-              // console.log("parsedData?.modelParts", parsedData?.modelParts);
-              extraContent.modelParts = parsedData.modelParts;
-            }
-
-            if (parsedData?.openaiResponseOutput) {
-              extraContent.openaiResponseOutput =
-                parsedData.openaiResponseOutput;
-            }
-            if (parsedData?.anthropicResponseOutput) {
-              extraContent.anthropicResponseOutput =
-                parsedData.anthropicResponseOutput;
-            }
-            if (parsedData?.reasoningDetails) {
-              extraContent.reasoningDetails = parsedData.reasoningDetails;
-            }
-            if (parsedData?.groundingChunks) {
-              extraContent.groundingChunks = [
-                ...extraContent.groundingChunks,
-                ...parsedData.groundingChunks,
-              ];
-            }
-            if (parsedData?.groundingSupports) {
-              extraContent.groundingSupports = [
-                ...extraContent.groundingSupports,
-                ...parsedData.groundingSupports,
-              ];
-            }
-            if (parsedData?.search_results) {
-              extraContent.search_results = [
-                ...extraContent.search_results,
-                ...parsedData.search_results,
-              ];
-            }
-            if (parsedData?.openai_search_results) {
-              extraContent.openai_search_results = [
-                ...extraContent.openai_search_results,
-                ...parsedData.openai_search_results,
-              ];
-            }
-            if (parsedData?.annotation_item) {
-              extraContent.annotations = [
-                ...extraContent.annotations,
-                parsedData.annotation_item,
-              ];
-              // extraContent.annotations.push(parsedData.annotation_item);
-            }
-            if (parsedData?.query) {
-              extraContent.queries = [
-                ...extraContent.queries,
-                parsedData.query,
-              ];
-              // extraContent.queries.push(parsedData.query);
-            }
-            if (parsedData?.search) {
-              extraContent.results = [
-                ...extraContent.results,
-                parsedData.search,
-              ];
-              // extraContent.results.push(parsedData.search);
-            }
-
-            newBotEntry = {
-              key: JSON.stringify(array),
-              globalIdBot: newGlobalIdBot,
-              content: tempChunks,
-              role: "bot",
-              status: "reading",
-              model: model,
-              modelConfig,
-              ...extraContent,
-            };
-            setBotMessages((v) => {
-              return v.map((m) =>
-                m.key === JSON.stringify(array) ? newBotEntry : m,
-              );
-            });
+            processParsedItem(parsedData);
           } catch (e) {
-            console.error("Failed to parse JSON:", e);
+            console.error("Failed to parse JSON line:", e, jsonStr);
           }
+        }
+      }
+
+      streamBuffer += decoder.decode();
+      if (streamBuffer.trim()) {
+        try {
+          const parsedData = JSON.parse(streamBuffer.trim());
+          processParsedItem(parsedData);
+        } catch (e) {
+          console.error("Failed to parse trailing JSON buffer:", e);
         }
       }
       // END: streaming the LLM
