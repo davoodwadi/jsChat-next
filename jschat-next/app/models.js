@@ -490,7 +490,7 @@ export const geminiModelsWithMeta = [
     new: true,
     vision: true,
     hasReasoning: true,
-    reasoningLevels: ["minimal", "low", "medium", "high"],
+    reasoningLevels: ["low", "medium", "high"],
     defaultReasoningEffort: "high",
     hasDeepResearch: true,
     hasSearch: true,
