@@ -469,6 +469,20 @@ export const xAIModelsWithMeta = [
 ];
 export const geminiModelsWithMeta = [
   {
+    name: "Gemini 4 Carbon",
+    model: "gemini-4-carbon",
+    meta: "Google's Latest LLM With Web Search and Thinking Capabilities",
+    new: true,
+    vision: true,
+    hasReasoning: true,
+    reasoningLevels: ["low", "medium", "high"],
+    defaultReasoningEffort: "high",
+    hasDeepResearch: true,
+    hasSearch: true,
+    icon: BrainIcon,
+    default: true,
+  },
+  {
     name: "Gemini 4 Argon",
     model: "gemini-4-argon",
     meta: "Google's Latest LLM With Web Search and Thinking Capabilities",
