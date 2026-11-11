@@ -494,7 +494,7 @@ export const geminiModelsWithMeta = [
     hasDeepResearch: true,
     hasSearch: true,
     icon: BrainIcon,
-    default: true,
+    default: false,
   },
 
   {
